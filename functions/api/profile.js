@@ -14,7 +14,22 @@ const headers = {
 };
 
 async function requestJson(url) {
-  const response = await fetch(url, { headers, signal: AbortSignal.timeout(10000), cf: { cacheTtl: 45, cacheEverything: true } });
+  let response;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    response = await fetch(url, {
+      headers,
+      signal: AbortSignal.timeout(10000),
+      cf: { cacheTtl: 45, cacheEverything: true }
+    });
+    if (attempt === 0 && (response.status === 429 || response.status === 503)) {
+      const retryHeader = Number(response.headers.get("Retry-After"));
+      const waitSeconds = Number.isFinite(retryHeader) && retryHeader > 0 ? Math.min(retryHeader, 3) : 1;
+      await response.body?.cancel();
+      await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+      continue;
+    }
+    break;
+  }
   const body = await response.text();
   if (!response.ok) throw new Error("NCSOFT API HTTP " + response.status + ": " + body.slice(0, 180));
   try { return JSON.parse(body); }
