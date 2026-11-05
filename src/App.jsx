@@ -139,6 +139,13 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
     how: [entry2100, "Fire Temple — данжевый источник Enraged Kromede Necklace, Earrings и Ring.", "Сначала сравни слоты с худшими бонусами и не теряй Attack, Critical Hit и Accuracy ради одного Item Level.", "В top Global выборке Dragon Lord аксессуары встречаются чаще; Enraged Kromede — dungeon progression, а не заявленный BiS."],
     priority: "Средний", target: "Fire Temple", sourceUrl: "https://aion2.gg/database/drop-rates?type=Equip", sourceLabel: "AION2.GG · таблица наград"
   });
+  const clashRunes = equipped.filter(x => /clash rune/i.test(x.name || x.itemName || "") && Number(x.enchantLevel) < 5);
+  if (clashRunes.length) plan.push({
+    title: "Clash Rune · следующий рубеж +5",
+    detail: clashRunes.length + " руны Clash ниже +5",
+    how: ["В Global top 136 Ranger Clash Rune использовали 100%, типичная заточка — +5.", "Сравни стоимость +5 с текущими приоритетами по оружию и данжевой броне.", "Это небольшой добор после ключевых слотов, а не причина откладывать замену Vakron."],
+    priority: "Низкий", target: "Руны", sourceUrl: "https://aion2-meta.com/guides/ranger/", sourceLabel: "AION2 META · Global top 136"
+  });
   const magicChalice = arcanaItems.find(x => /chalice of magic/i.test(x.name || x.itemName || ""));
   if (magicChalice) plan.push({
     title: "Arcana: Chalice of Vigor",
