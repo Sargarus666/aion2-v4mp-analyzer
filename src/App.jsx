@@ -84,7 +84,7 @@ function imageSource(value) {
   } catch { /* ignore unsupported icon references */ }
   return "";
 }
-function makeFarmPlan(items, stats, boards, skills) {
+function makeFarmPlan(items, stats, boards, skills, gs) {
   const plan = [];
   const gaps = getSkillProgress(skills || []).filter(x => x.level != null && x.level < x.target).slice(0,3);
   gaps.forEach((x,i) => plan.push({
@@ -113,6 +113,38 @@ function makeFarmPlan(items, stats, boards, skills) {
     detail: "API не вернул однозначно распознанный слот оружия.",
     how: ["Проверь, что список экипировки загрузился полностью.", "После появления названия лука и его характеристик можно сопоставить его с таблицей дропа."],
     priority: "Проверка данных", target: "Оружие"
+  });
+  const gsNumber = Number(gs);
+  const entry2100 = Number.isFinite(gsNumber) && gsNumber >= 2100
+    ? "Порог 2100 GS пройден: сейчас " + fmt(gsNumber) + "."
+    : "Для входа в Conquest Tier 3 нужен 2100 GS" + (Number.isFinite(gsNumber) ? "; сейчас " + fmt(gsNumber) + "." : ".");
+  const vakronItems = equipped.filter(x => /vakron/i.test(x.name || x.itemName || ""));
+  if (vakronItems.length) plan.push({
+    title: "Nuakum · комплект из данжа",
+    detail: vakronItems.length + " предмет(а) Vakron в текущем профиле",
+    how: [entry2100, "Следующий dungeon-шаг для брони — Nuakum из Ferocious Horn Den (Conquest Tier 3).", "Сравни soul-binding строки и бонусы каждого слота; не меняй Vakron +10 на случайный предмет без подтверждённого прироста.", "Это промежуточный данжевый маршрут; top Global выборка чаще носит Dragon Lord, но это уже отдельная crafted/endgame цель."],
+    priority: "Высокий", target: "Ferocious Horn Den"
+  });
+  const weaponName = weapon?.name || weapon?.itemName || "";
+  if (/spiritforged/i.test(weaponName)) plan.push({
+    title: "Enraged Kromede Longbow",
+    detail: "Данжевая альтернатива текущему Spiritforged Bow",
+    how: [entry2100, "Проверить Fire Temple (Conquest Tier 3): глобальная таблица дропа указывает Enraged Kromede Longbow.", "Сравнить базовую атаку, Accuracy, Critical Hit и Soul Binding с текущим Spiritforged Bow + заточка.", "Долгосрочный ориентир top Global — Splendent Dragon Lord Bow; это не означает, что нужно немедленно уходить в крафт."],
+    priority: "Высокий", target: "Fire Temple"
+  });
+  const aulamusJewelry = equipped.filter(x => /aulamus/i.test(x.name || x.itemName || "") && /necklace|earring|ring|ожерель|серьг|кольц/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
+  if (aulamusJewelry.length) plan.push({
+    title: "Enraged Kromede · аксессуары",
+    detail: aulamusJewelry.length + " аксессуар(а) Aulamus в текущем профиле",
+    how: [entry2100, "Fire Temple — данжевый источник Enraged Kromede Necklace, Earrings и Ring.", "Сначала сравни слоты с худшими бонусами и не теряй Attack, Critical Hit и Accuracy ради одного Item Level.", "В top Global выборке Dragon Lord аксессуары встречаются чаще; Enraged Kromede — dungeon progression, а не заявленный BiS."],
+    priority: "Средний", target: "Fire Temple"
+  });
+  const magicChalice = equipped.find(x => /chalice of magic/i.test(x.name || x.itemName || ""));
+  if (magicChalice) plan.push({
+    title: "Arcana: Chalice of Vigor",
+    detail: "Сейчас: " + (magicChalice.name || magicChalice.itemName) + " · Common",
+    how: ["В выборке Global top 136 Chalice of Vigor встречается у 94.1%, Chalice of Magic — у 5.9%.", "Проверь доступный способ получения/обмена и сравни фактический бонус карты до замены.", "Частота использования — ориентир, а не доказанный процент прироста DPS."],
+    priority: "Средний", target: "Arcana"
   });
   const weak = equipped.filter(x => x.enchantLevel != null).sort((a,b)=>Number(a.enchantLevel)-Number(b.enchantLevel)).slice(0,3);
   weak.forEach(x => plan.push({
@@ -159,7 +191,7 @@ export default function App() {
   const gs=statValue(stats,["ItemLevel","Item Level","GearScore","Gear Score","GS"]) ?? get(character,"itemLevel","item_level","gearScore","gear_score");
   const skillMeta=getSkillProgress(skills);
   const stigmaMeta=getStigmaProgress(skills);
-  const farm=useMemo(()=>makeFarmPlan(equipment,stats,boards,skills),[profile]);
+  const farm=useMemo(()=>makeFarmPlan(equipment,stats,boards,skills,gs),[profile]);
   const title=get(character,"name","characterName","character_name") || CHARACTER.name;
   return <main className="shell">
     <header className="topbar"><a className="brand" href="#"><span className="brand-mark">A2</span><span>AION 2 <b>BUILD LAB</b></span></a><div className="top-actions"><span className="live-dot">NCSOFT PROFILE</span><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Shugo.GG ↗</a><a className="profile-link" href={CHARACTER.sourceUrl} target="_blank" rel="noreferrer">NotMeter ↗</a></div></header>
