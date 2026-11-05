@@ -171,3 +171,23 @@ footer { text-align:center; padding:30px 0; color:var(--md-sys-color-outline); f
 .build-image-link { display:block; overflow:hidden; border:1px solid var(--md-sys-color-outline-variant); border-radius:18px; background:var(--md-sys-color-surface-container-low); }
 .build-image { display:block; width:100%; max-height:780px; object-fit:contain; }
 .build-image-panel .muted { margin:11px 2px 0; }
+
+
+/* Compact build screenshot and clean, always-visible farm cards */
+.build-image-link { width:fit-content; max-width:100%; margin:16px auto 0; }
+.build-image { width:auto; max-width:min(100%,360px); max-height:420px; margin:0 auto; object-fit:contain; }
+.farm-panel { padding:24px; }
+.farm-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.farm-heading h2 { margin:0; }
+.farm-intro { max-width:760px; margin:12px 0 18px; }
+.farm-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.farm-card { min-width:0; padding:17px; border:1px solid var(--md-sys-color-outline-variant); border-radius:18px; background:var(--md-sys-color-surface-container-low); }
+.farm-card-top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.farm-index { color:var(--md-sys-color-primary); font-size:11px; font-weight:800; letter-spacing:.08em; }
+.farm-card h3 { margin:13px 0 6px; font-size:14px; line-height:1.4; font-weight:700; }
+.farm-card-detail { min-height:34px; margin:0; color:var(--md-sys-color-on-surface-variant); font-size:11px; line-height:1.55; }
+.farm-next { margin-top:15px; padding:12px; border-radius:13px; background:var(--md-sys-color-surface-container); }
+.farm-next span { color:var(--md-sys-color-primary); font-size:9px; font-weight:800; letter-spacing:.1em; }
+.farm-next p { margin:6px 0 0; color:var(--md-sys-color-on-surface-variant); font-size:11px; line-height:1.6; }
+.farm-card-foot { display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px 12px; margin-top:13px; padding-top:10px; border-top:1px solid var(--md-sys-color-outline-variant); color:var(--md-sys-color-outline); font-size:9px; }
+@media(max-width:680px) { .farm-grid { grid-template-columns:1fr; } .farm-panel { padding:18px; } .farm-card-detail { min-height:0; } }
