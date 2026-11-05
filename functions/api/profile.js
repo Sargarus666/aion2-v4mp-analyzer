@@ -13,13 +13,13 @@ const headers = {
   "Referer": "https://aion2.plaync.com/"
 };
 
-async function requestJson(url) {
+async function requestJson(url, { forceRefresh = false } = {}) {
   let response;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     response = await fetch(url, {
       headers,
       signal: AbortSignal.timeout(10000),
-      cf: { cacheTtl: 45, cacheEverything: true }
+      cf: { cacheTtl: forceRefresh ? 0 : 45, cacheEverything: true }
     });
     if (attempt === 0 && (response.status === 429 || response.status === 503)) {
       const retryHeader = Number(response.headers.get("Retry-After"));
@@ -36,8 +36,9 @@ async function requestJson(url) {
   catch { throw new Error("NCSOFT API вернул не JSON: " + body.slice(0, 180)); }
 }
 
-export async function onRequestGet() {
+export async function onRequestGet({ request } = {}) {
   try {
+    const forceRefresh = Boolean(request && new URL(request.url).searchParams.get("refresh") === "1");
     const params = new URLSearchParams({
       region: CHARACTER.region,
       lang: "en-US",
@@ -45,10 +46,15 @@ export async function onRequestGet() {
       serverId: CHARACTER.serverId
     });
     const base = "https://aion2.plaync.com/api/character/";
-    const [info, gear] = await Promise.all([
-      requestJson(base + "info?" + params.toString()),
-      requestJson(base + "equipment?" + params.toString())
+    const [infoResult, gearResult] = await Promise.allSettled([
+      requestJson(base + "info?" + params.toString(), { forceRefresh }),
+      requestJson(base + "equipment?" + params.toString(), { forceRefresh })
     ]);
+    const info = infoResult.status === "fulfilled" ? infoResult.value : {};
+    const gear = gearResult.status === "fulfilled" ? gearResult.value : {};
+    const warnings = [];
+    if (infoResult.status === "rejected") warnings.push("Профиль и статы: " + String(infoResult.reason?.message || "ошибка источника").slice(0, 180));
+    if (gearResult.status === "rejected") warnings.push("Экипировка и навыки: " + String(gearResult.reason?.message || "ошибка источника").slice(0, 180));
 
     const data = normalizeProfileResponse(info, gear);
     const { profile, stat, daevanion, equipment, skill } = data;
@@ -68,17 +74,20 @@ export async function onRequestGet() {
           skillCount,
           boardCount,
           statKeys: Object.keys(stat || {}),
-          equipmentCount: equipmentList.length
+          equipmentCount: equipmentList.length,
+          warnings
         }
-      }, { status: 502 });
+      }, { status: 502, headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
     }
 
     return Response.json({
       ok: true,
       source: "NCSOFT public character API",
       fetchedAt: new Date().toISOString(),
+      partial: warnings.length > 0,
+      warnings,
       data
-    }, { headers: { "Cache-Control": "public, max-age=20, s-maxage=45", "X-Content-Type-Options": "nosniff" } });
+    }, { headers: { "Cache-Control": forceRefresh || warnings.length ? "no-store" : "public, max-age=20, s-maxage=45", "X-Content-Type-Options": "nosniff" } });
   } catch (error) {
     return Response.json({ ok: false, error: error?.message || "Не удалось получить профиль NCSOFT." }, { status: 502 });
   }
