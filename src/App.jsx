@@ -1,37 +1,58 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 const CHARACTER = {
-  name: "v4mp",
-  className: "Ranger",
-  server: "EU · Kromede",
+  name: "v4mp", className: "Ranger", server: "EU · Kromede",
   sourceUrl: "https://notmeter.com/?view=character&serverId=2316&characterId=6Q-UpcYBkUxRaoy_p3rjpM_kwjwWlBxUxx2BTNdYXHY%3D&name=v4mp&region=ww&globalRegion=eu"
 };
-const tabs = ["Обзор", "Экипировка", "Статы", "Навыки", "Дэва", "План фарма"];
+const tabs = ["Обзор", "Экипировка", "Статы", "Навыки", "Дэва", "План фарма", "Бои"];
 const arr = v => Array.isArray(v) ? v : [];
 const get = (o, ...keys) => { for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null && o?.[k] !== "") return o[k]; return null; };
 const fmt = v => v == null || v === "" ? "—" : Number(v).toLocaleString("ru-RU");
 const norm = v => String(v ?? "").toLowerCase().replace(/[ _-]/g, "");
-
 function statValue(list, names) {
   const hit = list.find(s => names.some(n => norm(s.name) === norm(n) || norm(s.type) === norm(n)));
   return hit?.value ?? null;
 }
+function imageSource(value) {
+  if (!value || typeof value !== "string") return "";
+  const v = value.trim();
+  if (/^https?:\/\//i.test(v)) return v;
+  if (v.startsWith("//")) return "https:" + v;
+  return "";
+}
 function makeFarmPlan(items, stats, boards) {
   const plan = [];
   const equipped = items.filter(x => x && (x.name || x.itemName));
-  const weapon = equipped.filter(x => /weapon|bow|лук|оруж/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
-  if (!weapon.length) plan.push({title:"Проверить основное оружие",detail:"В публичном ответе не найден слот оружия. Пока не подтверждено, что экипировка загружена полностью.",priority:"Проверка данных"});
-  else {
-    const w = weapon[0];
-    plan.push({title:"Оружие — главный кандидат на апгрейд",detail:[w.name || w.itemName, w.enchantLevel != null ? "заточка +"+w.enchantLevel : null, w.grade].filter(Boolean).join(" · ") + ". Для Ranger сравнивай прирост урона по боссу, а не только GS.",priority:"Высокий"});
-  }
+  const weapon = equipped.find(x => /weapon|bow|лук|оруж/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
+  if (weapon) plan.push({
+    title: "Оружие — первый слот для проверки",
+    detail: "Текущий предмет: " + (weapon.name || weapon.itemName) + (weapon.enchantLevel != null ? " · заточка +" + weapon.enchantLevel : "") + (weapon.grade ? " · " + weapon.grade : ""),
+    how: ["Сравнить базовую атаку и атакующие характеристики нового лука с текущим.", "Сначала проверить дроп в доступных тебе данжах и награды за недельные активности.", "Менять оружие только если прирост реального урона по боссу выше, чем от заточки/камней текущего."],
+    priority: "Высокий", target: "Оружие"
+  });
+  else plan.push({
+    title: "Проверить слот оружия",
+    detail: "API не вернул однозначно распознанный слот оружия.",
+    how: ["Проверь, что список экипировки загрузился полностью.", "После появления названия лука и его характеристик можно сопоставить его с таблицей дропа."],
+    priority: "Проверка данных", target: "Оружие"
+  });
   const weak = equipped.filter(x => x.enchantLevel != null).sort((a,b)=>Number(a.enchantLevel)-Number(b.enchantLevel)).slice(0,3);
-  weak.forEach(x => plan.push({title:"Проверить улучшение: "+(x.name || x.itemName),detail:"Текущая заточка +"+x.enchantLevel+(x.slotPosName ? " · "+x.slotPosName : "")+". Сравнить стоимость улучшения с альтернативным дропом.",priority:"Средний"}));
+  weak.forEach(x => plan.push({
+    title: "Слабый слот: " + (x.name || x.itemName),
+    detail: (x.slotPosName || x.slot || "Предмет") + " · заточка +" + x.enchantLevel + (x.grade ? " · " + x.grade : ""),
+    how: ["Сравнить стоимость следующего уровня заточки с заменой предмета на данжевый.", "Проверить, какие характеристики даёт слот: крит, точность, атака и другие бонусы.", "Не вкладывать редкие материалы в предмет, который скоро заменишь более высоким тиром."],
+    priority: "Средний", target: x.slotPosName || "Экипировка"
+  }));
   if (boards.length) {
     const incomplete = boards.filter(b => Number(b.openNodeCount ?? 0) < Number(b.totalNodeCount ?? 0));
-    if (incomplete.length) plan.push({title:"Продвинуть Дэваanion",detail:incomplete.map(b => b.name+" "+(b.openNodeCount ?? 0)+"/"+(b.totalNodeCount ?? "?")).join(" · ")+". Выбирать узлы с атакующими характеристиками и полезными уровнями навыков.",priority:"Средний"});
+    incomplete.forEach(b => plan.push({
+      title: "Дэваanion: " + (b.name || "доска"),
+      detail: (b.openNodeCount ?? "—") + " / " + (b.totalNodeCount ?? "—") + " открытых узлов",
+      how: ["Открывать узлы, усиливающие урон Ranger и характеристики, влияющие на стабильность попаданий.", "Сверять бонус каждого узла с фактическими статами персонажа, а не выбирать только по Item Level.", "Для точного маршрута нужны данные nodeList и требования к каждому узлу."],
+      priority: "Средний", target: "Дэваanion"
+    }));
   }
-  if (!plan.length) plan.push({title:"Нужна детализация экипировки",detail:"Профиль получен, но данных пока недостаточно для честного ранжирования источников фарма.",priority:"Ожидание"});
+  if (!plan.length) plan.push({title:"Недостаточно данных",detail:"Профиль пока не содержит экипировки для ранжирования.",how:["Обновить профиль и проверить источник данных."],priority:"Ожидание",target:"Профиль"});
   return plan;
 }
 
@@ -50,6 +71,7 @@ export default function App() {
   useEffect(()=>{loadProfile();},[]);
   const character=profile?.profile || {};
   const equipment=arr(profile?.equipment?.equipmentList);
+  const skins=arr(profile?.equipment?.skinList);
   const stats=arr(profile?.stat?.statList);
   const skills=arr(profile?.skill?.skillList);
   const boards=arr(profile?.daevanion?.boardList);
@@ -67,16 +89,23 @@ export default function App() {
       <Metric label="ЭКИПИРОВКА" value={equipment.length ? equipment.length+" предметов" : "—"} hint={equipment.length ? "Получено из API" : "Нет подтверждённых данных"}/>
     </section>
     <nav className="tabs">{tabs.map(t=><button key={t} className={tab===t?"active":""} onClick={()=>setTab(t)}>{t}</button>)}</nav>
-    {tab==="Обзор" && <section className="content-grid"><article className="panel"><div className="panel-head"><div><p className="eyebrow">CHARACTER DATA</p><h2>Профиль персонажа</h2></div><span className="tag">{profile?"Данные получены":"Нет данных"}</span></div><Status label="Персонаж" value={title}/><Status label="Класс" value={get(character,"className","class") || CHARACTER.className}/><Status label="Сервер" value={get(character,"serverName","server") || CHARACTER.server}/><Status label="Уровень" value={get(character,"level","characterLevel") ?? "—"}/><Status label="Навыки" value={skills.length}/><p className="disclaimer">Только публичные данные NCSOFT. Значения GS и CP показываются отдельно и не подменяются расчётными числами.</p></article><aside className="panel"><p className="eyebrow">DATA STATUS</p><h2>Состав профиля</h2><Status label="Экипировка" value={equipment.length}/><Status label="Статы" value={stats.length}/><Status label="Навыки" value={skills.length}/><Status label="Дэва" value={boards.length}/><div className="callout">{updated?"Обновлено: "+updated:"Автозагрузка профиля v4mp."}</div></aside></section>}
-    {tab==="Экипировка" && <section className="panel"><h2>Экипировка</h2>{equipment.length?equipment.map((x,i)=><DataRow key={i} title={get(x,"name","itemName")||"Предмет"} detail={[get(x,"slotPosName","slot"),get(x,"grade"),x.enchantLevel!=null?"+"+x.enchantLevel:null].filter(Boolean).join(" · ")}/>):<Empty error={error}/>}</section>}
+    {tab==="Обзор" && <section className="content-grid"><article className="panel"><div className="panel-head"><div><p className="eyebrow">CHARACTER DATA</p><h2>Профиль персонажа</h2></div><span className="tag">{profile?"Данные получены":"Нет данных"}</span></div><Status label="Персонаж" value={title}/><Status label="Класс" value={get(character,"className","class") || CHARACTER.className}/><Status label="Сервер" value={get(character,"serverName","server") || CHARACTER.server}/><Status label="Уровень" value={get(character,"level","characterLevel") ?? "—"}/><Status label="Навыки" value={skills.length}/><p className="disclaimer">Только публичные данные NCSOFT. Значения GS и CP показываются отдельно и не подменяются расчётными числами.</p></article><aside className="panel"><p className="eyebrow">DATA STATUS</p><h2>Состав профиля</h2><Status label="Экипировка" value={equipment.length}/><Status label="Статы" value={stats.length}/><Status label="Навыки" value={skills.length}/><Status label="Дэва" value={boards.length}/><Status label="Образы/скины" value={skins.length}/><div className="callout">{updated?"Обновлено: "+updated:"Автозагрузка профиля v4mp."}</div></aside></section>}
+    {tab==="Экипировка" && <section className="panel"><h2>Экипировка</h2>{equipment.length?<div className="visual-list">{equipment.map((x,i)=><VisualRow key={i} item={x} kind="item"/> )}</div>:<Empty error={error}/ >}{skins.length>0&&<><h2 className="section-subtitle">Облики</h2><div className="visual-list">{skins.map((x,i)=><VisualRow key={i} item={x} kind="item"/>)}</div></>}</section>}
     {tab==="Статы" && <section className="panel"><h2>Боевые характеристики</h2>{stats.length?stats.map((x,i)=><DataRow key={i} title={get(x,"name","type")||"Статистика"} detail={get(x,"value")??"—"}/>):<Empty error={error}/>}</section>}
-    {tab==="Навыки" && <section className="panel"><h2>Навыки</h2>{skills.length?skills.map((x,i)=><DataRow key={i} title={get(x,"name")||"Навык"} detail={["Ур. "+(get(x,"skillLevel","level")??"—"),get(x,"category"),x.equip?"Экипирован":null].filter(Boolean).join(" · ")}/>):<Empty error={error}/>}</section>}
+    {tab==="Навыки" && <section className="panel"><h2>Навыки</h2>{skills.length?<div className="visual-list">{skills.map((x,i)=><VisualRow key={i} item={x} kind="skill"/>)}</div>:<Empty error={error}/>}</section>}
     {tab==="Дэва" && <section className="panel"><h2>Дэваanion</h2>{boards.length?boards.map((x,i)=><DataRow key={i} title={get(x,"name")||"Доска"} detail={(x.openNodeCount??"—")+" / "+(x.totalNodeCount??"—")+" узлов"}/>):<Empty error={error}/>}</section>}
-    {tab==="План фарма" && <section className="panel"><p className="eyebrow">RANGER / BOSS DPS</p><h2>Приоритет улучшений</h2><p className="muted">План строится по экипировке и прогрессу Дэваanion из профиля. Это предварительная оценка слотов, не симулятор DPS: точный прирост урона можно считать после получения характеристик предметов и эффектов.</p>{farm.map((x,i)=><div className="plan-row" key={i}><span className="number">{i+1}</span><div className="plan-copy"><b>{x.title}</b><p>{x.detail}</p></div><span className="priority">{x.priority}</span></div>)}{!profile&&<Empty error={error}/>}</section>}
+    {tab==="План фарма" && <section className="panel"><p className="eyebrow">RANGER / BOSS DPS</p><h2>План фарма — подробности по нажатию</h2><p className="muted">Каждый пункт раскрывается. Сейчас рекомендации привязаны к найденным слотам и заточке; точные названия данжей и таблицы дропа добавим после получения полной базы предметов/источников, чтобы не выдумывать места выпадения.</p>{farm.map((x,i)=><details className="farm-accordion" key={i}><summary><span className="number">{i+1}</span><span className="farm-summary-copy"><b>{x.title}</b><small>{x.detail}</small></span><span className="priority">{x.priority}</span><span className="chevron">⌄</span></summary><div className="farm-detail"><div className="farm-detail-label">ЧТО ДЕЛАТЬ</div><ol>{x.how.map((line,j)=><li key={j}>{line}</li>)}</ol><div className="farm-detail-foot"><span>Цель: {x.target}</span><span>Основание: данные текущего профиля</span></div></div></details>)}{!profile&&<Empty error={error}/>}</section>}
+    {tab==="Бои" && <section className="panel"><p className="eyebrow">NOTMETER / COMBAT HISTORY</p><h2>Последние 5 боёв v4mp</h2><div className="callout">Проверка источника: публичный профиль NotMeter и публичные рейтинги доступны отдельно, но я пока не подтвердил открытый API, который отдаёт полную личную историю боёв персонажа с детализацией урона. Поэтому не буду подставлять рейтинговые значения или чужие бои под видом твоих последних пяти.</div><div className="combat-empty"><div className="combat-icon">⚔</div><b>История боёв пока не подключена</b><p>Как только подтвердим формат NotMeter combat endpoint, здесь появятся 5 последних записей: босс/данж, дата, длительность, общий урон, DPS, твоя доля урона и разбивка по навыкам.</p><a href={CHARACTER.sourceUrl} target="_blank" rel="noreferrer">Открыть твой профиль NotMeter ↗</a></div></section>}
     <footer>Fan-made companion · Read-only · {profile?"Профиль загружен":"Ожидание профиля"}{updated?" · "+updated:""}</footer>
   </main>;
 }
 function Metric({label,value,hint}){return <div className="metric"><span>{label}</span><strong>{value}</strong><small>{hint}</small></div>}
 function Status({label,value}){return <div className="status-row"><span>{label}</span><b>{value}</b></div>}
 function DataRow({title,detail}){return <div className="plan-row"><span className="number">•</span><div className="plan-copy"><b>{title}</b><p>{detail}</p></div></div>}
+function VisualRow({item,kind}) {
+  const name=get(item,"name","itemName","skillName")||"Без названия";
+  const icon=imageSource(get(item,"icon","iconUrl","image","imageUrl","thumbnail"));
+  const meta=kind==="skill"?["Ур. "+(get(item,"skillLevel","level")??"—"),get(item,"category"),item.equip?"Экипирован":null].filter(Boolean).join(" · "):[get(item,"slotPosName","slot"),get(item,"grade"),item.enchantLevel!=null?"+"+item.enchantLevel:null].filter(Boolean).join(" · ");
+  return <div className="visual-row"><div className={"visual-icon "+(kind==="skill"?"skill-icon":"")}>{icon?<img src={icon} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display="none";}}/>:<span>{kind==="skill"?"✦":"◇"}</span>}</div><div className="visual-copy"><b>{name}</b><small>{meta||"—"}</small></div>{kind==="skill"&&<span className="skill-level">{get(item,"skillLevel","level")??""}</span>}</div>;
+}
 function Empty({error}){return <div className="empty-state"><span>＋</span><b>{error?"Источник не отдал данные":"Нет данных для этого раздела"}</b><small>{error||"Обнови профиль позже."}</small></div>}
