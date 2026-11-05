@@ -128,7 +128,7 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
   const weaponName = weapon?.name || weapon?.itemName || "";
   if (/spiritforged/i.test(weaponName)) plan.push({
     title: "Enraged Kromede Longbow",
-    detail: "Данжевая альтернатива текущему Spiritforged Bow",
+    detail: "Сейчас: " + weaponName + (weapon.enchantLevel != null ? " +" + weapon.enchantLevel : "") + " · данжевая альтернатива",
     how: [entry2100, "Проверить Fire Temple (Conquest Tier 3): глобальная таблица дропа указывает Enraged Kromede Longbow.", "Сравнить базовую атаку, Accuracy, Critical Hit и Soul Binding с текущим Spiritforged Bow + заточка.", "Долгосрочный ориентир top Global — Splendent Dragon Lord Bow; это не означает, что нужно немедленно уходить в крафт."],
     priority: "Высокий", target: "Fire Temple", sourceUrl: "https://aion2.gg/database/drop-rates?type=Equip", sourceLabel: "AION2.GG · дроп-таблица 28.10"
   });
@@ -149,7 +149,7 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
   const magicChalice = arcanaItems.find(x => /chalice of magic/i.test(x.name || x.itemName || ""));
   if (magicChalice) plan.push({
     title: "Arcana: Chalice of Vigor",
-    detail: "Сейчас: " + (magicChalice.name || magicChalice.itemName) + " · Common",
+    detail: "Сейчас: " + (magicChalice.name || magicChalice.itemName) + (magicChalice.grade ? " · " + magicChalice.grade : ""),
     how: ["В выборке Global top 136 Chalice of Vigor встречается у 94.1%, Chalice of Magic — у 5.9%.", "Проверь доступный способ получения/обмена и сравни фактический бонус карты до замены.", "Частота использования — ориентир, а не доказанный процент прироста DPS."],
     priority: "Средний", target: "Arcana", sourceUrl: "https://aion2-meta.com/guides/ranger/", sourceLabel: "AION2 META · Global top 136"
   });
