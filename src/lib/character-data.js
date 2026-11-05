@@ -33,12 +33,12 @@ export function normalizeStatEntries(stat = {}) {
 }
 
 export function normalizeProfileResponse(info = {}, gear = {}) {
-  const infoData = info?.data ?? {};
-  const gearData = gear?.data ?? {};
+  const infoData = info?.data && typeof info.data === "object" && !Array.isArray(info.data) ? info.data : {};
+  const gearData = gear?.data && typeof gear.data === "object" && !Array.isArray(gear.data) ? gear.data : {};
   const character = firstObject(info?.character, infoData?.character);
   const profile = firstObject(info?.profile, infoData?.profile, character?.profile, character);
   const stat = firstObject(info?.stat, infoData?.stat, character?.stat, profile?.stat);
-  const equipment = firstObject(gear?.equipment, gearData?.equipment, gearData, gear);
+  const equipment = firstObject(gear?.equipment, gearData?.equipment, gearData?.equipmentList ? gearData : null, gear?.equipmentList ? gear : null);
   const skill = firstObject(gear?.skill, gearData?.skill, gearData?.skillList ? gearData : null, gear?.skillList ? gear : null);
   const daevanion = firstObject(info?.daevanion, infoData?.daevanion, character?.daevanion, profile?.daevanion);
 
