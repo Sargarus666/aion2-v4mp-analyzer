@@ -1,118 +1,97 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
-const initial = {
-  character: "v4mp", className: "Ranger", region: "Global EU · Kromede",
-  gearScore: 2200, combatPower: 100000,
-  profileUrl: "https://shugo.gg/character/global/eu-kromede/v4mp",
-  equipment: [], stats: {}, skills: [], arcana: []
+const CHARACTER = {
+  name: "v4mp",
+  serverId: "2316",
+  characterId: "6Q-UpcYBkUxRaoy_p3rjpM_kwjwWlBxUxx2BTNdYXHY=",
+  region: "eu",
+  sourceUrl: "https://notmeter.com/?view=character&serverId=2316&characterId=6Q-UpcYBkUxRaoy_p3rjpM_kwjwWlBxUxx2BTNdYXHY%3D&name=v4mp&region=ww&globalRegion=eu"
 };
 
-const tabs = ["Обзор", "Экипировка", "Статы", "Навыки", "Арканы", "План фарма"];
-const demoPlan = [
-  { name: "Проверить оружие и его альтернативы", why: "Для DPS по боссам сравнивать нужно базовые параметры, заточку, слоты и активные эффекты.", priority: "Высокий", status: "Нужны данные предмета" },
-  { name: "Сравнить аксессуары по статам", why: "Искать прирост точности/критов и профильных характеристик, а не только GS.", priority: "Высокий", status: "Нужны данные предметов" },
-  { name: "Проверить арканы и специализации навыков", why: "Эффект на ротацию и урон нельзя достоверно вывести из одного Combat Power.", priority: "Средний", status: "Нужен импорт" }
-];
+const tabs = ["Обзор", "Экипировка", "Статы", "Навыки", "Дэва", "План фарма"];
+const asArray = value => Array.isArray(value) ? value : [];
+const pick = (obj, ...keys) => {
+  for (const key of keys) if (obj?.[key] !== undefined && obj?.[key] !== null && obj?.[key] !== "") return obj[key];
+  return null;
+};
+const num = value => value == null ? "—" : Number(value).toLocaleString("ru-RU");
 
-function Metric({ label, value, hint }) {
-  return <div className="metric"><span>{label}</span><strong>{value}</strong><small>{hint}</small></div>;
-}
-
-export default function App() {
-  const [data, setData] = useState(initial);
+function App() {
+  const [profile, setProfile] = useState(null);
   const [tab, setTab] = useState("Обзор");
-  const [goal, setGoal] = useState("boss");
-  const [scope, setScope] = useState("global");
-  const [notice, setNotice] = useState("Профиль указан вручную. Нажми «Загрузить профиль», чтобы попробовать импорт.");
-  const [jsonText, setJsonText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [imported, setImported] = useState(null);
+  const [error, setError] = useState("");
+  const [updated, setUpdated] = useState("");
 
-  const plan = useMemo(() => {
-    if (goal === "gs") return [...demoPlan].sort((a,b) => (a.name.includes("оружие") ? -1 : 1));
-    return demoPlan;
-  }, [goal]);
+  const equipment = useMemo(() => asArray(profile?.equipment?.equipmentList), [profile]);
+  const skills = useMemo(() => asArray(profile?.skill?.skillList), [profile]);
+  const stats = useMemo(() => asArray(profile?.stat?.statList), [profile]);
+  const boards = useMemo(() => asArray(profile?.daevanion?.boardList), [profile]);
+  const character = profile?.profile || {};
 
-  async function importProfile() {
+  async function loadProfile() {
     setLoading(true);
-    setNotice("Загружаю публичную страницу Shugo.GG…");
+    setError("");
     try {
-      const response = await fetch("/api/profile?url=" + encodeURIComponent(data.profileUrl), { headers: { Accept: "application/json" } });
+      const response = await fetch("/api/profile");
       const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.error || "Не удалось импортировать профиль.");
-      const profile = result.profile;
-      setImported(profile);
-      setData(prev => ({
-        ...prev,
-        character: profile.character || prev.character,
-        className: profile.className || prev.className,
-        gearScore: profile.gearScore ?? prev.gearScore,
-        combatPower: profile.combatPower ?? prev.combatPower,
-        equipment: profile.equipment?.length ? profile.equipment : prev.equipment
-      }));
-      setNotice("Профиль прочитан. Импортировано предметов с уровнем заточки: " + (profile.equipment?.length || 0) + ". Проверь дату обновления в источнике.");
-    } catch (error) {
-      setNotice(error.message + " Можно продолжить через JSON-импорт.");
+      if (!response.ok || !result.ok) throw new Error(result.error || "Не удалось получить данные персонажа.");
+      setProfile(result.data);
+      setUpdated(new Date().toLocaleString("ru-RU"));
+    } catch (e) {
+      setError(e.message || "Ошибка загрузки");
     } finally {
       setLoading(false);
     }
   }
 
-  function importJson() {
-    try {
-      const parsed = JSON.parse(jsonText);
-      setData(prev => ({ ...prev, ...parsed }));
-      setNotice("JSON импортирован. Проверь, что поля соответствуют твоему персонажу.");
-    } catch {
-      setNotice("Не удалось прочитать JSON. Проверь синтаксис.");
-    }
-  }
-
-  function exportJson() {
-    const blob = new Blob([JSON.stringify({ ...data, importedProfile: imported }, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "v4mp-build.json"; a.click();
-    URL.revokeObjectURL(url);
-  }
+  useEffect(() => { loadProfile(); }, []);
 
   return <main className="shell">
     <header className="topbar">
       <a className="brand" href="#"><span className="brand-mark">A2</span><span>AION 2 <b>BUILD LAB</b></span></a>
-      <div className="top-actions"><span className="live-dot">MVP · READ ONLY</span><a className="profile-link" href={data.profileUrl} target="_blank" rel="noreferrer">Shugo.GG ↗</a></div>
+      <div className="top-actions"><span className="live-dot">LIVE PROFILE</span><a className="profile-link" href={CHARACTER.sourceUrl} target="_blank" rel="noreferrer">NotMeter ↗</a></div>
     </header>
 
     <section className="hero">
-      <div><p className="eyebrow">CHARACTER ANALYZER / GLOBAL</p><h1>{data.character}<em>’s build</em></h1><p className="sub">{data.className} <span>•</span> {data.region}</p></div>
-      <div className="hero-actions"><button className="secondary" onClick={exportJson}>Экспорт JSON ↓</button><button className="primary" onClick={importProfile} disabled={loading}>{loading ? "Загрузка…" : "Загрузить профиль ↻"}</button></div>
+      <div><p className="eyebrow">CHARACTER ANALYZER / EUROPE</p><h1>{pick(character, "name") || CHARACTER.name}<em>’s build</em></h1><p className="sub">{pick(character, "className", "class") || "Ranger"} <span>•</span> EU · Kromede <span>•</span> {pick(character, "level") ? "Lv. " + pick(character, "level") : "Уровень —"}</p></div>
+      <div className="hero-actions"><button className="primary" onClick={loadProfile} disabled={loading}>{loading ? "Загружаю…" : "Обновить профиль ↻"}</button></div>
     </section>
 
+    {error && <section className="panel"><b>Не удалось загрузить профиль</b><p className="muted">{error}</p><button className="secondary" onClick={loadProfile}>Повторить</button></section>}
+
     <section className="metrics">
-      <Metric label="GEAR SCORE" value={Number(data.gearScore || 0).toLocaleString("ru-RU")} hint={imported?.gearScore ? "Получено из публичного профиля" : "Последнее сохранённое значение"} />
-      <Metric label="COMBAT POWER" value={Number(data.combatPower || 0).toLocaleString("ru-RU")} hint={imported?.combatPower ? "Получено из публичного профиля" : "Не является оценкой DPS"} />
-      <Metric label="ЦЕЛЬ ОПТИМИЗАЦИИ" value={goal === "boss" ? "Boss DPS" : goal === "gs" ? "Gear Score" : goal === "cp" ? "Combat Power" : "Баланс"} hint="Выбери критерий ниже" />
+      <Metric label="COMBAT POWER" value={num(pick(character, "combatPower", "combat_power"))} hint="Официальные данные персонажа" />
+      <Metric label="GEAR / ITEM LEVEL" value={num(pick(character, "itemLevel", "item_level"))} hint="Значение из профиля" />
+      <Metric label="ЭКИПИРОВКА" value={equipment.length ? equipment.length + " предметов" : "—"} hint="Список с официальной страницы" />
     </section>
 
     <nav className="tabs">{tabs.map(t => <button key={t} className={tab === t ? "active" : ""} onClick={() => setTab(t)}>{t}</button>)}</nav>
 
     {tab === "Обзор" && <section className="content-grid">
-      <article className="panel main-panel"><div className="panel-head"><div><p className="eyebrow">OPTIMIZATION</p><h2>Приоритеты развития</h2></div><span className="tag">Черновой план</span></div>
-        <div className="selectors"><label>Цель<select value={goal} onChange={e => setGoal(e.target.value)}><option value="boss">Максимум DPS по боссам</option><option value="gs">Максимальный GS</option><option value="cp">Максимальный БМ</option><option value="balanced">Сбалансированно</option></select></label><label>Сравнение<select value={scope} onChange={e => setScope(e.target.value)}><option value="global">Топ Global</option><option value="eu">EU Kromede</option><option value="all">Все регионы</option></select></label></div>
-        {plan.map((p,i) => <div className="plan-row" key={p.name}><span className="number">0{i+1}</span><div className="plan-copy"><b>{p.name}</b><p>{p.why}</p><small>{p.status}</small></div><span className="priority">{p.priority}</span></div>)}
-        <p className="disclaimer">Это пока структура рекомендаций, а не рассчитанный рейтинг апгрейдов. Точные приросты появятся после полноценного импорта параметров предметов и проверки формул.</p>
+      <article className="panel main-panel"><div className="panel-head"><div><p className="eyebrow">CHARACTER DATA</p><h2>Профиль персонажа</h2></div><span className="tag">{profile ? "Загружено" : "Загрузка"}</span></div>
+        <div className="status-row"><span>Персонаж</span><b>{pick(character, "name") || CHARACTER.name}</b></div>
+        <div className="status-row"><span>Класс</span><b>{pick(character, "className", "class") || "Ranger"}</b></div>
+        <div className="status-row"><span>Сервер</span><b>{pick(character, "serverName", "server") || "Kromede · EU"}</b></div>
+        <div className="status-row"><span>Экипировка</span><b>{equipment.length || "—"} предметов</b></div>
+        <div className="status-row"><span>Навыки</span><b>{skills.length || "—"}</b></div>
+        <p className="disclaimer">Источник — публичные данные персонажа AION 2, которые использует NotMeter. Никаких ручных JSON-вставок и выдуманных характеристик.</p>
       </article>
-      <aside className="panel"><p className="eyebrow">DATA STATUS</p><h2>Данные персонажа</h2><div className="status-row"><span>Профиль</span><b className={imported ? "ok" : "muted"}>{imported ? "Импортирован" : "Ссылка задана"}</b></div><div className="status-row"><span>Экипировка</span><b className={data.equipment?.length ? "ok" : "warn"}>{data.equipment?.length ? data.equipment.length + " предметов" : "Не импортирована"}</b></div><div className="status-row"><span>Навыки / арканы</span><b className="warn">Требуется отдельный разбор</b></div><div className="status-row"><span>Топовые билды</span><b className="warn">Источник не подключён</b></div><div className="callout">{notice}</div>{imported?.fetchedAt && <p className="muted">Получено: {new Date(imported.fetchedAt).toLocaleString("ru-RU")}</p>}</aside>
+      <aside className="panel"><p className="eyebrow">DATA STATUS</p><h2>Состояние импорта</h2><div className="status-row"><span>Профиль</span><b className={profile ? "ok" : "muted"}>{profile ? "Получен" : loading ? "Загрузка…" : "Ожидание"}</b></div><div className="status-row"><span>Статы</span><b>{stats.length || "—"}</b></div><div className="status-row"><span>Дэва</span><b>{boards.length || "—"}</b></div><div className="callout">{updated ? "Обновлено: " + updated : "Автоматически загружаю v4mp с EU Kromede."}</div></aside>
     </section>}
 
-    {tab === "Экипировка" && <section className="panel"><h2>Экипировка</h2><p className="muted">Предметы, для которых удалось найти уровень заточки в публичном HTML профиля.</p>{data.equipment?.length ? data.equipment.map((item,i)=><div className="plan-row" key={item.name+i}><span className="number">＋{item.enchantLevel}</span><div className="plan-copy"><b>{item.name}</b><p>{item.source || "Импортированный предмет"} · слот пока не определён</p></div></div>) : <Empty />}</section>}
-    {tab === "Статы" && <section className="panel"><h2>Боевые характеристики</h2><p className="muted">GS и БМ берутся из заголовка профиля. Полный список характеристик требует отдельного источника данных.</p>{imported?.description && <div className="callout">{imported.description}</div>}<Empty /></section>}
-    {tab === "Навыки" && <section className="panel"><h2>Навыки и специализации</h2><p className="muted">Shugo.GG отображает приобретённые специальные навыки, но специализации навыков не предоставляет через публичный профиль.</p><Empty /></section>}
-    {tab === "Арканы" && <section className="panel"><h2>Арканы</h2><p className="muted">Публичная страница может содержать названия аркан, но пока не все детали и эффекты.</p>{imported?.sections?.Arcana?.length ? imported.sections.Arcana.map((line,i)=><div className="plan-row" key={i}><span className="number">✦</span><div className="plan-copy"><b>{line}</b></div></div>) : <Empty />}</section>}
-    {tab === "План фарма" && <section className="panel"><h2>План фарма</h2><p className="muted">Маршрут по данжам будет ранжироваться по ожидаемой выгоде: прирост GS, CP и отдельно DPS.</p>{plan.map(p => <div className="plan-row" key={p.name}><span className="number">→</span><div className="plan-copy"><b>{p.name}</b><p>{p.why}</p></div><span className="priority">{p.priority}</span></div>)}</section>}
+    {tab === "Экипировка" && <section className="panel"><h2>Экипировка</h2>{equipment.length ? equipment.map((item,i)=><DataRow key={i} title={pick(item,"name","itemName") || "Предмет"} detail={[pick(item,"slotPosName","slot"), pick(item,"grade"), pick(item,"enchantLevel") != null ? "+"+item.enchantLevel : null].filter(Boolean).join(" · ")} />) : <Empty loading={loading} />}</section>}
+    {tab === "Статы" && <section className="panel"><h2>Боевые характеристики</h2>{stats.length ? stats.map((s,i)=><DataRow key={i} title={pick(s,"name","type") || "Параметр"} detail={pick(s,"value") ?? "—"} />) : <Empty loading={loading} />}</section>}
+    {tab === "Навыки" && <section className="panel"><h2>Навыки</h2>{skills.length ? skills.map((s,i)=><DataRow key={i} title={pick(s,"name") || "Навык"} detail={["Ур. "+(pick(s,"skillLevel","level") ?? "—"),pick(s,"category"),pick(s,"equip") ? "Экипирован" : null].filter(Boolean).join(" · ")} />) : <Empty loading={loading} />}</section>}
+    {tab === "Дэва" && <section className="panel"><h2>Дэва/Дэваanion</h2>{boards.length ? boards.map((b,i)=><DataRow key={i} title={pick(b,"name") || "Доска"} detail={(pick(b,"openNodeCount") ?? "—")+" / "+(pick(b,"totalNodeCount") ?? "—")+" узлов"} />) : <Empty loading={loading} />}</section>}
+    {tab === "План фарма" && <section className="panel"><h2>План фарма</h2><p className="muted">Сначала загружаем реальные предметы, характеристики и навыки. После этого добавим сравнение апгрейдов по приросту босс-DPS, GS и БМ — без фиктивных оценок.</p><Empty loading={loading} /></section>}
 
-    <section className="panel import-panel"><div className="panel-head"><div><p className="eyebrow">IMPORT / EXPORT</p><h2>Импорт данных персонажа</h2></div><span className="tag">JSON</span></div><p className="muted">Если публичная страница временно недоступна, можно импортировать JSON с полями character, className, gearScore, combatPower, equipment, stats, skills и arcana.</p><textarea value={jsonText} onChange={e => setJsonText(e.target.value)} placeholder={'{\n  "gearScore": 2200,\n  "combatPower": 100000\n}'} /><div className="import-actions"><button className="primary" onClick={importJson}>Импортировать JSON</button><span className="notice">{notice}</span></div></section>
-    <footer>Fan-made companion tool · Данные профиля читаются из публичной страницы Shugo.GG. Неофициальный проект.</footer>
+    <footer>Fan-made companion · Read-only · {profile ? "Данные получены" : "Ожидание данных"}{updated ? " · " + updated : ""}</footer>
   </main>;
 }
 
-function Empty() { return <div className="empty-state"><span>＋</span><b>Пока нет данных</b><small>Этот раздел заполнится, когда источник предоставит нужные поля.</small></div>; }
+function Metric({label,value,hint}) { return <div className="metric"><span>{label}</span><strong>{value}</strong><small>{hint}</small></div>; }
+function DataRow({title,detail}) { return <div className="plan-row"><span className="number">•</span><div className="plan-copy"><b>{title}</b><p>{detail}</p></div></div>; }
+function Empty({loading}) { return <div className="empty-state"><span>＋</span><b>{loading ? "Загружаю данные…" : "Нет данных в ответе источника"}</b><small>{loading ? "Подожди немного." : "Нажми «Обновить профиль» и попробуй ещё раз."}</small></div>; }
+
+export default App;
