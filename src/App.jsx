@@ -125,11 +125,11 @@ export default function App() {
   async function loadProfile() {
     setLoading(true); setError("");
     try {
-      const r=await fetch("/api/profile?refresh="+Date.now(),{cache:"no-store"});
+      const r=await fetch("/api/profile?refresh="+Date.now(),{cache:"no-store",signal:AbortSignal.timeout(15000)});
       const result=await r.json();
       if(!r.ok || !result.ok) throw new Error(result.error || "Импорт не удался");
       setProfile(result.data); setUpdated(new Date().toLocaleString("ru-RU"));
-    } catch(e) { setError(e.message || "Ошибка загрузки"); }
+    } catch(e) { setError(e.name==="TimeoutError" ? "NCSOFT не ответил за 15 секунд. Попробуй обновить профиль ещё раз." : (e.message || "Ошибка загрузки")); }
     finally { setLoading(false); }
   }
   useEffect(()=>{loadProfile();},[]);
