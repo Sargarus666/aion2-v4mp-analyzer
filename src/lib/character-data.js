@@ -40,6 +40,10 @@ export function normalizeProfileResponse(info = {}, gear = {}) {
   const stat = firstObject(info?.stat, infoData?.stat, character?.stat, profile?.stat);
   const equipment = firstObject(gear?.equipment, gearData?.equipment, gearData?.equipmentList ? gearData : null, gear?.equipmentList ? gear : null);
   const skill = firstObject(gear?.skill, gearData?.skill, gearData?.skillList ? gearData : null, gear?.skillList ? gear : null);
+  const arcana = asArray(gearData?.arcanaList).length ? asArray(gearData.arcanaList)
+    : asArray(gearData?.arcana).length ? asArray(gearData.arcana)
+    : asArray(gear?.arcanaList).length ? asArray(gear.arcanaList)
+    : asArray(equipment?.arcanaList);
   const daevanion = firstObject(info?.daevanion, infoData?.daevanion, character?.daevanion, profile?.daevanion);
 
   return {
@@ -48,6 +52,7 @@ export function normalizeProfileResponse(info = {}, gear = {}) {
     daevanion,
     equipment,
     skill,
+    arcana,
     title: firstObject(info?.title, infoData?.title),
     ranking: firstObject(info?.ranking, infoData?.ranking)
   };
