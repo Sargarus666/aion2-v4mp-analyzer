@@ -621,3 +621,16 @@ footer { color:#72909d; }
 @media (prefers-reduced-motion:reduce) {
   body::before { display:none; }
 }
+
+
+/* Explicit data-quality states remain visible on compact screens. */
+.warning-panel {
+  border-color: rgba(230, 176, 91, .38);
+  background: linear-gradient(145deg, rgba(67, 51, 32, .34), rgba(28, 26, 34, .98));
+}
+.warning-panel > b, .error-panel > b { display:block; margin-bottom:8px; font-size:14px; }
+.warning-panel > small, .error-panel > small { display:block; margin-top:7px; color:var(--md-sys-color-on-surface-variant); font-size:10px; line-height:1.5; }
+@media(max-width:760px) {
+  .top-actions { max-width:68%; }
+  .live-dot { display:inline-flex; justify-content:flex-end; font-size:9px; text-align:right; }
+}
