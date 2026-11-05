@@ -1,47 +1,63 @@
-# AION 2 — v4mp Build Analyzer
+# AION 2 — v4mp Build Lab
 
-Responsive React/Vite MVP for a fan-made AION 2 Ranger build analyzer.
+Персональный read-only анализатор Ranger **v4mp** · Global EU · Kromede. React + Vite + Cloudflare Pages Functions.
 
-## Current scope
-- Character dashboard for `v4mp` (Global EU · Kromede).
-- Sections for overview, equipment, stats, skills, arcana and farming plan.
-- JSON import/export for structured character data.
-- Cloudflare Pages Function scaffold that checks public profile reachability only.
+## Что уже реализовано
 
-## Important limitations
-- Shuggo.GG parsing is **not implemented** yet.
-- No top-build dataset is bundled yet.
-- Recommendations are scaffolding, not calculated upgrade rankings.
-- Gear Score, Combat Power and boss DPS must be evaluated separately. DPS cannot be reliably inferred from GS/CP alone.
-- The profile endpoint does not bypass anti-bot controls or access private data.
+- Профиль v4mp с запросами к публичным NCSOFT endpoints: character info и equipment.
+- Отдельные показатели Gear Score / Item Level и Combat Power — значения не смешиваются.
+- Нормализация основных и дополнительных характеристик: `statList`, `statSecondList`, `statAdditionalList`.
+- Просмотр экипировки, скинов, навыков и Daevanion board summary.
+- Отдельная вкладка Arcana: показывает Arcana-слоты, если они присутствуют в ответе; иначе даёт ссылку на публичный профиль Shugo.GG, не подставляя устаревшие карты.
+- PvE Ranger reference с уровнями ключевых навыков и ротацией, сверенными с опубликованным гайдом Mobalytics (2 Nov 2026).
+- Прозрачный план улучшений по найденным пробелам в навыках и экипировке.
+- Адаптивный интерфейс, лёгкие CSS transitions, reduced-motion support.
 
-## Run locally
+## Источники и ограничения данных
+
+Основной источник профиля — публичные JSON endpoints NCSOFT:
+- `/api/character/info`
+- `/api/character/equipment`
+
+Схемы полей и endpoints описаны в [aion2_api API reference](https://github.com/axsddlr/aion2_api/blob/main/docs/API.md). Это неофициальная документация к публичным endpoints NCSOFT; стабильность API не гарантируется.
+
+Публичный профиль персонажа: [Shugo.GG · v4mp](https://shugo.gg/character/global/eu-kromede/v4mp). Shugo.GG отображает экипировку и Arcana, но сайт не используется как скрытый или несанкционированный API.
+
+PvE reference:
+- [Mobalytics Ranger PvE guide](https://mobalytics.gg/gamebase/guides/aion-2-ranger-pve-build) — навыки, специализации, ротация и приоритеты экипировки.
+- [AION2 Companion Ranger guide](https://aion2companion.com/builds/ranger/) — редакционный порядок PvE характеристик.
+
+Важно:
+- PvE reference — опубликованный билд/гайд, а не статистически подтверждённая выборка всех топ-игроков.
+- Приоритет характеристик обозначен как редакционный ориентир; он не учитывает капы и реальные значения конкретного персонажа.
+- Farm planner пока эвристический: он показывает найденные уровни навыков и экипировку, но не рассчитывает ожидаемый DPS, шансы дропа, стоимость попытки или точный рейтинг данжей.
+- Отдельный endpoint детализации Daevanion и item soul-bind/stat lines ещё не подключён.
+- Arcana отображается только при наличии распознаваемых данных в ответе NCSOFT. При их отсутствии показывается внешний источник.
+- Никакие отсутствующие значения не заменяются демонстрационными цифрами.
+
+## Разработка и проверки
+
+Требования: Node.js 20+.
+
 ```bash
 npm install
-npm run dev
-```
-
-## Build
-```bash
+npm test
 npm run build
-npm run preview
+node --check functions/api/profile.js
+node --check src/lib/character-data.js
+npm audit
 ```
 
-## Deploy
-Connect this repository to Cloudflare Pages, use `npm run build` as the build command and `dist` as the output directory. Pages Functions in `functions/` are deployed with the project.
+Unit tests используют встроенный Node.js test runner и проверяют нормализацию API-ответов, основные/дополнительные статы и пустые/невалидные payloads.
 
-## Next development milestones
-1. Inspect the public Shuggo.GG profile response and determine whether stable structured data is exposed.
-2. Implement a validated read-only importer with clear failure states.
-3. Build a sourced top-Ranger dataset and identify patch/version timestamps.
-4. Add item/skill/arcana comparison and transparent GS/CP/DPS estimates.
-5. Rank dungeon farming options by expected value and confidence.
+GitHub Actions выполняет тесты, production build, syntax checks и dependency audit. Cloudflare Pages публикует `dist` и Functions из `functions/`.
 
+## Текущий стек
 
-## UI and performance
-- Material You-inspired dark tonal palette, rounded surfaces and pill navigation.
-- System font stack only: no remote Google Fonts request.
-- No UI component framework, icon pack, large images, blur filters or animation dependencies.
-- Responsive layout for Android phones and desktop.
-- Reduced-motion preference is respected.
-- The app currently uses React + Vite only; keep future additions lightweight for older CPUs and mid-range Android devices.
+- React 18
+- Vite 6
+- Cloudflare Pages Functions
+- Node.js built-in test runner
+- CSS motion, без тяжёлого animation runtime
+
+Стек намеренно остаётся лёгким: TypeScript, Playwright, axe-core и Lighthouse CI стоит добавлять после стабилизации API-контракта и основных сценариев, а не ради списка зависимостей.
