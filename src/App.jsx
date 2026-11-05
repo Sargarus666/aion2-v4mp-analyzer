@@ -8,7 +8,7 @@ const CHARACTER = {
 const tabs = ["Обзор", "Экипировка", "Статы", "Навыки", "Арканы", "Дэва", "Мета PvE", "План фарма"];
 const arr = v => Array.isArray(v) ? v : [];
 const get = (o, ...keys) => { for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null && o?.[k] !== "") return o[k]; return null; };
-const fmt = v => v == null || v === "" ? "—" : Number(v).toLocaleString("ru-RU");
+const fmt = v => { if (v == null || v === "") return "—"; const raw = String(v).trim(); const numeric = raw.replace(/[\\s,]/g, ""); const parsed = numeric !== "" ? Number(numeric) : NaN; return Number.isFinite(parsed) ? parsed.toLocaleString("ru-RU") : raw; };
 const norm = v => String(v ?? "").toLowerCase().replace(/[ _-]/g, "");
 const statEntries = normalizeStatEntries;
 function statIcon(name) {
@@ -38,13 +38,13 @@ const ARCANA_META = [
   { slot:"Mirror", best:null, share:0, alternative:"Нет карт в выборке Global" }
 ];
 const META_SKILLS = [
-  { name:"Deadshot", aliases:["Deadshot","Прицельный выстрел"], target:20, globalAverage:20.1, koreanPve20:72.8, priority:"Критический", note:"Главный заряженный удар; применять под Precision." },
-  { name:"Drill Dart", aliases:["Drill Dart","Пронзающая стрела"], target:16, globalAverage:18.6, koreanPve20:70.1, priority:"Высокий", note:"На 16 уровне открывается дополнительная активация." },
-  { name:"Gale Arrow", aliases:["Gale Arrow","Шквальная стрела"], target:16, globalAverage:18.1, koreanPve20:64.5, priority:"Высокий", note:"Поддерживает Combat Speed и PvE Damage Boost." },
-  { name:"Snipe", aliases:["Snipe","Меткий выстрел"], target:16, globalAverage:17.2, koreanPve20:75.5, priority:"Высокий", note:"На 16 уровне помогает чаще возвращать Deadshot и добавляет цепочку." },
-  { name:"Tempest Shot", aliases:["Tempest Shot","Скоростная стрельба"], target:16, globalAverage:18.7, koreanPve20:70.5, priority:"Высокий", note:"Ориентир специализации — скорость применения." },
-  { name:"Marking Shot", aliases:["Marking Shot","Помечающий выстрел"], target:12, globalAverage:14, koreanPve20:3.6, priority:"Поддержка", note:"Продлевает окно Precision для Deadshot." },
-  { name:"Snare Shot", aliases:["Snare Shot","Опутывающий выстрел"], target:12, globalAverage:13.2, koreanPve20:2.8, priority:"Поддержка", note:"Накладывает Slow и открывает связку с Burst Arrow." }
+  { name:"Deadshot", aliases:["Deadshot","Прицельный выстрел"], target:20, globalAverage:20.1, koreanPve20:72.8, priority:"Первый приоритет", note:"Главный заряженный удар. Доведи до 20; используй под Precision от Marking Shot." },
+  { name:"Gale Arrow", aliases:["Gale Arrow","Шквальная стрела"], target:16, globalAverage:18.1, koreanPve20:64.5, priority:"Высокий", note:"Уровень 16 открывает сокращение перезарядки для поддержания Gale и PvE-бонуса." },
+  { name:"Snipe", aliases:["Snipe","Меткий выстрел"], target:16, globalAverage:17.2, koreanPve20:75.5, priority:"Высокий", note:"Уровень 16 открывает Tempest Arrow; попадания помогают сокращать перезарядку Deadshot." },
+  { name:"Tempest Shot", aliases:["Tempest Shot","Скоростная стрельба"], target:16, globalAverage:18.7, koreanPve20:70.5, priority:"Высокий", note:"Уровень 16: специализация на +20% Skill Speed для устойчивого DPS." },
+  { name:"Drill Dart", aliases:["Drill Dart","Пронзающая стрела"], target:16, globalAverage:18.6, koreanPve20:70.1, priority:"Высокий", note:"Уровень 16 активирует дополнительное срабатывание Drill Dart." },
+  { name:"Marking Shot", aliases:["Marking Shot","Помечающий выстрел"], target:12, globalAverage:14, koreanPve20:3.6, priority:"Поддержка", note:"Уровень 12 добавляет 5 секунд к Precision; обновляй эффект до окончания." },
+  { name:"Snare Shot", aliases:["Snare Shot","Опутывающий выстрел"], target:12, globalAverage:13.2, koreanPve20:2.8, priority:"Поддержка", note:"Накладывает Slow и позволяет использовать Burst Arrow по замедленной цели." }
 ];
 const META_STIGMAS = [
   { name:"Vaizel’s Authority", aliases:["Vaizel's Authority","Vaizel’s Authority","Власть Вайзеля"], target:20, globalShare:98.5, priority:"Первый приоритет" },
