@@ -63,10 +63,11 @@ export function hasUsefulProfileData(data = {}) {
   const equipment = asArray(data.equipment?.equipmentList);
   const skills = asArray(data.skill?.skillList);
   const boards = asArray(data.daevanion?.boardList);
+  const arcana = asArray(data.arcana);
   const profile = data.profile || {};
   return Boolean(
     profile.name || profile.characterName || profile.character_name ||
     profile.combatPower != null || profile.combat_power != null ||
-    stats.length || equipment.length || skills.length || boards.length
+    stats.length || equipment.length || skills.length || boards.length || arcana.length
   );
 }
