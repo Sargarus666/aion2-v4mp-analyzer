@@ -9,6 +9,34 @@ const arr = v => Array.isArray(v) ? v : [];
 const get = (o, ...keys) => { for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null && o?.[k] !== "") return o[k]; return null; };
 const fmt = v => v == null || v === "" ? "—" : Number(v).toLocaleString("ru-RU");
 const norm = v => String(v ?? "").toLowerCase().replace(/[ _-]/g, "");
+function statEntries(stat) {
+  const primary = arr(stat?.statList);
+  const secondary = arr(stat?.statSecondList);
+  const extra = arr(stat?.statAdditionalList);
+  const normalize = (entry, group, index) => {
+    if (typeof entry === "string" || typeof entry === "number") return { name: group === "Доп. бонусы" ? "Бонус " + (index + 1) : "Характеристика", value: entry, group };
+    return { ...entry, name: get(entry,"name","statName","displayName","type","key") || (group === "Доп. бонусы" ? "Доп. бонус" : "Характеристика"), value: get(entry,"value","statValue","displayValue","description","text") ?? "—", group };
+  };
+  return [
+    ...primary.map((x,i)=>normalize(x,"Основные",i)),
+    ...secondary.map((x,i)=>normalize(x,"Доп. бонусы",i)),
+    ...extra.map((x,i)=>normalize(x,"Дополнительные",i))
+  ];
+}
+function statIcon(name) {
+  const n = norm(name);
+  if (/attack|damage|power|offense|ата|урон|сила/.test(n)) return "⚔";
+  if (/critical|crit|крит/.test(n)) return "✹";
+  if (/accuracy|точност|меткост/.test(n)) return "◎";
+  if (/speed|скорост|haste/.test(n)) return "➤";
+  if (/hp|health|vital|здоров|жизн/.test(n)) return "♥";
+  if (/defen|armor|defense|защит|брон/.test(n)) return "⬟";
+  if (/evasion|уклон/.test(n)) return "↗";
+  if (/resist|сопротив/.test(n)) return "◈";
+  if (/mana|mp|мана/.test(n)) return "✧";
+  if (/level|уров/.test(n)) return "◆";
+  return "✦";
+}
 function statValue(list, names) {
   const hit = list.find(s => names.some(n => norm(s.name) === norm(n) || norm(s.type) === norm(n)));
   return hit?.value ?? null;
@@ -75,7 +103,7 @@ export default function App() {
   const character=profile?.profile || {};
   const equipment=arr(profile?.equipment?.equipmentList);
   const skins=arr(profile?.equipment?.skinList);
-  const stats=arr(profile?.stat?.statList);
+  const stats=statEntries(profile?.stat);
   const skills=arr(profile?.skill?.skillList);
   const boards=arr(profile?.daevanion?.boardList);
   const cp=get(character,"combatPower","combat_power") ?? statValue(stats,["CombatPower","Combat Power","CP"]);
@@ -94,7 +122,7 @@ export default function App() {
     <nav className="tabs">{tabs.map(t=><button key={t} className={tab===t?"active":""} onClick={()=>setTab(t)}>{t}</button>)}</nav>
     {tab==="Обзор" && <section className="content-grid"><article className="panel"><div className="panel-head"><div><p className="eyebrow">CHARACTER DATA</p><h2>Профиль персонажа</h2></div><span className="tag">{profile?"Данные получены":"Нет данных"}</span></div><Status label="Персонаж" value={title}/><Status label="Класс" value={get(character,"className","class") || CHARACTER.className}/><Status label="Сервер" value={get(character,"serverName","server") || CHARACTER.server}/><Status label="Уровень" value={get(character,"level","characterLevel") ?? "—"}/><Status label="Навыки" value={skills.length}/><p className="disclaimer">Только публичные данные NCSOFT. Значения GS и CP показываются отдельно и не подменяются расчётными числами.</p></article><aside className="panel"><p className="eyebrow">DATA STATUS</p><h2>Состав профиля</h2><Status label="Экипировка" value={equipment.length}/><Status label="Статы" value={stats.length}/><Status label="Навыки" value={skills.length}/><Status label="Дэва" value={boards.length}/><Status label="Образы/скины" value={skins.length}/><div className="callout">{updated?"Обновлено: "+updated:"Автозагрузка профиля v4mp."}</div></aside></section><section className="panel build-image-panel"><div className="panel-head"><div><p className="eyebrow">BUILD REFERENCE</p><h2>Текущий билд персонажа</h2></div><span className="tag">Скриншот</span></div><a className="build-image-link" href="https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg" target="_blank" rel="noreferrer"><img className="build-image" src="https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg" alt="Скриншот билда персонажа v4mp" loading="lazy"/></a><p className="muted">Скриншот билда из твоего GitHub. Нажми на изображение, чтобы открыть его в полном размере.</p></section>}
     {tab==="Экипировка" && <section className="panel"><h2>Экипировка</h2>{equipment.length?<div className="visual-list">{equipment.map((x,i)=><VisualRow key={i} item={x} kind="item"/> )}</div>:<Empty error={error}/ >}{skins.length>0&&<><h2 className="section-subtitle">Облики</h2><div className="visual-list">{skins.map((x,i)=><VisualRow key={i} item={x} kind="item"/>)}</div></>}</section>}
-    {tab==="Статы" && <section className="panel"><h2>Боевые характеристики</h2>{stats.length?stats.map((x,i)=><DataRow key={i} title={get(x,"name","type")||"Статистика"} detail={get(x,"value")??"—"}/>):<Empty error={error}/>}</section>}
+    {tab==="Статы" && <section className="panel stats-panel"><div className="panel-head"><div><p className="eyebrow">CHARACTER ATTRIBUTES</p><h2>Характеристики</h2></div><span className="tag">{stats.length} параметров</span></div>{stats.length?<><div className="stats-grid">{stats.map((x,i)=><StatCard key={i} item={x}/>)}</div><p className="stats-note">Показаны основные характеристики и дополнительные бонусы, которые вернул публичный API. Если источник не публикует параметр, он не подменяется расчётным значением.</p></>:<Empty error={error}/>}</section>}
     {tab==="Навыки" && <section className="panel"><h2>Навыки</h2>{skills.length?<div className="visual-list">{skills.map((x,i)=><VisualRow key={i} item={x} kind="skill"/>)}</div>:<Empty error={error}/>}</section>}
     {tab==="Дэва" && <section className="panel"><h2>Дэваanion</h2>{boards.length?boards.map((x,i)=><DataRow key={i} title={get(x,"name")||"Доска"} detail={(x.openNodeCount??"—")+" / "+(x.totalNodeCount??"—")+" узлов"}/>):<Empty error={error}/>}</section>}
     {tab==="План фарма" && <section className="panel farm-panel"><div className="farm-heading"><div><p className="eyebrow">RANGER · BOSS DPS</p><h2>Фарм</h2></div><span className="tag">{farm.length} приоритетов</span></div><p className="muted farm-intro">Короткий список следующих улучшений по данным экипировки и Дэвы. Точные данжи пока не указываю — для этого нужна подтверждённая таблица дропа.</p><div className="farm-grid">{farm.map((x,i)=><FarmCard key={i} item={x} index={i}/>)}</div>{!profile&&<Empty error={error}/>}</section>}
@@ -105,6 +133,10 @@ function FarmCard({item,index}) { return <article className="farm-card"><div cla
 function Metric({label,value,hint}){return <div className="metric"><span>{label}</span><strong>{value}</strong><small>{hint}</small></div>}
 function Status({label,value}){return <div className="status-row"><span>{label}</span><b>{value}</b></div>}
 function DataRow({title,detail}){return <div className="plan-row"><span className="number">•</span><div className="plan-copy"><b>{title}</b><p>{detail}</p></div></div>}
+function StatCard({item}) {
+  const icon = imageSource(get(item,"icon","iconUrl","image","imageUrl","thumbnail"));
+  return <article className="stat-card"><div className="stat-card-icon">{icon?<img src={icon} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display="none";}}/>:<span>{statIcon(item.name)}</span>}</div><div className="stat-card-copy"><small>{item.group}</small><b>{item.name}</b><strong>{typeof item.value==="number" ? fmt(item.value) : String(item.value ?? "—")}</strong></div></article>;
+}
 function VisualRow({item,kind}) {
   const name=get(item,"name","itemName","skillName")||"Без названия";
   const icon=imageSource(get(item,"icon","iconUrl","image","imageUrl","thumbnail"));
