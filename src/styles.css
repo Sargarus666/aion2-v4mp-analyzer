@@ -30,7 +30,7 @@ html { min-width: 320px; background: var(--md-sys-color-surface); }
 body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--md-sys-color-surface); }
 button, input, select, textarea { font: inherit; }
 button, a, select { -webkit-tap-highlight-color: transparent; }
-button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 3px; }
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 3px; }
 .shell { width: min(1180px, 100%); margin: 0 auto; padding: 0 28px 48px; }
 .topbar { min-height: 72px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--md-sys-color-outline-variant); }
 .brand { display:flex; gap:13px; align-items:center; color:var(--md-sys-color-on-surface); text-decoration:none; font-size:14px; font-weight:800; letter-spacing:.04em; }
