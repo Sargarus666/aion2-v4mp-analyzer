@@ -20,7 +20,7 @@ async function requestJson(url) {
 }
 
 function firstObject(...values) {
-  return values.find(value => value && typeof value === "object" && !Array.isArray(value)) || {};
+  return values.find(value => value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0) || {};
 }
 
 export async function onRequestGet() {
