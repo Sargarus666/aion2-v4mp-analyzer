@@ -342,3 +342,28 @@ body {
 @media (max-width: 380px) {
   .top-actions .profile-link:nth-of-type(2) { display: none; }
 }
+
+.meta-section-head {
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:12px;
+  margin:22px 0 11px;
+}
+.meta-section-head h3 { margin:0; font-size:14px; }
+.meta-section-head span { color:var(--md-sys-color-outline); font-size:10px; }
+.meta-stigma-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+}
+.meta-stigma-card {
+  min-width:0;
+  padding:13px;
+  border:1px solid var(--md-sys-color-outline-variant);
+  border-radius:15px;
+  background:var(--md-sys-color-surface-container-low);
+}
+.meta-stigma-card > b { display:block; min-height:34px; margin:11px 0 8px; font-size:12px; line-height:1.4; }
+@media(max-width:900px) { .meta-stigma-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:680px) { .meta-stigma-grid { grid-template-columns:1fr; } .meta-section-head { align-items:flex-start; flex-direction:column; gap:5px; } .meta-stigma-card > b { min-height:0; } }
