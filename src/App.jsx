@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 const initial = {
   character: "v4mp", className: "Ranger", region: "Global EU · Kromede",
