@@ -9,7 +9,7 @@
 - Нормализация основных и дополнительных характеристик: `statList`, `statSecondList`, `statAdditionalList`.
 - Просмотр экипировки, скинов, навыков и Daevanion board summary.
 - Отдельная вкладка Arcana: показывает Arcana-слоты, если они присутствуют в ответе; иначе даёт ссылку на публичный профиль Shugo.GG, не подставляя устаревшие карты.
-- PvE Ranger reference с уровнями ключевых навыков, Stigma-ориентирами и ротацией, сверенными с опубликованным гайдом Mobalytics (2 Nov 2026).
+- PvE Ranger reference с уровнями ключевых навыков, Stigma-ориентирами и ротацией; дополнительно показывает средние уровни и частоту использования по опубликованной выборке Global top 136 (3 Nov 2026).
 - Прозрачный план улучшений по найденным пробелам в навыках и экипировке.
 - Адаптивный интерфейс, лёгкие CSS transitions, reduced-motion support.
 
@@ -26,6 +26,7 @@
 PvE reference:
 - [Mobalytics Ranger PvE guide](https://mobalytics.gg/gamebase/guides/aion-2-ranger-pve-build) — навыки, специализации, ротация и приоритеты экипировки.
 - [AION2 Companion Ranger guide](https://aion2companion.com/builds/ranger/) — редакционный порядок PvE характеристик.
+- [AION 2 META Ranger guide](https://aion2-meta.com/guides/ranger/) — опубликованные срезы top 136 Global Ranger (3 Nov 2026), KR PvE adoption и Arcana/gear usage. Частота использования — не доказательство причинного прироста DPS.
 
 Важно:
 - PvE reference — опубликованный билд/гайд, а не статистически подтверждённая выборка всех топ-игроков.
