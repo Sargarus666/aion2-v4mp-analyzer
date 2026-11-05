@@ -114,7 +114,7 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
     how: ["Проверь, что список экипировки загрузился полностью.", "После появления названия лука и его характеристик можно сопоставить его с таблицей дропа."],
     priority: "Проверка данных", target: "Оружие"
   });
-  const gsNumber = Number(gs);
+  const gsNumber = Number(String(gs ?? "").replace(/[^0-9.-]/g, ""));
   const entry2100 = Number.isFinite(gsNumber) && gsNumber >= 2100
     ? "Порог 2100 GS пройден: сейчас " + fmt(gsNumber) + "."
     : "Для входа в Conquest Tier 3 нужен 2100 GS" + (Number.isFinite(gsNumber) ? "; сейчас " + fmt(gsNumber) + "." : ".");
