@@ -1,18 +1,26 @@
-// Read-only import from the public AION 2 character endpoints used by NotMeter.
-// The character ID and server ID come from the user's public NotMeter profile URL.
 const CHARACTER = {
   serverId: "2316",
+  // Decoded once from the NotMeter URL. URLSearchParams performs the required URL encoding.
   characterId: "6Q-UpcYBkUxRaoy_p3rjpM_kwjwWlBxUxx2BTNdYXHY=",
   region: "eu"
 };
 
-async function getJson(url) {
-  const response = await fetch(url, {
-    headers: { "Accept": "application/json", "User-Agent": "AION2BuildLab/0.3 (public character viewer)" },
-    cf: { cacheTtl: 60, cacheEverything: true }
-  });
-  if (!response.ok) throw new Error("Официальный сервис AION 2 ответил HTTP " + response.status);
-  return response.json();
+const headers = {
+  "Accept": "application/json, text/plain, */*",
+  "User-Agent": "Mozilla/5.0 (compatible; AION2BuildLab/1.0)",
+  "Referer": "https://aion2.plaync.com/"
+};
+
+async function requestJson(url) {
+  const response = await fetch(url, { headers, cf: { cacheTtl: 45, cacheEverything: true } });
+  const body = await response.text();
+  if (!response.ok) throw new Error("NCSOFT API HTTP " + response.status + ": " + body.slice(0, 180));
+  try { return JSON.parse(body); }
+  catch { throw new Error("NCSOFT API вернул не JSON: " + body.slice(0, 180)); }
+}
+
+function firstObject(...values) {
+  return values.find(value => value && typeof value === "object" && !Array.isArray(value)) || {};
 }
 
 export async function onRequestGet() {
@@ -24,28 +32,47 @@ export async function onRequestGet() {
       serverId: CHARACTER.serverId
     });
     const base = "https://aion2.plaync.com/api/character/";
-    const [info, equipment] = await Promise.all([
-      getJson(base + "info?" + params.toString()),
-      getJson(base + "equipment?" + params.toString())
+    const [info, gear] = await Promise.all([
+      requestJson(base + "info?" + params.toString()),
+      requestJson(base + "equipment?" + params.toString())
     ]);
+
+    const profile = firstObject(info.profile, info.data?.profile, info.character, info.data?.character);
+    const stat = firstObject(info.stat, info.data?.stat);
+    const equipment = firstObject(gear.equipment, gear.data?.equipment, gear.data);
+    const skill = firstObject(gear.skill, gear.data?.skill);
+    const daevanion = firstObject(info.daevanion, info.data?.daevanion);
+
     const data = {
-      ...(info || {}),
-      ...(equipment || {}),
-      profile: info?.profile || info?.data?.profile || info?.character || {},
-      stat: info?.stat || info?.data?.stat || {},
-      daevanion: info?.daevanion || info?.data?.daevanion || {},
-      equipment: equipment?.equipment || equipment?.data?.equipment || equipment?.data || {},
-      skill: equipment?.skill || equipment?.data?.skill || {}
+      profile, stat, daevanion, equipment, skill,
+      title: info.title || info.data?.title || {},
+      ranking: info.ranking || info.data?.ranking || {}
     };
-    const hasUsefulData = data.profile?.name || data.profile?.combatPower ||
-      data.equipment?.equipmentList?.length || data.stat?.statList?.length;
-    if (!hasUsefulData) {
-      return Response.json({ ok: false, error: "Сервис ответил, но структура профиля отличается от ожидаемой. Нужна проверка ответа API.", debugKeys: { info: Object.keys(info || {}), equipment: Object.keys(equipment || {}) } }, { status: 502 });
+    const equipmentList = Array.isArray(equipment.equipmentList) ? equipment.equipmentList : [];
+    const statList = Array.isArray(stat.statList) ? stat.statList : [];
+    const profileName = profile.name || profile.characterName || profile.character_name;
+    const combatPower = profile.combatPower ?? profile.combat_power;
+    if (!profileName && combatPower == null && !equipmentList.length && !statList.length) {
+      return Response.json({
+        ok: false,
+        error: "NCSOFT вернул пустой профиль. Проверь доступность персонажа и соответствие ID/сервера.",
+        diagnostic: {
+          infoKeys: Object.keys(info || {}),
+          gearKeys: Object.keys(gear || {}),
+          profileKeys: Object.keys(profile || {}),
+          statCount: statList.length,
+          equipmentCount: equipmentList.length
+        }
+      }, { status: 502 });
     }
-    return Response.json({ ok: true, source: "AION2 official public character API", character: "v4mp", server: "Kromede EU", data }, {
-      headers: { "Cache-Control": "public, max-age=30, s-maxage=60", "X-Content-Type-Options": "nosniff" }
-    });
+
+    return Response.json({
+      ok: true,
+      source: "NCSOFT public character API",
+      fetchedAt: new Date().toISOString(),
+      data
+    }, { headers: { "Cache-Control": "public, max-age=20, s-maxage=45", "X-Content-Type-Options": "nosniff" } });
   } catch (error) {
-    return Response.json({ ok: false, error: error?.message || "Не удалось загрузить публичный профиль AION 2." }, { status: 502 });
+    return Response.json({ ok: false, error: error?.message || "Не удалось получить профиль NCSOFT." }, { status: 502 });
   }
 }
