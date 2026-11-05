@@ -35,7 +35,7 @@ export default function App() {
 
   async function importProfile() {
     setLoading(true);
-    setNotice("Загружаю публичную страницу Shuggo.GG…");
+    setNotice("Загружаю публичную страницу Shugo.GG…");
     try {
       const response = await fetch("/api/profile?url=" + encodeURIComponent(data.profileUrl), { headers: { Accept: "application/json" } });
       const result = await response.json();
@@ -79,7 +79,7 @@ export default function App() {
   return <main className="shell">
     <header className="topbar">
       <a className="brand" href="#"><span className="brand-mark">A2</span><span>AION 2 <b>BUILD LAB</b></span></a>
-      <div className="top-actions"><span className="live-dot">MVP · READ ONLY</span><a className="profile-link" href={data.profileUrl} target="_blank" rel="noreferrer">Shuggo.GG ↗</a></div>
+      <div className="top-actions"><span className="live-dot">MVP · READ ONLY</span><a className="profile-link" href={data.profileUrl} target="_blank" rel="noreferrer">Shugo.GG ↗</a></div>
     </header>
 
     <section className="hero">
@@ -106,12 +106,12 @@ export default function App() {
 
     {tab === "Экипировка" && <section className="panel"><h2>Экипировка</h2><p className="muted">Предметы, для которых удалось найти уровень заточки в публичном HTML профиля.</p>{data.equipment?.length ? data.equipment.map((item,i)=><div className="plan-row" key={item.name+i}><span className="number">＋{item.enchantLevel}</span><div className="plan-copy"><b>{item.name}</b><p>{item.source || "Импортированный предмет"} · слот пока не определён</p></div></div>) : <Empty />}</section>}
     {tab === "Статы" && <section className="panel"><h2>Боевые характеристики</h2><p className="muted">GS и БМ берутся из заголовка профиля. Полный список характеристик требует отдельного источника данных.</p>{imported?.description && <div className="callout">{imported.description}</div>}<Empty /></section>}
-    {tab === "Навыки" && <section className="panel"><h2>Навыки и специализации</h2><p className="muted">Shuggo.GG отображает приобретённые специальные навыки, но специализации навыков не предоставляет через публичный профиль.</p><Empty /></section>}
+    {tab === "Навыки" && <section className="panel"><h2>Навыки и специализации</h2><p className="muted">Shugo.GG отображает приобретённые специальные навыки, но специализации навыков не предоставляет через публичный профиль.</p><Empty /></section>}
     {tab === "Арканы" && <section className="panel"><h2>Арканы</h2><p className="muted">Публичная страница может содержать названия аркан, но пока не все детали и эффекты.</p>{imported?.sections?.Arcana?.length ? imported.sections.Arcana.map((line,i)=><div className="plan-row" key={i}><span className="number">✦</span><div className="plan-copy"><b>{line}</b></div></div>) : <Empty />}</section>}
     {tab === "План фарма" && <section className="panel"><h2>План фарма</h2><p className="muted">Маршрут по данжам будет ранжироваться по ожидаемой выгоде: прирост GS, CP и отдельно DPS.</p>{plan.map(p => <div className="plan-row" key={p.name}><span className="number">→</span><div className="plan-copy"><b>{p.name}</b><p>{p.why}</p></div><span className="priority">{p.priority}</span></div>)}</section>}
 
     <section className="panel import-panel"><div className="panel-head"><div><p className="eyebrow">IMPORT / EXPORT</p><h2>Импорт данных персонажа</h2></div><span className="tag">JSON</span></div><p className="muted">Если публичная страница временно недоступна, можно импортировать JSON с полями character, className, gearScore, combatPower, equipment, stats, skills и arcana.</p><textarea value={jsonText} onChange={e => setJsonText(e.target.value)} placeholder={'{\n  "gearScore": 2200,\n  "combatPower": 100000\n}'} /><div className="import-actions"><button className="primary" onClick={importJson}>Импортировать JSON</button><span className="notice">{notice}</span></div></section>
-    <footer>Fan-made companion tool · Данные профиля читаются из публичной страницы Shuggo.GG. Неофициальный проект.</footer>
+    <footer>Fan-made companion tool · Данные профиля читаются из публичной страницы Shugo.GG. Неофициальный проект.</footer>
   </main>;
 }
 
