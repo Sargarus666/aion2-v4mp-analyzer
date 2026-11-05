@@ -1,3 +1,5 @@
+import { normalizeProfileResponse, normalizeStatEntries, hasUsefulProfileData } from "../../src/lib/character-data.js";
+
 const CHARACTER = {
   serverId: "2316",
   // Decoded once from the NotMeter URL. URLSearchParams performs the required URL encoding.
@@ -12,15 +14,11 @@ const headers = {
 };
 
 async function requestJson(url) {
-  const response = await fetch(url, { headers, cf: { cacheTtl: 45, cacheEverything: true } });
+  const response = await fetch(url, { headers, signal: AbortSignal.timeout(10000), cf: { cacheTtl: 45, cacheEverything: true } });
   const body = await response.text();
   if (!response.ok) throw new Error("NCSOFT API HTTP " + response.status + ": " + body.slice(0, 180));
   try { return JSON.parse(body); }
   catch { throw new Error("NCSOFT API вернул не JSON: " + body.slice(0, 180)); }
-}
-
-function firstObject(...values) {
-  return values.find(value => value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0) || {};
 }
 
 export async function onRequestGet() {
@@ -37,23 +35,13 @@ export async function onRequestGet() {
       requestJson(base + "equipment?" + params.toString())
     ]);
 
-    const profile = firstObject(info.profile, info.data?.profile, info.character, info.data?.character);
-    const stat = firstObject(info.stat, info.data?.stat, info.character?.stat, info.data?.character?.stat, profile.stat);
-    const equipment = firstObject(gear.equipment, gear.data?.equipment, gear.data);
-    const skill = firstObject(gear.skill, gear.data?.skill);
-    const daevanion = firstObject(info.daevanion, info.data?.daevanion);
-
-    const data = {
-      profile, stat, daevanion, equipment, skill,
-      title: info.title || info.data?.title || {},
-      ranking: info.ranking || info.data?.ranking || {}
-    };
+    const data = normalizeProfileResponse(info, gear);
+    const { profile, stat, daevanion, equipment, skill } = data;
     const equipmentList = Array.isArray(equipment.equipmentList) ? equipment.equipmentList : [];
-    const statList = Array.isArray(stat.statList) ? stat.statList : [];
-    const statSecondList = Array.isArray(stat.statSecondList) ? stat.statSecondList : [];
-    const profileName = profile.name || profile.characterName || profile.character_name;
-    const combatPower = profile.combatPower ?? profile.combat_power;
-    if (!profileName && combatPower == null && !equipmentList.length && !statList.length) {
+    const statCount = normalizeStatEntries(stat).length;
+    const skillCount = Array.isArray(skill.skillList) ? skill.skillList.length : 0;
+    const boardCount = Array.isArray(daevanion.boardList) ? daevanion.boardList.length : 0;
+    if (!hasUsefulProfileData(data)) {
       return Response.json({
         ok: false,
         error: "NCSOFT вернул пустой профиль. Проверь доступность персонажа и соответствие ID/сервера.",
@@ -61,7 +49,9 @@ export async function onRequestGet() {
           infoKeys: Object.keys(info || {}),
           gearKeys: Object.keys(gear || {}),
           profileKeys: Object.keys(profile || {}),
-          statCount: statList.length + statSecondList.length,
+          statCount,
+          skillCount,
+          boardCount,
           statKeys: Object.keys(stat || {}),
           equipmentCount: equipmentList.length
         }
