@@ -236,8 +236,8 @@ footer { text-align:center; padding:30px 0; color:var(--md-sys-color-outline); f
     box-shadow: 0 12px 28px rgba(0,0,0,.22), 0 0 22px rgba(160,130,255,.08);
   }
   .live-dot { animation: live-pulse 2.4s ease-in-out infinite; }
-  .build-image { transition: transform .35s ease, filter .35s ease; }
-  .build-image-link:hover .build-image { transform: scale(1.015); filter: drop-shadow(0 12px 22px rgba(160,130,255,.14)); }
+  .build-image { transition: transform .35s ease; }
+  .build-image-link:hover .build-image { transform: scale(1.015); }
   .tabs button { transition: color .18s ease, background .18s ease, transform .18s ease; }
   .tabs button:hover { transform: translateY(-2px); }
   .primary, .secondary, .profile-link { transition: transform .18s ease, filter .18s ease, box-shadow .18s ease; }
@@ -248,7 +248,7 @@ footer { text-align:center; padding:30px 0; color:var(--md-sys-color-outline); f
   content:""; position:absolute; z-index:-1; width:240px; height:180px; right:3%; top:0;
   pointer-events:none; border-radius:50%;
   background:radial-gradient(ellipse, rgba(150,120,255,.14), transparent 68%);
-  filter:blur(12px);
+  filter:blur(4px);
 }
 @media (prefers-reduced-motion: no-preference) {
   .hero::after { animation:aura-pulse 6s ease-in-out infinite; }
@@ -280,3 +280,57 @@ footer { text-align:center; padding:30px 0; color:var(--md-sys-color-outline); f
 .meta-sources a:hover { text-decoration:underline; }
 @media(max-width:900px) { .meta-skill-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:680px) { .meta-panel { padding:18px; } .meta-skill-grid,.meta-columns { grid-template-columns:1fr; } .meta-skill-card p { min-height:0; } }
+
+
+/* Art-directed finish: layered color, crisp panels and focused interactions. */
+body {
+  background:
+    radial-gradient(ellipse at 78% 2%, rgba(115, 83, 190, .14), transparent 34rem),
+    radial-gradient(ellipse at 4% 42%, rgba(47, 104, 145, .08), transparent 30rem),
+    var(--md-sys-color-surface);
+}
+.topbar {
+  border-bottom-color: rgba(190, 175, 230, .16);
+}
+.brand-mark {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 8px 24px rgba(105,76,170,.2);
+}
+.hero h1 em {
+  background: linear-gradient(105deg, #cdbaff 4%, #9ed9e8 94%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.metric, .panel {
+  background: linear-gradient(145deg, rgba(43,39,54,.96), rgba(28,26,34,.98));
+  border-color: rgba(190,175,230,.12);
+  box-shadow: 0 12px 36px rgba(0,0,0,.12);
+}
+.panel-head, .farm-heading {
+  gap: 16px;
+}
+.tabs {
+  scrollbar-width: thin;
+  scrollbar-color: var(--md-sys-color-outline-variant) transparent;
+}
+.tabs button.active {
+  box-shadow: inset 0 0 0 1px rgba(208,188,255,.18), 0 5px 18px rgba(116,86,180,.13);
+}
+.primary {
+  box-shadow: 0 7px 20px rgba(151,124,220,.16);
+}
+.build-image-link {
+  box-shadow: 0 12px 30px rgba(0,0,0,.2);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .metric, .panel, .farm-card, .stat-card, .visual-row {
+    will-change: auto;
+  }
+}
+@media (max-width: 760px) {
+  body {
+    background:
+      radial-gradient(ellipse at 80% 0%, rgba(115,83,190,.12), transparent 22rem),
+      var(--md-sys-color-surface);
+  }
+}
