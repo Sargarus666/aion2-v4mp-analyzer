@@ -84,7 +84,7 @@ function imageSource(value) {
   } catch { /* ignore unsupported icon references */ }
   return "";
 }
-function makeFarmPlan(items, stats, boards, skills, gs) {
+function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
   const plan = [];
   const gaps = getSkillProgress(skills || []).filter(x => x.level != null && x.level < x.target).slice(0,3);
   gaps.forEach((x,i) => plan.push({
@@ -139,7 +139,7 @@ function makeFarmPlan(items, stats, boards, skills, gs) {
     how: [entry2100, "Fire Temple — данжевый источник Enraged Kromede Necklace, Earrings и Ring.", "Сначала сравни слоты с худшими бонусами и не теряй Attack, Critical Hit и Accuracy ради одного Item Level.", "В top Global выборке Dragon Lord аксессуары встречаются чаще; Enraged Kromede — dungeon progression, а не заявленный BiS."],
     priority: "Средний", target: "Fire Temple"
   });
-  const magicChalice = equipped.find(x => /chalice of magic/i.test(x.name || x.itemName || ""));
+  const magicChalice = arcanaItems.find(x => /chalice of magic/i.test(x.name || x.itemName || ""));
   if (magicChalice) plan.push({
     title: "Arcana: Chalice of Vigor",
     detail: "Сейчас: " + (magicChalice.name || magicChalice.itemName) + " · Common",
@@ -191,7 +191,7 @@ export default function App() {
   const gs=statValue(stats,["ItemLevel","Item Level","GearScore","Gear Score","GS"]) ?? get(character,"itemLevel","item_level","gearScore","gear_score");
   const skillMeta=getSkillProgress(skills);
   const stigmaMeta=getStigmaProgress(skills);
-  const farm=useMemo(()=>makeFarmPlan(equipment,stats,boards,skills,gs),[profile]);
+  const farm=useMemo(()=>makeFarmPlan(equipment,stats,boards,skills,gs,arcana),[profile]);
   const title=get(character,"name","characterName","character_name") || CHARACTER.name;
   return <main className="shell">
     <header className="topbar"><a className="brand" href="#"><span className="brand-mark">A2</span><span>AION 2 <b>BUILD LAB</b></span></a><div className="top-actions"><span className="live-dot">NCSOFT PROFILE</span><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Shugo.GG ↗</a><a className="profile-link" href={CHARACTER.sourceUrl} target="_blank" rel="noreferrer">NotMeter ↗</a></div></header>
