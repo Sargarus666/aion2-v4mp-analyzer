@@ -121,7 +121,8 @@ export default function App() {
   const skins=arr(profile?.equipment?.skinList);
   const stats=statEntries(profile?.stat);
   const skills=arr(profile?.skill?.skillList);
-  const arcana=[...arr(profile?.equipment?.arcanaList),...equipment.filter(x=>/arcana/i.test([x.slotPosName,x.slotPos,x.slot,x.category].join(" ")))];
+  const arcanaCandidates=[...arr(profile?.arcana),...arr(profile?.equipment?.arcanaList),...equipment.filter(x=>/arcana/i.test([x.slotPosName,x.slotPos,x.slot,x.category].join(" ")))];
+  const arcana=arcanaCandidates.filter((item,index,list)=>list.findIndex(other=>(item.id&&other.id===item.id)||(item.slotPosName&&other.slotPosName===item.slotPosName))===index);
   const boards=arr(profile?.daevanion?.boardList);
   const cp=get(character,"combatPower","combat_power") ?? statValue(stats,["CombatPower","Combat Power","CP"]);
   const gs=statValue(stats,["ItemLevel","Item Level","GearScore","Gear Score","GS"]) ?? get(character,"itemLevel","item_level","gearScore","gear_score");
