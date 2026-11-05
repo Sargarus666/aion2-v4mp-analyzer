@@ -4,7 +4,7 @@ const CHARACTER = {
   name: "v4mp", className: "Ranger", server: "EU · Kromede",
   sourceUrl: "https://notmeter.com/?view=character&serverId=2316&characterId=6Q-UpcYBkUxRaoy_p3rjpM_kwjwWlBxUxx2BTNdYXHY%3D&name=v4mp&region=ww&globalRegion=eu"
 };
-const tabs = ["Обзор", "Экипировка", "Статы", "Навыки", "Дэва", "План фарма"];
+const tabs = ["Обзор", "Экипировка", "Статы", "Навыки", "Дэва", "Мета PvE", "План фарма"];
 const arr = v => Array.isArray(v) ? v : [];
 const get = (o, ...keys) => { for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null && o?.[k] !== "") return o[k]; return null; };
 const fmt = v => v == null || v === "" ? "—" : Number(v).toLocaleString("ru-RU");
@@ -41,6 +41,27 @@ function statValue(list, names) {
   const hit = list.find(s => names.some(n => norm(s.name) === norm(n) || norm(s.type) === norm(n)));
   return hit?.value ?? null;
 }
+
+const META_SKILLS = [
+  { name:"Deadshot", aliases:["Deadshot","Прицельный выстрел"], target:20, priority:"Критический", note:"Главный заряженный удар; применять под Precision." },
+  { name:"Drill Dart", aliases:["Drill Dart","Пронзающая стрела"], target:16, priority:"Высокий", note:"На 16 уровне открывается дополнительная активация." },
+  { name:"Gale Arrow", aliases:["Gale Arrow","Шквальная стрела"], target:16, priority:"Высокий", note:"Поддерживает Combat Speed и PvE Damage Boost." },
+  { name:"Snipe", aliases:["Snipe","Меткий выстрел"], target:16, priority:"Высокий", note:"На 16 уровне помогает чаще возвращать Deadshot и добавляет цепочку." },
+  { name:"Tempest Shot", aliases:["Tempest Shot","Скоростная стрельба"], target:16, priority:"Высокий", note:"Ориентир специализации — скорость применения." },
+  { name:"Marking Shot", aliases:["Marking Shot","Помечающий выстрел"], target:12, priority:"Поддержка", note:"Продлевает окно Precision для Deadshot." },
+  { name:"Snare Shot", aliases:["Snare Shot","Опутывающий выстрел"], target:12, priority:"Поддержка", note:"Накладывает Slow и открывает связку с Burst Arrow." }
+];
+function getSkillProgress(skills) {
+  return META_SKILLS.map(meta => {
+    const found = skills.find(skill => {
+      const name = get(skill,"name","skillName","displayName");
+      return name && meta.aliases.some(alias => norm(name) === norm(alias));
+    });
+    const raw = found ? get(found,"skillLevel","level") : null;
+    const level = raw == null || !Number.isFinite(Number(raw)) ? null : Number(raw);
+    return { ...meta, level, found:!!found };
+  });
+}
 function imageSource(value) {
   if (!value || typeof value !== "string") return "";
   const v = value.trim();
@@ -51,8 +72,15 @@ function imageSource(value) {
   } catch { /* ignore unsupported icon references */ }
   return "";
 }
-function makeFarmPlan(items, stats, boards) {
+function makeFarmPlan(items, stats, boards, skills) {
   const plan = [];
+  const gaps = getSkillProgress(skills || []).filter(x => x.level != null && x.level < x.target).slice(0,3);
+  gaps.forEach((x,i) => plan.push({
+    title: "Навык: " + x.name,
+    detail: "Сейчас ур. " + x.level + " · ориентир PvE " + x.target,
+    how: [x.note, "Проверь бонусы к уровню навыка на кольцах, экипировке, Арканах и узлах Дэваanion.", "Сравни стоимость прямой прокачки с получением недостающего уровня через бонусы сборки."],
+    priority: i === 0 ? "Высокий" : "Средний", target: "Умения"
+  }));
   const equipped = items.filter(x => x && (x.name || x.itemName));
   const weapon = equipped.find(x => /weapon|bow|лук|оруж/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
   if (weapon) plan.push({
@@ -108,7 +136,8 @@ export default function App() {
   const boards=arr(profile?.daevanion?.boardList);
   const cp=get(character,"combatPower","combat_power") ?? statValue(stats,["CombatPower","Combat Power","CP"]);
   const gs=statValue(stats,["ItemLevel","Item Level","GearScore","Gear Score","GS"]) ?? get(character,"itemLevel","item_level","gearScore","gear_score");
-  const farm=useMemo(()=>makeFarmPlan(equipment,stats,boards),[profile]);
+  const skillMeta=getSkillProgress(skills);
+  const farm=useMemo(()=>makeFarmPlan(equipment,stats,boards,skills),[profile]);
   const title=get(character,"name","characterName","character_name") || CHARACTER.name;
   return <main className="shell">
     <header className="topbar"><a className="brand" href="#"><span className="brand-mark">A2</span><span>AION 2 <b>BUILD LAB</b></span></a><div className="top-actions"><span className="live-dot">LIVE PROFILE</span><a className="profile-link" href={CHARACTER.sourceUrl} target="_blank" rel="noreferrer">NotMeter ↗</a></div></header>
@@ -125,10 +154,12 @@ export default function App() {
     {tab==="Статы" && <section className="panel stats-panel"><div className="panel-head"><div><p className="eyebrow">CHARACTER ATTRIBUTES</p><h2>Характеристики</h2></div><span className="tag">{stats.length} параметров</span></div>{stats.length?<><div className="stats-grid">{stats.map((x,i)=><StatCard key={i} item={x}/>)}</div><p className="stats-note">Показаны основные характеристики и дополнительные бонусы, которые вернул публичный API. Если источник не публикует параметр, он не подменяется расчётным значением.</p></>:<Empty error={error}/>}</section>}
     {tab==="Навыки" && <section className="panel"><h2>Навыки</h2>{skills.length?<div className="visual-list">{skills.map((x,i)=><VisualRow key={i} item={x} kind="skill"/>)}</div>:<Empty error={error}/>}</section>}
     {tab==="Дэва" && <section className="panel"><h2>Дэваanion</h2>{boards.length?boards.map((x,i)=><DataRow key={i} title={get(x,"name")||"Доска"} detail={(x.openNodeCount??"—")+" / "+(x.totalNodeCount??"—")+" узлов"}/>):<Empty error={error}/>}</section>}
+    {tab==="Мета PvE" && <section className="panel meta-panel"><div className="panel-head"><div><p className="eyebrow">RANGER · SINGLE TARGET</p><h2>Эталон PvE-билда</h2></div><span className="tag">Обновлено: ноябрь 2026</span></div><p className="muted meta-intro">Сверка твоих уровней навыков с актуальными ориентирами Ranger для боссов. Целевые уровни — суммарные ориентиры из гайдов, а не обязательная команда тратить ресурсы любой ценой.</p><div className="meta-skill-grid">{skillMeta.map((x,i)=><MetaSkillCard key={x.name} item={x} index={i}/>)}</div><div className="meta-columns"><article className="meta-block"><span className="eyebrow">ПРИОРИТЕТ ХАРАКТЕРИСТИК</span><ol><li>PvE Damage Boost</li><li>Critical Damage Boost</li><li>Attack</li><li>Accuracy</li><li>MP Regen — если не хватает маны в длинном бою</li></ol><small>Порядок для длительного PvE DPS; сверяй с реальными значениями и капами своего персонажа.</small></article><article className="meta-block"><span className="eyebrow">РОТАЦИЯ ПО БОССУ</span><ol><li>Подготовь Vaizel’s Authority, Supporting Fire и Bow of Blessing.</li><li>Поддерживай Gale Arrow и Precision от Marking Shot.</li><li>Заряди Deadshot во время Precision.</li><li>Встраивай Drill Dart, Tempest Shot и Snipe между основными окнами.</li><li>Не сливай баффы перед фазой неуязвимости босса.</li></ol><small>Deadshot и Marking Shot лучше держать на ручном нажатии.</small></article></div><div className="meta-sources"><span>Источники меты:</span><a href="https://mobalytics.gg/gamebase/guides/aion-2-ranger-pve-build" target="_blank" rel="noreferrer">Mobalytics · 2 ноября 2026</a><a href="https://aion2.gg/ru/guides/ranger-pve-build" target="_blank" rel="noreferrer">Aion2.gg · EU/NA client</a></div></section>}
     {tab==="План фарма" && <section className="panel farm-panel"><div className="farm-heading"><div><p className="eyebrow">RANGER · BOSS DPS</p><h2>Фарм</h2></div><span className="tag">{farm.length} приоритетов</span></div><p className="muted farm-intro">Короткий список следующих улучшений по данным экипировки и Дэвы. Точные данжи пока не указываю — для этого нужна подтверждённая таблица дропа.</p><div className="farm-grid">{farm.map((x,i)=><FarmCard key={i} item={x} index={i}/>)}</div>{!profile&&<Empty error={error}/>}</section>}
     <footer>Fan-made companion · Read-only · {profile?"Профиль загружен":"Ожидание профиля"}{updated?" · "+updated:""}</footer>
   </main>;
 }
+function MetaSkillCard({item,index}) { const pct=item.level==null?0:Math.min(100,item.level/item.target*100); return <article className="meta-skill-card"><div className="meta-skill-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><h3>{item.name}</h3><div className="meta-level">{item.level==null?"Нет в API":"Ур. "+item.level}<span>Цель {item.target}</span></div><div className="meta-progress"><i style={{width:pct+"%"}}/></div><p>{item.note}</p></article>; }
 function FarmCard({item,index}) { return <article className="farm-card"><div className="farm-card-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><h3>{item.title}</h3><p className="farm-card-detail">{item.detail}</p><div className="farm-next"><span>СЛЕДУЮЩИЙ ШАГ</span><p>{item.how[0]}</p></div><div className="farm-card-foot"><span>{item.target}</span><span>По данным профиля</span></div></article>; }
 function Metric({label,value,hint}){return <div className="metric"><span>{label}</span><strong>{value}</strong><small>{hint}</small></div>}
 function Status({label,value}){return <div className="status-row"><span>{label}</span><b>{value}</b></div>}
