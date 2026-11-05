@@ -130,14 +130,14 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
     title: "Enraged Kromede Longbow",
     detail: "Данжевая альтернатива текущему Spiritforged Bow",
     how: [entry2100, "Проверить Fire Temple (Conquest Tier 3): глобальная таблица дропа указывает Enraged Kromede Longbow.", "Сравнить базовую атаку, Accuracy, Critical Hit и Soul Binding с текущим Spiritforged Bow + заточка.", "Долгосрочный ориентир top Global — Splendent Dragon Lord Bow; это не означает, что нужно немедленно уходить в крафт."],
-    priority: "Высокий", target: "Fire Temple", sourceUrl: "https://aion2.gg/database/drop-rates?type=Equip", sourceLabel: "AION2.GG · таблица наград"
+    priority: "Высокий", target: "Fire Temple", sourceUrl: "https://aion2.gg/database/drop-rates?type=Equip", sourceLabel: "AION2.GG · дроп-таблица 28.10"
   });
   const aulamusJewelry = equipped.filter(x => /aulamus/i.test(x.name || x.itemName || "") && /necklace|earring|ring|ожерель|серьг|кольц/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
   if (aulamusJewelry.length) plan.push({
     title: "Enraged Kromede · аксессуары",
     detail: aulamusJewelry.length + " аксессуар(а) Aulamus в текущем профиле",
     how: [entry2100, "Fire Temple — данжевый источник Enraged Kromede Necklace, Earrings и Ring.", "Сначала сравни слоты с худшими бонусами и не теряй Attack, Critical Hit и Accuracy ради одного Item Level.", "В top Global выборке Dragon Lord аксессуары встречаются чаще; Enraged Kromede — dungeon progression, а не заявленный BiS."],
-    priority: "Средний", target: "Fire Temple", sourceUrl: "https://aion2.gg/database/drop-rates?type=Equip", sourceLabel: "AION2.GG · таблица наград"
+    priority: "Средний", target: "Fire Temple", sourceUrl: "https://aion2.gg/database/drop-rates?type=Equip", sourceLabel: "AION2.GG · дроп-таблица 28.10"
   });
   const clashRunes = equipped.filter(x => /clash rune/i.test(x.name || x.itemName || "") && Number(x.enchantLevel) < 5);
   if (clashRunes.length) plan.push({
