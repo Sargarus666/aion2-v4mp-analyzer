@@ -123,28 +123,28 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
     title: "Nuakum · комплект из данжа",
     detail: vakronItems.length + " предмет(а) Vakron в текущем профиле",
     how: [entry2100, "Следующий dungeon-шаг для брони — Nuakum из Ferocious Horn Den (Conquest Tier 3).", "Сравни soul-binding строки и бонусы каждого слота; не меняй Vakron +10 на случайный предмет без подтверждённого прироста.", "Это промежуточный данжевый маршрут; top Global выборка чаще носит Dragon Lord, но это уже отдельная crafted/endgame цель."],
-    priority: "Высокий", target: "Ferocious Horn Den"
+    priority: "Высокий", target: "Ferocious Horn Den", sourceUrl: "https://aion2-meta.com/guides/ranger/", sourceLabel: "Ranger dungeon gear reference"
   });
   const weaponName = weapon?.name || weapon?.itemName || "";
   if (/spiritforged/i.test(weaponName)) plan.push({
     title: "Enraged Kromede Longbow",
     detail: "Данжевая альтернатива текущему Spiritforged Bow",
     how: [entry2100, "Проверить Fire Temple (Conquest Tier 3): глобальная таблица дропа указывает Enraged Kromede Longbow.", "Сравнить базовую атаку, Accuracy, Critical Hit и Soul Binding с текущим Spiritforged Bow + заточка.", "Долгосрочный ориентир top Global — Splendent Dragon Lord Bow; это не означает, что нужно немедленно уходить в крафт."],
-    priority: "Высокий", target: "Fire Temple"
+    priority: "Высокий", target: "Fire Temple", sourceUrl: "https://aion2.gg/database/drop-rates?type=Equip", sourceLabel: "AION2.GG · таблица наград"
   });
   const aulamusJewelry = equipped.filter(x => /aulamus/i.test(x.name || x.itemName || "") && /necklace|earring|ring|ожерель|серьг|кольц/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
   if (aulamusJewelry.length) plan.push({
     title: "Enraged Kromede · аксессуары",
     detail: aulamusJewelry.length + " аксессуар(а) Aulamus в текущем профиле",
     how: [entry2100, "Fire Temple — данжевый источник Enraged Kromede Necklace, Earrings и Ring.", "Сначала сравни слоты с худшими бонусами и не теряй Attack, Critical Hit и Accuracy ради одного Item Level.", "В top Global выборке Dragon Lord аксессуары встречаются чаще; Enraged Kromede — dungeon progression, а не заявленный BiS."],
-    priority: "Средний", target: "Fire Temple"
+    priority: "Средний", target: "Fire Temple", sourceUrl: "https://aion2.gg/database/drop-rates?type=Equip", sourceLabel: "AION2.GG · таблица наград"
   });
   const magicChalice = arcanaItems.find(x => /chalice of magic/i.test(x.name || x.itemName || ""));
   if (magicChalice) plan.push({
     title: "Arcana: Chalice of Vigor",
     detail: "Сейчас: " + (magicChalice.name || magicChalice.itemName) + " · Common",
     how: ["В выборке Global top 136 Chalice of Vigor встречается у 94.1%, Chalice of Magic — у 5.9%.", "Проверь доступный способ получения/обмена и сравни фактический бонус карты до замены.", "Частота использования — ориентир, а не доказанный процент прироста DPS."],
-    priority: "Средний", target: "Arcana"
+    priority: "Средний", target: "Arcana", sourceUrl: "https://aion2-meta.com/guides/ranger/", sourceLabel: "AION2 META · Global top 136"
   });
   const weak = equipped.filter(x => x.enchantLevel != null).sort((a,b)=>Number(a.enchantLevel)-Number(b.enchantLevel)).slice(0,3);
   weak.forEach(x => plan.push({
@@ -217,7 +217,7 @@ export default function App() {
 function ArcanaMetaCard({item,index}) { return <article className="arcana-meta-card"><div className="farm-card-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.slot}</span></div>{item.best?<><b>{item.best}</b><strong>{item.share}%</strong><small>{item.alternative}</small></>:<><b>Нет подтверждённого лидера</b><small>{item.alternative}</small></>}</article>; }
 function MetaStigmaCard({item,index}) { const pct=item.level==null?0:Math.min(100,item.level/item.target*100); return <article className="meta-stigma-card"><div className="meta-skill-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><b>{item.name}</b><div className="meta-level">{item.level==null?"Нет в API":"Ур. "+item.level}<span>Рубеж {item.target}</span></div><div className="meta-progress"><i style={{width:pct+"%"}}/></div><small className="meta-cohort">Global top 136: {item.globalShare}%</small></article>; }
 function MetaSkillCard({item,index}) { const pct=item.level==null?0:Math.min(100,item.level/item.target*100); return <article className="meta-skill-card"><div className="meta-skill-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><h3>{item.name}</h3><div className="meta-level">{item.level==null?"Нет в API":"Ур. "+item.level}<span>Рубеж {item.target}</span></div><div className="meta-progress"><i style={{width:pct+"%"}}/></div><p>{item.note}</p><small className="meta-cohort">Global top 136: средний ур. {item.globalAverage} · KR PvE Lv20+: {item.koreanPve20}%</small></article>; }
-function FarmCard({item,index}) { return <article className="farm-card"><div className="farm-card-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><h3>{item.title}</h3><p className="farm-card-detail">{item.detail}</p><div className="farm-next"><span>СЛЕДУЮЩИЙ ШАГ</span><p>{item.how[0]}</p></div><div className="farm-card-foot"><span>{item.target}</span><span>По данным профиля</span></div></article>; }
+function FarmCard({item,index}) { return <article className="farm-card"><div className="farm-card-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><h3>{item.title}</h3><p className="farm-card-detail">{item.detail}</p><div className="farm-next"><span>СЛЕДУЮЩИЙ ШАГ</span><p>{item.how[0]}</p></div>{item.how.length>1&&<ul className="farm-card-notes">{item.how.slice(1,3).map((line,i)=><li key={i}>{line}</li>)}</ul>}{item.sourceUrl&&<a className="farm-source" href={item.sourceUrl} target="_blank" rel="noreferrer">{item.sourceLabel||"Источник данных"} ↗</a>}<div className="farm-card-foot"><span>{item.target}</span><span>По данным профиля</span></div></article>; }
 function Metric({label,value,hint}){return <div className="metric"><span>{label}</span><strong>{value}</strong><small>{hint}</small></div>}
 function Status({label,value}){return <div className="status-row"><span>{label}</span><b>{value}</b></div>}
 function DataRow({title,detail}){return <div className="plan-row"><span className="number">•</span><div className="plan-copy"><b>{title}</b><p>{detail}</p></div></div>}
