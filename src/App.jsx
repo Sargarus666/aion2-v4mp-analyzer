@@ -8,7 +8,7 @@ const CHARACTER = {
 const tabs = ["Обзор", "Экипировка", "Статы", "Навыки", "Арканы", "Дэва", "Мета PvE", "План фарма"];
 const arr = v => Array.isArray(v) ? v : [];
 const get = (o, ...keys) => { for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null && o?.[k] !== "") return o[k]; return null; };
-const fmt = v => { if (v == null || v === "") return "—"; const raw = String(v).trim(); const numeric = raw.replace(/[\\s,]/g, ""); const parsed = numeric !== "" ? Number(numeric) : NaN; return Number.isFinite(parsed) ? parsed.toLocaleString("ru-RU") : raw; };
+const fmt = v => { if (v == null || v === "") return "—"; const raw = String(v).trim(); const numeric = raw.replace(/[\s,]/g, ""); const parsed = numeric !== "" ? Number(numeric) : NaN; return Number.isFinite(parsed) ? parsed.toLocaleString("ru-RU") : raw; };
 const norm = v => String(v ?? "").toLowerCase().replace(/[ _-]/g, "");
 const statEntries = normalizeStatEntries;
 function statIcon(name) {
