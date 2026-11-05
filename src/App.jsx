@@ -28,20 +28,20 @@ function makeFarmPlan(items, stats, boards) {
   const equipped = items.filter(x => x && (x.name || x.itemName));
   const weapon = equipped.find(x => /weapon|bow|лук|оруж/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
   if (weapon) plan.push({
-    title: "Оружие — первый слот для проверки",
+    title: "Лук",
     detail: "Текущий предмет: " + (weapon.name || weapon.itemName) + (weapon.enchantLevel != null ? " · заточка +" + weapon.enchantLevel : "") + (weapon.grade ? " · " + weapon.grade : ""),
     how: ["Сравнить базовую атаку и атакующие характеристики нового лука с текущим.", "Сначала проверить дроп в доступных тебе данжах и награды за недельные активности.", "Менять оружие только если прирост реального урона по боссу выше, чем от заточки/камней текущего."],
     priority: "Высокий", target: "Оружие"
   });
   else plan.push({
-    title: "Проверить слот оружия",
+    title: "Проверить лук",
     detail: "API не вернул однозначно распознанный слот оружия.",
     how: ["Проверь, что список экипировки загрузился полностью.", "После появления названия лука и его характеристик можно сопоставить его с таблицей дропа."],
     priority: "Проверка данных", target: "Оружие"
   });
   const weak = equipped.filter(x => x.enchantLevel != null).sort((a,b)=>Number(a.enchantLevel)-Number(b.enchantLevel)).slice(0,3);
   weak.forEach(x => plan.push({
-    title: "Слабый слот: " + (x.name || x.itemName),
+    title: (x.slotPosName || x.slot || "Слот") + ": " + (x.name || x.itemName),
     detail: (x.slotPosName || x.slot || "Предмет") + " · заточка +" + x.enchantLevel + (x.grade ? " · " + x.grade : ""),
     how: ["Сравнить стоимость следующего уровня заточки с заменой предмета на данжевый.", "Проверить, какие характеристики даёт слот: крит, точность, атака и другие бонусы.", "Не вкладывать редкие материалы в предмет, который скоро заменишь более высоким тиром."],
     priority: "Средний", target: x.slotPosName || "Экипировка"
@@ -49,7 +49,7 @@ function makeFarmPlan(items, stats, boards) {
   if (boards.length) {
     const incomplete = boards.filter(b => Number(b.openNodeCount ?? 0) < Number(b.totalNodeCount ?? 0));
     incomplete.forEach(b => plan.push({
-      title: "Дэваanion: " + (b.name || "доска"),
+      title: "Дэва: " + (b.name || "доска"),
       detail: (b.openNodeCount ?? "—") + " / " + (b.totalNodeCount ?? "—") + " открытых узлов",
       how: ["Открывать узлы, усиливающие урон Ranger и характеристики, влияющие на стабильность попаданий.", "Сверять бонус каждого узла с фактическими статами персонажа, а не выбирать только по Item Level.", "Для точного маршрута нужны данные nodeList и требования к каждому узлу."],
       priority: "Средний", target: "Дэваanion"
@@ -97,10 +97,11 @@ export default function App() {
     {tab==="Статы" && <section className="panel"><h2>Боевые характеристики</h2>{stats.length?stats.map((x,i)=><DataRow key={i} title={get(x,"name","type")||"Статистика"} detail={get(x,"value")??"—"}/>):<Empty error={error}/>}</section>}
     {tab==="Навыки" && <section className="panel"><h2>Навыки</h2>{skills.length?<div className="visual-list">{skills.map((x,i)=><VisualRow key={i} item={x} kind="skill"/>)}</div>:<Empty error={error}/>}</section>}
     {tab==="Дэва" && <section className="panel"><h2>Дэваanion</h2>{boards.length?boards.map((x,i)=><DataRow key={i} title={get(x,"name")||"Доска"} detail={(x.openNodeCount??"—")+" / "+(x.totalNodeCount??"—")+" узлов"}/>):<Empty error={error}/>}</section>}
-    {tab==="План фарма" && <section className="panel"><p className="eyebrow">RANGER / BOSS DPS</p><h2>План фарма — подробности по нажатию</h2><p className="muted">Каждый пункт раскрывается. Сейчас рекомендации привязаны к найденным слотам и заточке; точные названия данжей и таблицы дропа добавим после получения полной базы предметов/источников, чтобы не выдумывать места выпадения.</p>{farm.map((x,i)=><details className="farm-accordion" key={i}><summary><span className="number">{i+1}</span><span className="farm-summary-copy"><b>{x.title}</b><small>{x.detail}</small></span><span className="priority">{x.priority}</span><span className="chevron">⌄</span></summary><div className="farm-detail"><div className="farm-detail-label">ЧТО ДЕЛАТЬ</div><ol>{x.how.map((line,j)=><li key={j}>{line}</li>)}</ol><div className="farm-detail-foot"><span>Цель: {x.target}</span><span>Основание: данные текущего профиля</span></div></div></details>)}{!profile&&<Empty error={error}/>}</section>}
+    {tab==="План фарма" && <section className="panel farm-panel"><div className="farm-heading"><div><p className="eyebrow">RANGER · BOSS DPS</p><h2>Фарм</h2></div><span className="tag">{farm.length} приоритетов</span></div><p className="muted farm-intro">Короткий список следующих улучшений по данным экипировки и Дэвы. Точные данжи пока не указываю — для этого нужна подтверждённая таблица дропа.</p><div className="farm-grid">{farm.map((x,i)=><FarmCard key={i} item={x} index={i}/>)}</div>{!profile&&<Empty error={error}/>}</section>}
     <footer>Fan-made companion · Read-only · {profile?"Профиль загружен":"Ожидание профиля"}{updated?" · "+updated:""}</footer>
   </main>;
 }
+function FarmCard({item,index}) { return <article className="farm-card"><div className="farm-card-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><h3>{item.title}</h3><p className="farm-card-detail">{item.detail}</p><div className="farm-next"><span>СЛЕДУЮЩИЙ ШАГ</span><p>{item.how[0]}</p></div><div className="farm-card-foot"><span>{item.target}</span><span>По данным профиля</span></div></article>; }
 function Metric({label,value,hint}){return <div className="metric"><span>{label}</span><strong>{value}</strong><small>{hint}</small></div>}
 function Status({label,value}){return <div className="status-row"><span>{label}</span><b>{value}</b></div>}
 function DataRow({title,detail}){return <div className="plan-row"><span className="number">•</span><div className="plan-copy"><b>{title}</b><p>{detail}</p></div></div>}
