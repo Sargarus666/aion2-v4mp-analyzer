@@ -16,8 +16,11 @@ function statValue(list, names) {
 function imageSource(value) {
   if (!value || typeof value !== "string") return "";
   const v = value.trim();
-  if (/^https?:\/\//i.test(v)) return v;
-  if (v.startsWith("//")) return "https:" + v;
+  try {
+    const url = new URL(v, "https://aion2.plaync.com/");
+    const host = url.hostname.toLowerCase();
+    if (url.protocol === "https:" && (host === "plaync.com" || host.endsWith(".plaync.com") || host === "playnccdn.com" || host.endsWith(".playnccdn.com") || host === "ncsoft.com" || host.endsWith(".ncsoft.com"))) return url.href;
+  } catch { /* ignore unsupported icon references */ }
   return "";
 }
 function makeFarmPlan(items, stats, boards) {
