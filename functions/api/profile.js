@@ -38,7 +38,7 @@ export async function onRequestGet() {
     ]);
 
     const profile = firstObject(info.profile, info.data?.profile, info.character, info.data?.character);
-    const stat = firstObject(info.stat, info.data?.stat);
+    const stat = firstObject(info.stat, info.data?.stat, info.character?.stat, info.data?.character?.stat, profile.stat);
     const equipment = firstObject(gear.equipment, gear.data?.equipment, gear.data);
     const skill = firstObject(gear.skill, gear.data?.skill);
     const daevanion = firstObject(info.daevanion, info.data?.daevanion);
@@ -49,7 +49,7 @@ export async function onRequestGet() {
       ranking: info.ranking || info.data?.ranking || {}
     };
     const equipmentList = Array.isArray(equipment.equipmentList) ? equipment.equipmentList : [];
-    const statList = Array.isArray(stat.statList) ? stat.statList : [];
+    const statList = Array.isArray(stat.statList) ? stat.statList : [];\n    const statSecondList = Array.isArray(stat.statSecondList) ? stat.statSecondList : [];
     const profileName = profile.name || profile.characterName || profile.character_name;
     const combatPower = profile.combatPower ?? profile.combat_power;
     if (!profileName && combatPower == null && !equipmentList.length && !statList.length) {
@@ -60,7 +60,7 @@ export async function onRequestGet() {
           infoKeys: Object.keys(info || {}),
           gearKeys: Object.keys(gear || {}),
           profileKeys: Object.keys(profile || {}),
-          statCount: statList.length,
+          statCount: statList.length + statSecondList.length,\n          statKeys: Object.keys(stat || {}),
           equipmentCount: equipmentList.length
         }
       }, { status: 502 });
