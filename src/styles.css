@@ -166,3 +166,8 @@ footer { text-align:center; padding:30px 0; color:var(--md-sys-color-outline); f
 .overview-combat .panel-head { margin-bottom:10px; }
 .overview-combat h2 { margin:0; }
 .combat-link { display:inline-block; margin-top:6px; color:var(--md-sys-color-primary); font-size:11px; font-weight:700; text-decoration:none; }
+
+.build-image-panel { margin-top:16px; }
+.build-image-link { display:block; overflow:hidden; border:1px solid var(--md-sys-color-outline-variant); border-radius:18px; background:var(--md-sys-color-surface-container-low); }
+.build-image { display:block; width:100%; max-height:780px; object-fit:contain; }
+.build-image-panel .muted { margin:11px 2px 0; }
