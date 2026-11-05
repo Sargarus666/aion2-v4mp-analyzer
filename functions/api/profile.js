@@ -49,7 +49,8 @@ export async function onRequestGet() {
       ranking: info.ranking || info.data?.ranking || {}
     };
     const equipmentList = Array.isArray(equipment.equipmentList) ? equipment.equipmentList : [];
-    const statList = Array.isArray(stat.statList) ? stat.statList : [];\n    const statSecondList = Array.isArray(stat.statSecondList) ? stat.statSecondList : [];
+    const statList = Array.isArray(stat.statList) ? stat.statList : [];
+    const statSecondList = Array.isArray(stat.statSecondList) ? stat.statSecondList : [];
     const profileName = profile.name || profile.characterName || profile.character_name;
     const combatPower = profile.combatPower ?? profile.combat_power;
     if (!profileName && combatPower == null && !equipmentList.length && !statList.length) {
@@ -60,7 +61,8 @@ export async function onRequestGet() {
           infoKeys: Object.keys(info || {}),
           gearKeys: Object.keys(gear || {}),
           profileKeys: Object.keys(profile || {}),
-          statCount: statList.length + statSecondList.length,\n          statKeys: Object.keys(stat || {}),
+          statCount: statList.length + statSecondList.length,
+          statKeys: Object.keys(stat || {}),
           equipmentCount: equipmentList.length
         }
       }, { status: 502 });
