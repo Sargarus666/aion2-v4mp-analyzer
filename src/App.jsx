@@ -143,7 +143,8 @@ export default function App() {
   const boards=arr(profile?.daevanion?.boardList);
   const cp=get(character,"combatPower","combat_power") ?? statValue(stats,["CombatPower","Combat Power","CP"]);
   const gs=statValue(stats,["ItemLevel","Item Level","GearScore","Gear Score","GS"]) ?? get(character,"itemLevel","item_level","gearScore","gear_score");
-  const skillMeta=getSkillProgress(skills);\n  const stigmaMeta=getStigmaProgress(skills);
+  const skillMeta=getSkillProgress(skills);
+  const stigmaMeta=getStigmaProgress(skills);
   const farm=useMemo(()=>makeFarmPlan(equipment,stats,boards,skills),[profile]);
   const title=get(character,"name","characterName","character_name") || CHARACTER.name;
   return <main className="shell">
