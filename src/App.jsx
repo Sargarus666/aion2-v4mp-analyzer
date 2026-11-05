@@ -86,6 +86,13 @@ function makeFarmPlan(items, stats, boards, skills) {
     how: [x.note, "Проверь бонусы к уровню навыка на кольцах, экипировке, Арканах и узлах Дэваanion.", "Сравни стоимость прямой прокачки с получением недостающего уровня через бонусы сборки."],
     priority: i === 0 ? "Высокий" : "Средний", target: "Умения"
   }));
+  const stigmaGaps = getStigmaProgress(skills || []).filter(x => x.level != null && x.level < x.target);
+  stigmaGaps.forEach((x,i) => plan.push({
+    title: "Stigma: " + x.name,
+    detail: "Сейчас ур. " + x.level + " · ориентир PvE " + x.target,
+    how: ["Сверь стоимость следующего уровня с бонусами и доступными ресурсами.", "Сначала проверь Vaizel’s Authority: гайд ставит его на первый крупный рубеж.", "Не вкладывайся в Stigma, если сначала выгоднее закрыть пробел в оружии или ключевом навыке."],
+    priority: i === 0 ? "Высокий" : "Средний", target: "Stigma"
+  }));
   const equipped = items.filter(x => x && (x.name || x.itemName));
   const weapon = equipped.find(x => /weapon|bow|лук|оруж/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
   if (weapon) plan.push({
