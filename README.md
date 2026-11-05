@@ -36,3 +36,12 @@ Connect this repository to Cloudflare Pages, use `npm run build` as the build co
 3. Build a sourced top-Ranger dataset and identify patch/version timestamps.
 4. Add item/skill/arcana comparison and transparent GS/CP/DPS estimates.
 5. Rank dungeon farming options by expected value and confidence.
+
+
+## UI and performance
+- Material You-inspired dark tonal palette, rounded surfaces and pill navigation.
+- System font stack only: no remote Google Fonts request.
+- No UI component framework, icon pack, large images, blur filters or animation dependencies.
+- Responsive layout for Android phones and desktop.
+- Reduced-motion preference is respected.
+- The app currently uses React + Vite only; keep future additions lightweight for older CPUs and mid-range Android devices.
