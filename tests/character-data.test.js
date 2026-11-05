@@ -71,3 +71,14 @@ test("does not mistake arrays or primitives for profile objects", () => {
   assert.deepEqual(data.equipment, {});
   assert.equal(hasUsefulProfileData(data), false);
 });
+
+test("preserves equipped Arcana slots when the source exposes them", () => {
+  const data = normalizeProfileResponse(
+    { profile: { name: "v4mp" } },
+    { data: { equipmentList: [], arcanaList: [{ slotPosName: "Arcana1", name: "Chalice of Magic" }] } }
+  );
+
+  assert.equal(data.arcana.length, 1);
+  assert.equal(data.arcana[0].slotPosName, "Arcana1");
+  assert.equal(data.arcana[0].name, "Chalice of Magic");
+});
