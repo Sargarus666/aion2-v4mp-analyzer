@@ -37,7 +37,7 @@ PvE reference:
 
 ## Разработка и проверки
 
-Требования: Node.js 20+.
+Требования: Node.js 22+.
 
 ```bash
 npm install
