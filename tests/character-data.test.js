@@ -153,3 +153,24 @@ test("parses the documented live NCSOFT stat entry shape", () => {
   assert.deepEqual(normalized[0].statSecondList, ["Attack +12"]);
   assert.equal(normalized[1].value, 2111);
 });
+
+
+test("shows only stats actually returned by NCSOFT and omits unavailable placeholders", () => {
+  const sections = buildRelevantStatSections([
+    { name: "Combat Speed", value: "7%" },
+    { name: "Critical Hit Resist", value: 100 }
+  ]);
+  assert.deepEqual(sections.map(section => section.id), ["offense", "defense"]);
+  assert.deepEqual(sections.flatMap(section => section.stats.map(stat => stat.id)), ["combatSpeed", "criticalResist"]);
+  assert.ok(sections.every(section => section.stats.every(stat => stat.available && stat.value != null)));
+});
+
+test("does not display empty or dash-valued API stat entries", () => {
+  const sections = buildRelevantStatSections([
+    { name: "Attack", value: "" },
+    { name: "Accuracy", value: "—" },
+    { name: "HP", value: 25000 }
+  ]);
+  assert.deepEqual(sections.map(section => section.id), ["defense"]);
+  assert.deepEqual(sections[0].stats.map(stat => stat.id), ["hp"]);
+});
