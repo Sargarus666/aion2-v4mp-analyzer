@@ -89,3 +89,5 @@ The interface uses short transform/opacity transitions, native details/summary f
 - AION2 Companion's Ranger guide was also checked on 6 November and labels its PvE stat order as editorial. It is treated as a separate community opinion, not a measured DPS formula.
 
 - Added a separate Gitleaks secret scan to GitHub Actions, pinned by commit SHA; PR comments are disabled and the personal repository does not require an organization license. Push/PR events scan the incoming commit range; manual and weekly scheduled runs scan full history.
+
+- Entry-gate wording is source-labelled: AION2 META calls Conquest Tier 3's 2,100 threshold ItemLevel, while AION2 Guides labels the dungeon gate GS 2,100. The UI keeps NCSOFT ItemLevel separate from Shugo Gear Score and tells the user to verify the in-game gate rather than silently treating the two labels as identical.

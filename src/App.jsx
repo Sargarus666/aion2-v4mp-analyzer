@@ -222,8 +222,8 @@ function makeFarmPlan(items, stats, boards, skills, itemLevel, arcanaItems = [])
   });
   const itemLevelNumber = parseOptionalNumber(itemLevel);
   const entry2100 = Number.isFinite(itemLevelNumber) && itemLevelNumber >= 2100
-    ? "Требование по уровню экипировки выполнено: сейчас " + fmt(itemLevelNumber) + "."
-    : "Для входа на третий уровень завоевания нужен уровень экипировки 2 100" + (Number.isFinite(itemLevelNumber) ? "; сейчас " + fmt(itemLevelNumber) + "." : ".");
+    ? "Порог 2 100 выполнен по NCSOFT ItemLevel: сейчас " + fmt(itemLevelNumber) + ". AION2 Guides называет тот же Conquest-порог GS 2 100; не смешивай эти поля."
+    : "Для Conquest Tier 3 источники указывают порог 2 100 (AION2 META — ItemLevel, AION2 Guides — GS). Сейчас NCSOFT ItemLevel " + (Number.isFinite(itemLevelNumber) ? fmt(itemLevelNumber) : "не получен") + "; перед входом проверь gate в игре.";
   if (Number.isFinite(itemLevelNumber) && itemLevelNumber >= 2100 && itemLevelNumber < 2500) plan.push({
     title: "Главная цель этапа: поднять уровень экипировки до 2 500",
     detail: "Сейчас " + fmt(itemLevelNumber) + " · доступен тир 3, следующий крупный рубеж — 2 500",
