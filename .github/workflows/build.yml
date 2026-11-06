@@ -5,6 +5,8 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1" # weekly full-history secret scan
 permissions:
   contents: read
 jobs:

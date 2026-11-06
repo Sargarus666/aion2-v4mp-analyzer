@@ -61,7 +61,7 @@ The interface uses short transform/opacity transitions, native details/summary f
 - Responsive breakpoints exist for desktop, tablet and narrow mobile layouts. Selected foreground/background token pairs were manually contrast-checked: primary button 12.59:1, primary-container text 11.33:1, secondary button 7.09:1, muted text 10.35:1 and outline text 6.13:1. This is a token sample, not a complete device-lab or automated axe certification.
 - The project uses Node's built-in test runner rather than Vitest. CI runs tests, syntax checks, production build and `npm audit`.
 - Playwright, axe-core and Lighthouse CI are not installed in this repository; no automated browser, contrast or Core Web Vitals result is claimed.
-- A dedicated Gitleaks Action v3.0.0 job is configured in CI, pinned to a full commit SHA and scanning full Git history. The job result is reported by GitHub Actions; this is not a guarantee that a previously leaked secret is safe to keep.
+- A dedicated Gitleaks Action v3.0.0 job is configured in CI and pinned to a full commit SHA. Push/PR runs scan the incoming commit range; `workflow_dispatch` and the weekly Monday 03:00 UTC schedule scan full history. The current push run scanned one commit and found no leaks; that is not a guarantee that a previously leaked secret is safe to keep.
 
 ## Remaining data/runtime gaps
 
@@ -88,4 +88,4 @@ The interface uses short transform/opacity transitions, native details/summary f
 - The public Shugo.GG FAQ says there is no public data API. Its current profile was useful to cross-check v4mp's displayed GS, gear and Arcana, but the project deliberately does not scrape or merge that value into NCSOFT's CP/iLvl fields.
 - AION2 Companion's Ranger guide was also checked on 6 November and labels its PvE stat order as editorial. It is treated as a separate community opinion, not a measured DPS formula.
 
-- Added a separate full-history Gitleaks secret scan to GitHub Actions, pinned by commit SHA; PR comments are disabled and the personal repository does not require an organization license.
+- Added a separate Gitleaks secret scan to GitHub Actions, pinned by commit SHA; PR comments are disabled and the personal repository does not require an organization license. Push/PR events scan the incoming commit range; manual and weekly scheduled runs scan full history.
