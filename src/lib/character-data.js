@@ -11,13 +11,14 @@ export function normalizeStatEntries(stat = {}) {
     ["statAdditionalList", "Дополнительные"]
   ];
 
-  return groups.flatMap(([key, group]) => asArray(stat?.[key]).map((entry, index) => {
+  return groups.flatMap(([key, group]) => asArray(stat?.[key]).flatMap((entry, index) => {
     if (typeof entry === "string" || typeof entry === "number") {
-      return {
+      return [{
         name: group === "Доп. бонусы" ? "Бонус " + (index + 1) : "Характеристика",
         value: entry,
-        group
-      };
+        group,
+        sourceGroup: key
+      }];
     }
 
     const item = entry && typeof entry === "object" ? entry : {};
@@ -26,13 +27,41 @@ export function normalizeStatEntries(stat = {}) {
       item.key ?? item.statCode ?? item.statId ?? item.id;
     const value = item.value ?? item.statValue ?? item.displayValue ?? item.currentValue ??
       item.totalValue ?? item.baseValue ?? item.amount ?? item.description ?? item.text;
-
-    return {
+    const normalized = {
       ...item,
       name: name ?? (group === "Доп. бонусы" ? "Доп. бонус " + (index + 1) : "Параметр " + (index + 1)),
       value: value ?? "—",
-      group
+      group,
+      sourceGroup: key
     };
+
+    // The live Global payload nests bonus descriptions inside each statList row.
+    // Keep the original row intact and expose each nested description separately
+    // so the UI does not silently hide statSecondList data.
+    if (key !== "statList" || !Array.isArray(item.statSecondList)) return [normalized];
+
+    const secondary = item.statSecondList.flatMap((bonus, bonusIndex) => {
+      if (bonus == null || !["string", "number", "object"].includes(typeof bonus)) return [];
+      const bonusItem = bonus && typeof bonus === "object" ? bonus : {};
+      const bonusName = bonusItem.name ?? bonusItem.statName ?? bonusItem.displayName ??
+        bonusItem.statTypeName ?? bonusItem.typeName ?? bonusItem.label ?? bonusItem.title ??
+        bonusItem.statType ?? bonusItem.type ?? bonusItem.key ?? null;
+      const bonusValue = typeof bonus === "string" || typeof bonus === "number"
+        ? bonus
+        : bonusItem.value ?? bonusItem.statValue ?? bonusItem.displayValue ??
+          bonusItem.amount ?? bonusItem.desc ?? bonusItem.description ?? bonusItem.text;
+      if (bonusValue == null || bonusValue === "") return [];
+      return [{
+        ...bonusItem,
+        name: bonusName ?? (normalized.name + " · бонус " + (bonusIndex + 1)),
+        value: bonusValue,
+        group: "Доп. бонусы",
+        sourceGroup: "statSecondList",
+        parentStat: normalized.name
+      }];
+    });
+
+    return [normalized, ...secondary];
   }));
 }
 
@@ -47,6 +76,7 @@ export function normalizeProfileResponse(info = {}, gear = {}) {
   const arcana = asArray(gearData?.arcanaList).length ? asArray(gearData.arcanaList)
     : asArray(gearData?.arcana).length ? asArray(gearData.arcana)
     : asArray(gear?.arcanaList).length ? asArray(gear.arcanaList)
+    : asArray(gear?.arcana).length ? asArray(gear.arcana)
     : asArray(equipment?.arcanaList);
   const daevanion = firstObject(info?.daevanion, infoData?.daevanion, character?.daevanion, profile?.daevanion);
 

@@ -144,12 +144,16 @@ test("parses the documented live NCSOFT stat entry shape", () => {
       { name: "Item Level", type: "ItemLevel", value: 2111, statSecondList: [] }
     ]
   });
-  assert.equal(normalized.length, 2);
+  assert.equal(normalized.length, 3);
   assert.equal(normalized[0].name, "Might");
   assert.equal(normalized[0].type, "Might");
   assert.equal(normalized[0].value, 123);
   assert.deepEqual(normalized[0].statSecondList, ["Attack +12"]);
-  assert.equal(normalized[1].value, 2111);
+  assert.equal(normalized[1].group, "Доп. бонусы");
+  assert.equal(normalized[1].sourceGroup, "statSecondList");
+  assert.equal(normalized[1].parentStat, "Might");
+  assert.equal(normalized[1].value, "Attack +12");
+  assert.equal(normalized[2].value, 2111);
 });
 
 
@@ -171,4 +175,35 @@ test("does not display empty or dash-valued API stat entries", () => {
   ]);
   assert.deepEqual(sections.map(section => section.id), ["defense"]);
   assert.deepEqual(sections[0].stats.map(stat => stat.id), ["hp"]);
+});
+
+
+test("normalizes nested statSecondList bonus objects without losing source fields", () => {
+  const normalized = normalizeStatEntries({
+    statList: [{
+      name: "Time [Siel]",
+      type: "Time",
+      value: 62,
+      statSecondList: [
+        "Combat Speed +6.2%",
+        { name: "Double Resist", value: "+6.2%", extra: "source" }
+      ]
+    }]
+  });
+  assert.equal(normalized.length, 3);
+  assert.equal(normalized[1].name, "Time [Siel] · бонус 1");
+  assert.equal(normalized[1].value, "Combat Speed +6.2%");
+  assert.equal(normalized[2].name, "Double Resist");
+  assert.equal(normalized[2].value, "+6.2%");
+  assert.equal(normalized[2].extra, "source");
+  assert.equal(normalized[2].parentStat, "Time [Siel]");
+});
+
+test("supports arcana arrays at the top level of the equipment response", () => {
+  const data = normalizeProfileResponse(
+    { profile: { name: "v4mp" } },
+    { equipment: { equipmentList: [] }, arcana: [{ id: 9, name: "Chalice of Vigor" }] }
+  );
+  assert.equal(data.arcana.length, 1);
+  assert.equal(data.arcana[0].id, 9);
 });
