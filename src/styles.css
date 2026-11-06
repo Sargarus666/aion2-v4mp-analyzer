@@ -634,3 +634,37 @@ footer { color:#72909d; }
   .top-actions { max-width:68%; }
   .live-dot { display:inline-flex; justify-content:flex-end; font-size:9px; text-align:right; }
 }
+
+
+/* Ranger-focused stat dashboard */
+.stats-overview {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin:18px 0 22px;
+  padding:16px 18px;
+  border:1px solid rgba(121,229,255,.2);
+  border-radius:17px;
+  background:linear-gradient(115deg,rgba(20,67,82,.38),rgba(15,29,40,.58));
+}
+.stats-overview b { display:block; color:#eafaff; font-size:13px; }
+.stats-overview p { margin:6px 0 0; color:var(--md-sys-color-on-surface-variant); font-size:11px; line-height:1.55; }
+.stats-overview > span { flex:0 0 auto; color:#83dced; font-size:10px; }
+.stats-sections { display:grid; gap:22px; }
+.stats-group { min-width:0; }
+.stats-group-head { display:flex; justify-content:space-between; align-items:flex-end; gap:12px; margin-bottom:10px; }
+.stats-group-head h3 { margin:0; font-size:15px; letter-spacing:-.02em; }
+.stats-group-head p { margin:5px 0 0; color:var(--md-sys-color-on-surface-variant); font-size:10px; line-height:1.5; }
+.stats-group-head > span { color:#8edff0; font-size:10px; white-space:nowrap; }
+.stats-group .stats-grid { grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:0; }
+.stat-card-missing { opacity:.58; border-style:dashed; }
+.stat-card-missing .stat-card-copy strong { color:#9aabb1; font-size:12px; letter-spacing:0; }
+.stat-card-copy small { line-height:1.45; }
+.stats-note { margin-top:18px; padding-top:14px; border-top:1px solid rgba(121,229,255,.13); }
+@media(max-width:900px) { .stats-group .stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:560px) {
+  .stats-overview { align-items:flex-start; flex-direction:column; }
+  .stats-group .stats-grid { grid-template-columns:1fr; }
+  .stats-group-head { align-items:flex-start; }
+}
