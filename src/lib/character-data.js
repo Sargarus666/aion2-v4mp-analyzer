@@ -21,11 +21,14 @@ export function normalizeStatEntries(stat = {}) {
     }
 
     const item = entry && typeof entry === "object" ? entry : {};
-    const name = item.name ?? item.statName ?? item.displayName ?? item.type ?? item.key;
-    const value = item.value ?? item.statValue ?? item.displayValue ?? item.description ?? item.text;
+    const name = item.name ?? item.statName ?? item.displayName ?? item.statTypeName ??
+      item.typeName ?? item.label ?? item.title ?? item.statType ?? item.type ??
+      item.key ?? item.statCode ?? item.statId ?? item.id;
+    const value = item.value ?? item.statValue ?? item.displayValue ?? item.currentValue ??
+      item.totalValue ?? item.baseValue ?? item.amount ?? item.description ?? item.text;
     return {
       ...item,
-      name: name || (group === "Доп. бонусы" ? "Доп. бонус" : "Характеристика"),
+      name: name ?? (group === "Доп. бонусы" ? "Доп. бонус " + (index + 1) : "Параметр " + (index + 1)),
       value: value ?? "—",
       group
     };
@@ -121,26 +124,47 @@ const normalizeStatName = value => String(value ?? "").toLowerCase().replace(/[\
 
 export function buildRelevantStatSections(entries = []) {
   const source = asArray(entries);
-  return RELEVANT_STAT_GROUPS.map(group => ({
+  const matchedEntries = new Set();
+  const sections = RELEVANT_STAT_GROUPS.map(group => ({
     id: group.id,
     title: group.title,
     description: group.description,
     stats: group.stats.map(([id, label, aliases, hint]) => {
       const aliasSet = aliases.map(normalizeStatName);
       const match = source.find(entry => {
-        const names = [entry?.name, entry?.statName, entry?.displayName, entry?.type, entry?.key]
-          .filter(Boolean).map(normalizeStatName);
+        const names = [
+          entry?.name, entry?.statName, entry?.displayName, entry?.statTypeName,
+          entry?.typeName, entry?.label, entry?.title, entry?.statType,
+          entry?.type, entry?.key, entry?.statCode, entry?.statId
+        ].filter(Boolean).map(normalizeStatName);
         return names.some(name => aliasSet.includes(name));
       });
+      if (match) matchedEntries.add(match);
       return {
         id,
         label,
         hint,
         value: match?.value ?? null,
-        available: Boolean(match && match.value != null && match.value !== ""),
-        sourceName: match?.name ?? match?.statName ?? match?.displayName ?? match?.type ?? null,
+        available: Boolean(match && match.value != null && match.value !== "" && match.value !== "—"),
+        sourceName: match?.name ?? match?.statName ?? match?.displayName ?? match?.statTypeName ?? match?.typeName ?? match?.type ?? null,
         icon: match?.icon ?? match?.iconUrl ?? match?.image ?? match?.imageUrl ?? null
       };
     })
   }));
+  const unmatched = source.filter(entry => !matchedEntries.has(entry) && entry?.value != null && entry.value !== "—");
+  if (unmatched.length) sections.push({
+    id: "other",
+    title: "Другие характеристики из профиля",
+    description: "Параметры, которые NCSOFT прислал, но названия которых пока не сопоставлены с категориями лучника.",
+    stats: unmatched.map((entry, index) => ({
+      id: "source-" + index,
+      label: String(entry.name ?? entry.statName ?? entry.displayName ?? entry.statTypeName ?? entry.typeName ?? entry.type ?? entry.key ?? "Параметр " + (index + 1)),
+      hint: entry.group ?? "Исходное значение NCSOFT",
+      value: entry.value,
+      available: true,
+      sourceName: entry.name ?? entry.statName ?? entry.displayName ?? entry.statTypeName ?? entry.typeName ?? entry.type ?? null,
+      icon: entry.icon ?? entry.iconUrl ?? entry.image ?? entry.imageUrl ?? null
+    }))
+  });
+  return sections;
 }
