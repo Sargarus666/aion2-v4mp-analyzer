@@ -146,12 +146,14 @@ test("parses the documented live NCSOFT stat entry shape", () => {
       { name: "Item Level", type: "ItemLevel", value: 2111, statSecondList: [] }
     ]
   });
-  assert.equal(normalized.length, 2);
+  assert.equal(normalized.length, 3);
   assert.equal(normalized[0].name, "Might");
   assert.equal(normalized[0].type, "Might");
   assert.equal(normalized[0].value, 123);
   assert.deepEqual(normalized[0].statSecondList, ["Attack +12"]);
-  assert.equal(normalized[1].value, 2111);
+  assert.equal(normalized[1].name, "Attack");
+  assert.equal(normalized[1].value, "+12");
+  assert.equal(normalized[2].value, 2111);
 });
 
 
