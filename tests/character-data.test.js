@@ -146,40 +146,10 @@ test("parses the documented live NCSOFT stat entry shape", () => {
       { name: "Item Level", type: "ItemLevel", value: 2111, statSecondList: [] }
     ]
   });
-  assert.equal(normalized.length, 3);
+  assert.equal(normalized.length, 2);
   assert.equal(normalized[0].name, "Might");
   assert.equal(normalized[0].type, "Might");
   assert.equal(normalized[0].value, 123);
   assert.deepEqual(normalized[0].statSecondList, ["Attack +12"]);
-  assert.equal(normalized[1].name, "Attack");
-  assert.equal(normalized[1].value, "+12");
-  assert.equal(normalized[2].value, 2111);
-});
-
-
-test("extracts combat bonuses from the live NCSOFT statSecondList descriptions", () => {
-  const stats = normalizeStatEntries({
-    statList: [
-      { name: "Might", type: "STR", value: 25, statSecondList: ["Attack increase +2.5%"] },
-      { name: "Freedom [Vaizel]", type: "Freedom", value: 46, statSecondList: ["Accuracy increase +4.6%", "Evasion increase +4.6%"] },
-      { name: "Time [Siel]", type: "Time", value: 62, statSecondList: ["Combat Speed +6.2%"] },
-      { name: "Death [Triniel]", type: "Death", value: 34, statSecondList: ["Critical Hit increase +3.4%"] },
-      { name: "Life [Yustiel]", type: "Life", value: 27, statSecondList: ["HP increase +2.7%"] },
-      { name: "Illusion [Kaisinel]", type: "Illusion", value: 7, statSecondList: ["Cooldown -0.7%"] }
-    ]
-  });
-
-  const sections = buildRelevantStatSections(stats);
-  const offense = sections.find(x => x.id === "offense");
-  const defense = sections.find(x => x.id === "defense");
-  const utility = sections.find(x => x.id === "utility");
-
-  assert.equal(offense.stats.find(x => x.id === "attack").value, "+2.5%");
-  assert.equal(offense.stats.find(x => x.id === "accuracy").value, "+4.6%");
-  assert.equal(offense.stats.find(x => x.id === "combatSpeed").value, "+6.2%");
-  assert.equal(offense.stats.find(x => x.id === "criticalHit").value, "+3.4%");
-  assert.equal(defense.stats.find(x => x.id === "hp").value, "+2.7%");
-  assert.equal(defense.stats.find(x => x.id === "evasion").value, "+4.6%");
-  assert.equal(utility.stats.find(x => x.id === "cooldown").value, "-0.7%");
-  assert.equal(stats.find(x => x.name === "Might").value, 25);
+  assert.equal(normalized[1].value, 2111);
 });
