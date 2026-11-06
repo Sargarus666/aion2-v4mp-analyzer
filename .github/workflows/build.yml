@@ -23,4 +23,5 @@ jobs:
       - run: npm run build
       - run: node --check functions/api/profile.js
       - run: node --check src/lib/character-data.js
+      - run: node --check src/lib/game-localization.js
       - run: npm audit
