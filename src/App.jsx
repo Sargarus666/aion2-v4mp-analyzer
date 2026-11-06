@@ -38,12 +38,12 @@ const ARCANA_META = [
   { slot:"Зеркало", best:null, share:0, alternative:"Нет карт в выборке Global" }
 ];
 const META_SKILLS = [
-  { name:"Прицельный выстрел", aliases:["«Прицельный выстрел»","Прицельный выстрел"], target:20, globalAverage:20.1, koreanPve20:72.8, priority:"Первый приоритет", note:"Главный заряженный удар. Гайд рекомендует довести навык до 20 в первую очередь. Используй его под действием эффекта «Точность» от «Помечающего выстрела»." },
-  { name:"Меткий выстрел", aliases:["«Меткий выстрел»","Меткий выстрел"], target:16, globalAverage:17.2, koreanPve20:75.5, priority:"Высокий", note:"По данным AION2 META, навык стоит первым в общем порядке прокачки. На 16-м уровне открывается связка «Стрела бури», а попадания сокращают перезарядку «Прицельного выстрела»." },
+  { name:"Прицельный выстрел", aliases:["Deadshot","Прицельный выстрел"], target:20, globalAverage:20.1, koreanPve20:72.8, priority:"Первый приоритет", note:"Главный заряженный удар. Гайд рекомендует довести навык до 20 в первую очередь. Используй его под действием эффекта «Точность» от «Помечающего выстрела»." },
+  { name:"Меткий выстрел", aliases:["Snipe","Меткий выстрел"], target:16, globalAverage:17.2, koreanPve20:75.5, priority:"Высокий", note:"По данным AION2 META, навык стоит первым в общем порядке прокачки. На 16-м уровне открывается связка «Стрела бури», а попадания сокращают перезарядку «Прицельного выстрела»." },
   { name:"Скоростная стрельба", aliases:["Tempest Shot","Скоростная стрельба"], target:16, globalAverage:18.7, koreanPve20:70.5, priority:"Высокий", note:"На 16-м уровне специализация даёт +20% к скорости применения умений." },
   { name:"Пронзающая стрела", aliases:["Drill Dart","Пронзающая стрела"], target:16, globalAverage:18.6, koreanPve20:70.1, priority:"Высокий", note:"На 16-м уровне специализация добавляет ещё одно срабатывание умения." },
   { name:"Шквал стрел", aliases:["Gale Arrow","Шквал стрел","Шквальная стрела"], target:16, globalAverage:18.1, koreanPve20:64.5, priority:"Высокий", note:"На 16-м уровне сокращается перезарядка — проще поддерживать эффект усиления урона." },
-  { name:"Помечающий выстрел", aliases:["«Помечающий выстрел»","Помечающий выстрел"], target:12, globalAverage:14, koreanPve20:3.6, priority:"Поддержка", note:"На 12-м уровне эффект «Точность» действует на 5 секунд дольше. Обновляй его до окончания." },
+  { name:"Помечающий выстрел", aliases:["Marking Shot","Помечающий выстрел"], target:12, globalAverage:14, koreanPve20:3.6, priority:"Поддержка", note:"На 12-м уровне эффект «Точность» действует на 5 секунд дольше. Обновляй его до окончания." },
   { name:"Опутывающий выстрел", aliases:["Snare Shot","Опутывающий выстрел"], target:12, globalAverage:13.2, koreanPve20:2.8, priority:"Поддержка", note:"Замедляет цель и позволяет применить «Рассекающую стрелу»." }
 ];
 const META_STIGMAS = [
@@ -75,7 +75,7 @@ function getSkillProgress(skills) {
   });
 }
 const GAME_RU = {
-  "Стрелок":"Стрелок","Kromede":"Кромеде","Deadshot":"Прицельный выстрел","Snipe":"Меткий выстрел",
+  "Ranger":"Стрелок","Kromede":"Кромеде","Deadshot":"Прицельный выстрел","Snipe":"Меткий выстрел",
   "Tempest Shot":"Скоростная стрельба","Drill Dart":"Пронзающая стрела","Gale Arrow":"Шквал стрел",
   "Marking Shot":"Помечающий выстрел","Snare Shot":"Опутывающий выстрел","Burst Arrow":"Рассекающая стрела",
   "Tempest Arrow":"Стрела бури","Vaizel's Authority":"Власть Вайзеля","Vaizel’s Authority":"Власть Вайзеля",
@@ -84,7 +84,7 @@ const GAME_RU = {
   "Parchment of Vigor":"Пергамент жизненной силы","Parchment of Magic":"Пергамент магии",
   "Enraged Kromede Longbow":"Длинный лук разгневанной Кромед","Spiritforged Bow":"Выкованный духом лук",
   "Splendent Dragon Lord Bow":"Сияющий лук Владыки драконов","Nuakum":"Нуакам","Vakron":"Вакрон",
-  "Ferocious Horn Den":"Логово свирепого рога","Fire Temple":"Храм Огня",
+  "Логово свирепого рога":"Логово свирепого рога","Храм Огня":"Храм Огня",
   "Weapon":"Оружие","Bow":"Лук","Helmet":"Шлем","Helm":"Шлем","Gloves":"Перчатки",
   "Boots":"Сапоги","Cloak":"Плащ","Pauldrons":"Наплечники","Ring":"Кольцо",
   "Earrings":"Серьги","Necklace":"Ожерелье","Legendary":"Легендарный","Epic":"Эпический",
@@ -119,7 +119,7 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
   stigmaGaps.forEach((x,i) => plan.push({
     title: "Стигма: " + x.name,
     detail: "Сейчас ур. " + x.level + " · ориентир PvE " + x.target,
-    how: ["Сверь стоимость следующего уровня с бонусами и доступными ресурсами.", "Сначала проверь Власть Вайзеля: гайд ставит его на первый крупный рубеж.", "Не вкладывайся в Stigma, если сначала выгоднее закрыть пробел в оружии или ключевом навыке."],
+    how: ["Сверь стоимость следующего уровня с бонусами и доступными ресурсами.", "Сначала проверь Власть Вайзеля: гайд ставит его на первый крупный рубеж.", "Не вкладывайся в стигмы, если сначала выгоднее закрыть пробел в оружии или ключевом навыке."],
     priority: i === 0 ? "Высокий" : "Средний", target: "Стигма"
   }));
   const equipped = items.filter(x => x && (x.name || x.itemName));
@@ -143,22 +143,23 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
   const vakronItems = equipped.filter(x => /vakron/i.test(x.name || x.itemName || ""));
   if (vakronItems.length) plan.push({
     title: "Нуакам · комплект из подземелья",
-    detail: vakronItems.length + " предмет(а) Vakron в текущем профиле",
+    detail: vakronItems.length + " предмет(а) Вакрон в текущем профиле",
     how: [entry2100, "Следующая цель для брони — комплект Нуакам из «Логова свирепого рога» (завоевание, тир 3). В базе AION2.GG указаны слоты, боссы и шанс получения за одно открытие куба энергии Одил.", "AION2.GG: Плащ и перчатки Нуакам — 1,27%; сапоги, шлем и наплечники — 1,02% за одно открытие куба энергии Одил. Шанс зависит от слота и босса.", "Это промежуточный маршрут через подземелье. В выборке сильнейших игроков Global чаще встречается комплект Владыки драконов — отдельная цель позднего этапа игры."],
-    priority: "Высокий", target: "Ferocious Horn Den", sourceUrl: "https://aion2.gg/database/drop-rates?dungeon=600092&type=Equip", sourceLabel: "AION2.GG · Ferocious Horn Den Conquest" 
+    priority: "Высокий", target: "Ferocious Horn Den", sourceUrl: "https://aion2.gg/database/drop-rates?dungeon=600092&type=Equip", sourceLabel: "AION2.GG · Логово свирепого рога" 
   });
-  const weaponName = localizeGameText(weapon?.name || weapon?.itemName || "");
-  if (/spiritforged/i.test(weaponName)) plan.push({
+  const rawWeaponName = weapon?.name || weapon?.itemName || "";
+  const weaponName = localizeGameText(rawWeaponName);
+  if (/spiritforged/i.test(rawWeaponName)) plan.push({
     title: "Длинный лук разгневанной Кромед",
     detail: "Сейчас: " + weaponName + (weapon.enchantLevel != null ? " +" + weapon.enchantLevel : "") + " · данжевая альтернатива",
-    how: [entry2100, "Fire Temple (Conquest Tier 3): Длинный лук разгневанной Кромед — 0,43% за одно открытие Odyle Energy Cube по таблице AION2.GG; это не шанс на весь забег.", "Сравни базовую атаку, точность, критический удар и привязку души с текущим выкованным луком и его заточкой.", "Долгосрочный ориентир сильнейших игроков Global — сияющий лук Владыки драконов. Это не значит, что нужно немедленно переключаться на изготовление предметов."],
-    priority: "Высокий", target: "Fire Temple", sourceUrl: "https://aion2.gg/database/drop-rates?dungeon=600022&type=Equip", sourceLabel: "AION2.GG · Fire Temple Conquest"
+    how: [entry2100, "Храм Огня (третий уровень завоевания): длинный лук разгневанной Кромед — 0,43% за одно открытие куба энергии Одил по таблице AION2.GG. Это не шанс за весь поход.", "Сравни базовую атаку, точность, критический удар и привязку души с текущим выкованным луком и его заточкой.", "Долгосрочный ориентир сильнейших игроков Global — сияющий лук Владыки драконов. Это не значит, что нужно немедленно переключаться на изготовление предметов."],
+    priority: "Высокий", target: "Fire Temple", sourceUrl: "https://aion2.gg/database/drop-rates?dungeon=600022&type=Equip", sourceLabel: "AION2.GG · Храм Огня"
   });
   const aulamusJewelry = equipped.filter(x => /aulamus/i.test(x.name || x.itemName || "") && /necklace|earring|ring|ожерель|серьг|кольц/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
   if (aulamusJewelry.length) plan.push({
     title: "Аксессуары разгневанной Кромед",
     detail: aulamusJewelry.length + " аксессуар(а) Aulamus в текущем профиле",
-    how: [entry2100, "Храм Огня (завоевание): по данным AION2.GG, за одно открытие куба энергии Одил шанс составляет: кольцо — 1,72%, серьги — 1,29%, ожерелье — 1,03%. Это не гарантированная добыча за поход.", "Сначала сравни предметы в слотах с самыми слабыми бонусами. Не жертвуй атакой, критическим ударом и точностью только ради уровня предмета.", "В выборке сильнейших игроков Global чаще встречаются аксессуары Владыки драконов. Аксессуары Кромед — промежуточный этап, а не подтверждённый лучший комплект."],
+    how: [entry2100, "Храм Огня (завоевание): по данным AION2.GG, за одно открытие куба энергии Одил шанс составляет: кольцо — 1,72%, серьги — 1,29%, ожерелье — 1,03%. Это не гарантированная добыча за поход.", "Сначала сравни предметы в слотах с самыми слабыми бонусами. Не жертвуй атакой, критическим ударом и точностью только ради уровня предмета.", "В выборке сильнейших игроков Global чаще встречаются аксессуары Владыки драконов. Аксессуары разгневанной Кромед — промежуточный этап, а не подтверждённый лучший комплект."],
     priority: "Средний", target: "Fire Temple", sourceUrl: "https://aion2.gg/database/drop-rates?type=Equip", sourceLabel: "AION2.GG · дроп-таблица 28.10"
   });
   const clashRunes = equipped.filter(x => /clash rune/i.test(x.name || x.itemName || "") && Number(x.enchantLevel) < 5);
