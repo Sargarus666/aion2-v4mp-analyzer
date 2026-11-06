@@ -11,13 +11,13 @@ export function normalizeStatEntries(stat = {}) {
     ["statAdditionalList", "Дополнительные"]
   ];
 
-  return groups.flatMap(([key, group]) => asArray(stat?.[key]).map((entry, index) => {
+  return groups.flatMap(([key, group]) => asArray(stat?.[key]).flatMap((entry, index) => {
     if (typeof entry === "string" || typeof entry === "number") {
-      return {
+      return [{
         name: group === "Доп. бонусы" ? "Бонус " + (index + 1) : "Характеристика",
         value: entry,
         group
-      };
+      }];
     }
 
     const item = entry && typeof entry === "object" ? entry : {};
@@ -26,12 +26,33 @@ export function normalizeStatEntries(stat = {}) {
       item.key ?? item.statCode ?? item.statId ?? item.id;
     const value = item.value ?? item.statValue ?? item.displayValue ?? item.currentValue ??
       item.totalValue ?? item.baseValue ?? item.amount ?? item.description ?? item.text;
-    return {
+    const normalized = {
       ...item,
       name: name ?? (group === "Доп. бонусы" ? "Доп. бонус " + (index + 1) : "Параметр " + (index + 1)),
       value: value ?? "—",
       group
     };
+
+    // NCSOFT exposes many combat modifiers as human-readable strings nested
+    // in each primary stat's statSecondList rather than as top-level values.
+    if (key !== "statList") return [normalized];
+    const bonuses = asArray(item.statSecondList).map((bonus, bonusIndex) => {
+      const description = typeof bonus === "string" ? bonus
+        : bonus?.description ?? bonus?.desc ?? bonus?.name ?? bonus?.statName ?? bonus?.text ?? "";
+      const match = String(description).trim().match(/^(.*?)\\s+([+-]?\\d+(?:[.,]\\d+)?%?)$/);
+      const bonusName = (match?.[1] ?? String(description).trim())
+        .replace(/\\s+(?:increase|decrease)$/i, "").trim();
+      const bonusValue = match ? match[2].replace(",", ".") : (bonus?.value ?? description ?? "—");
+      return {
+        name: bonusName || "Доп. бонус " + (bonusIndex + 1),
+        value: bonusValue,
+        group: "Бонусы характеристик",
+        sourceStat: normalized.name,
+        sourceDescription: String(description),
+        derivedFrom: "statSecondList"
+      };
+    }).filter(bonus => bonus.name && bonus.value !== "");
+    return [normalized, ...bonuses];
   }));
 }
 
@@ -154,6 +175,8 @@ export function buildRelevantStatSections(entries = []) {
         value: match?.value ?? null,
         available: Boolean(match && match.value != null && match.value !== "" && match.value !== "—"),
         sourceName: match?.name ?? match?.statName ?? match?.displayName ?? match?.statTypeName ?? match?.typeName ?? match?.type ?? null,
+        sourceDescription: match?.sourceDescription ?? null,
+        sourceStat: match?.sourceStat ?? null,
         icon: match?.icon ?? match?.iconUrl ?? match?.image ?? match?.imageUrl ?? null
       };
     })
