@@ -161,7 +161,7 @@ export function buildRelevantStatSections(entries = []) {
       }];
     })
   })).filter(group => group.stats.length > 0);
-  const unmatched = source.filter(entry => !matchedEntries.has(entry) && entry?.value != null && entry.value !== "—");
+  const unmatched = source.filter(entry => !matchedEntries.has(entry) && entry?.value != null && entry.value !== "" && entry.value !== "—");
   if (unmatched.length) sections.push({
     id: "other",
     title: "Другие характеристики из профиля",
