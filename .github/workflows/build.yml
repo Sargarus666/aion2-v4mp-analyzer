@@ -24,6 +24,7 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: node --check functions/api/profile.js
+      - run: node --check functions/api/daevanion.js
       - run: node --check src/lib/character-data.js
       - run: node --check src/lib/profile-state.js
       - run: node --check src/lib/game-localization.js
