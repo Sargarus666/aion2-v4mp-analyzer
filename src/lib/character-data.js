@@ -123,7 +123,14 @@ const RELEVANT_STAT_GROUPS = [
 const normalizeStatName = value => String(value ?? "").toLowerCase().replace(/[\s_'.’%-]/g, "");
 
 export function buildRelevantStatSections(entries = []) {
-  const source = asArray(entries);
+  // Accept both normalized entries and raw NCSOFT stat objects. The UI and
+  // tests may pass statTypeName/statValue directly; normalize them here too.
+  const source = asArray(entries).map((entry, index) => {
+    if (entry && typeof entry === "object" && entry.value !== undefined && entry.name !== undefined) return entry;
+    return normalizeStatEntries({ statList: [entry] })[0] ?? {
+      name: "Параметр " + (index + 1), value: "—", group: "Основные"
+    };
+  });
   const matchedEntries = new Set();
   const sections = RELEVANT_STAT_GROUPS.map(group => ({
     id: group.id,
