@@ -39,9 +39,9 @@ export function normalizeStatEntries(stat = {}) {
     const bonuses = asArray(item.statSecondList).map((bonus, bonusIndex) => {
       const description = typeof bonus === "string" ? bonus
         : bonus?.description ?? bonus?.desc ?? bonus?.name ?? bonus?.statName ?? bonus?.text ?? "";
-      const match = String(description).trim().match(/^(.*?)\\s+([+-]?\\d+(?:[.,]\\d+)?%?)$/);
+      const match = String(description).trim().match(/^(.*?)\s+([+-]?\d+(?:[.,]\d+)?%?)$/);
       const bonusName = (match?.[1] ?? String(description).trim())
-        .replace(/\\s+(?:increase|decrease)$/i, "").trim();
+        .replace(/\s+(?:increase|decrease)$/i, "").trim();
       const bonusValue = match ? match[2].replace(",", ".") : (bonus?.value ?? description ?? "—");
       return {
         name: bonusName || "Доп. бонус " + (bonusIndex + 1),
