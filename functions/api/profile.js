@@ -13,6 +13,15 @@ const headers = {
   "Referer": "https://aion2.plaync.com/"
 };
 
+function retryAfterSeconds(value) {
+  if (!value) return 1;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, Math.min(seconds, 3));
+  const date = Date.parse(value);
+  if (Number.isFinite(date)) return Math.max(0, Math.min((date - Date.now()) / 1000, 3));
+  return 1;
+}
+
 async function requestJson(url, { forceRefresh = false } = {}) {
   let response;
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -22,8 +31,7 @@ async function requestJson(url, { forceRefresh = false } = {}) {
       cf: { cacheTtl: forceRefresh ? 0 : 45, cacheEverything: true }
     });
     if (attempt === 0 && (response.status === 429 || response.status === 503)) {
-      const retryHeader = Number(response.headers.get("Retry-After"));
-      const waitSeconds = Number.isFinite(retryHeader) && retryHeader > 0 ? Math.min(retryHeader, 3) : 1;
+      const waitSeconds = retryAfterSeconds(response.headers.get("Retry-After"));
       await response.body?.cancel();
       await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
       continue;
@@ -89,6 +97,9 @@ export async function onRequestGet({ request } = {}) {
       data
     }, { headers: { "Cache-Control": forceRefresh || warnings.length ? "no-store" : "public, max-age=20, s-maxage=45", "X-Content-Type-Options": "nosniff" } });
   } catch (error) {
-    return Response.json({ ok: false, error: error?.message || "Не удалось получить профиль NCSOFT." }, { status: 502 });
+    return Response.json(
+      { ok: false, error: error?.message || "Не удалось получить профиль NCSOFT." },
+      { status: 502, headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } }
+    );
   }
 }
