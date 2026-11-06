@@ -9,11 +9,14 @@ test("translates Ranger skill names using Russian client terminology", () => {
   assert.equal(localizeGameText("Arrow Scattershot"), "Град из стрел");
   assert.equal(localizeGameText("Gale Arrow"), "Шквал стрел");
   assert.equal(localizeGameText("Vaizel's Authority"), "Сила Байзела");
+  assert.equal(localizeGameText("Ranger"), "Стрелок");
 });
 
 test("translates terms inside longer item and dungeon labels", () => {
   assert.equal(localizeGameText("Enraged Kromede Longbow"), "Длинный лук разгневанной Кромед");
-  assert.equal(localizeGameText("Fire Temple · Conquest"), "Храм Огня · Conquest");
+  assert.equal(localizeGameText("Fire Temple · Conquest"), "Храм Огня · Завоевание");
+  assert.equal(localizeGameText("Arcana1"), "Аркана 1");
+  assert.equal(localizeGameText("Daevanion"), "Даэванион");
   assert.equal(localizeGameText("Odyle Energy Cube"), "Куб энергии Од");
 });
 
