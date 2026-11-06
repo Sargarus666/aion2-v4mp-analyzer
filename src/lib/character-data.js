@@ -117,7 +117,7 @@ const RELEVANT_STAT_GROUPS = [
   }
 ];
 
-const normalizeStatName = value => String(value ?? "").toLowerCase().replace(/[\\s_.'’%-]/g, "");
+const normalizeStatName = value => String(value ?? "").toLowerCase().replace(/[\s_'.’%-]/g, "");
 
 export function buildRelevantStatSections(entries = []) {
   const source = asArray(entries);
