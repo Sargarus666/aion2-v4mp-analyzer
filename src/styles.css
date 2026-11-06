@@ -229,7 +229,7 @@ footer { text-align:center; padding:30px 0; color:var(--md-sys-color-outline); f
   .metric:hover, .farm-card:hover, .stat-card:hover, .visual-row:hover {
     transform: translate3d(0,-3px,0);
     border-color: color-mix(in srgb, var(--md-sys-color-primary) 58%, var(--md-sys-color-outline-variant));
-    box-shadow: 0 12px 28px rgba(0,0,0,.22), 0 0 22px rgba(160,130,255,.08);
+    box-shadow: 0 12px 28px rgba(0,0,0,.22), 0 0 22px rgba(49,190,218,.08);
   }
   .build-image { transition: transform .35s ease; }
   .build-image-link:hover .build-image { transform: scale(1.015); }
@@ -242,7 +242,7 @@ footer { text-align:center; padding:30px 0; color:var(--md-sys-color-outline); f
 .hero::after {
   content:""; position:absolute; z-index:-1; width:240px; height:180px; right:3%; top:0;
   pointer-events:none; border-radius:50%;
-  background:radial-gradient(ellipse, rgba(150,120,255,.14), transparent 68%);
+  background:radial-gradient(ellipse, rgba(49,190,218,.14), transparent 68%);
 }
 @media (prefers-reduced-motion: no-preference) {
   .hero::after { animation:aura-pulse 6s ease-in-out infinite; }
@@ -279,18 +279,18 @@ footer { text-align:center; padding:30px 0; color:var(--md-sys-color-outline); f
 /* Art-directed finish: layered color, crisp panels and focused interactions. */
 body {
   background:
-    radial-gradient(ellipse at 78% 2%, rgba(115, 83, 190, .14), transparent 34rem),
+    radial-gradient(ellipse at 78% 2%, rgba(49, 190, 218, .12), transparent 34rem),
     radial-gradient(ellipse at 4% 42%, rgba(47, 104, 145, .08), transparent 30rem),
     var(--md-sys-color-surface);
 }
 .topbar {
-  border-bottom-color: rgba(190, 175, 230, .16);
+  border-bottom-color: rgba(121,229,255,.16);
 }
 .brand-mark {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 8px 24px rgba(105,76,170,.2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 8px 24px rgba(49,190,218,.18);
 }
 .hero h1 em {
-  background: linear-gradient(105deg, #cdbaff 4%, #9ed9e8 94%);
+  background: linear-gradient(105deg, #d9faff 4%, #9ed9e8 94%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -764,3 +764,106 @@ footer { color:#72909d; }
 .farm-target-check-row.is-same .farm-target-check-status { color:#e5c58a; }
 .farm-target-check-row.is-unknown .farm-target-check-status { color:var(--md-sys-color-on-surface-variant); }
 @media(max-width:680px) { .farm-target-check-row { grid-template-columns:76px 1fr; } .farm-target-check-status { grid-column:2; } }
+
+
+/* Live NCSOFT portrait: real character art, never a fabricated class icon. */
+.hero-copy { min-width:0; }
+.hero-copy .hero-actions { margin-top:20px; }
+.hero.has-portrait {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 216px;
+  align-items:center;
+  gap:28px;
+}
+.hero-portrait {
+  position:relative;
+  isolation:isolate;
+  width:100%;
+  aspect-ratio:1;
+  overflow:hidden;
+  margin:0;
+  border:1px solid rgba(121,229,255,.28);
+  border-radius:25px;
+  background:linear-gradient(145deg,#1b4658,#0d1d29 62%,#172b37);
+  box-shadow:0 18px 38px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.08);
+}
+.hero-portrait-fallback {
+  position:absolute;
+  inset:0;
+  z-index:0;
+  display:grid;
+  place-items:center;
+  color:rgba(143,234,255,.8);
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:.18em;
+}
+.hero-portrait img {
+  position:relative;
+  z-index:1;
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center 26%;
+}
+.hero-portrait::after {
+  content:"";
+  position:absolute;
+  z-index:2;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(180deg,rgba(4,12,18,0) 48%,rgba(4,12,18,.82) 100%);
+}
+.hero-portrait-caption {
+  position:absolute;
+  z-index:3;
+  right:14px;
+  bottom:13px;
+  left:14px;
+  display:grid;
+  gap:4px;
+  color:#effaff;
+}
+.hero-portrait-caption small {
+  color:#9bcbd8;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.16em;
+}
+.hero-portrait-caption strong {
+  font-size:10px;
+  letter-spacing:.1em;
+}
+@media (prefers-reduced-motion:no-preference) {
+  .hero-portrait { transition:transform .22s ease,border-color .22s ease; }
+  .hero-portrait:hover { transform:translateY(-2px); border-color:rgba(121,229,255,.55); }
+}
+@media (max-width:760px) {
+  .hero.has-portrait {
+    grid-template-columns:minmax(0,1fr) 132px;
+    gap:14px;
+    min-height:0;
+    padding:30px 0 22px;
+  }
+  .hero-copy .hero-actions { margin-top:14px; }
+  .hero-portrait { border-radius:18px; }
+  .hero-portrait-caption { right:9px; bottom:9px; left:9px; }
+  .hero-portrait-caption small { font-size:8px; }
+  .hero-portrait-caption strong { font-size:8px; }
+}
+@media (max-width:420px) {
+  .hero.has-portrait { grid-template-columns:minmax(0,1fr) 104px; gap:10px; }
+  .hero.has-portrait h1 { font-size:clamp(38px,10vw,46px); }
+  .hero-portrait { border-radius:15px; }
+  .hero-portrait-caption { right:7px; bottom:7px; left:7px; }
+  .hero-portrait-caption small { display:none; }
+  .hero-portrait-caption strong { font-size:7px; letter-spacing:.06em; }
+}
+@media (max-width:680px) {
+  .farm-summary-copy small { font-size:10px; }
+  .farm-priority { font-size:10px; }
+  .farm-target-card p,.farm-target-meta span,.farm-target-card a,
+  .farm-target-check-row,.farm-target-check > b,.farm-resource p,
+  .farm-resource a,.farm-library-foot,.farm-rule p { font-size:11px; }
+}

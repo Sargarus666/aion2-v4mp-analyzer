@@ -381,9 +381,24 @@ export default function App() {
   const stigmaMeta=getStigmaProgress(skills);
   const farm=useMemo(()=>makeFarmPlan(equipment,stats,boards,skills,itemLevel,arcana),[profile]);
   const title=get(character,"name","characterName","character_name") || CHARACTER.name;
+  const profilePortrait=imageSource(get(character,"profileImage","profile_image"));
   return <main className="shell">
     <header className="topbar"><a className="brand" href="#"><span className="brand-mark">A2</span><span>AION 2 <b>МАСТЕРСКАЯ СБОРКИ</b></span></a><div className="top-actions"><span className="live-dot" role="status" aria-live="polite">{loading?"СИНХРОНИЗАЦИЯ · NCSOFT":error&&profile?"ОШИБКА ОБНОВЛЕНИЯ · ПОСЛЕДНИЕ ДАННЫЕ":profile?._partial?"ЧАСТИЧНЫЕ ДАННЫЕ · NCSOFT":profile?"ПРОФИЛЬ · ТОЛЬКО ЧТЕНИЕ":"ОЖИДАНИЕ ПРОФИЛЯ"}</span><a className="profile-link" href="https://aion2.plaync.com/en-us/characters/index?region=eu" target="_blank" rel="noreferrer">NCSOFT · Европа ↗</a><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Shugo.GG ↗</a><a className="profile-link" href={CHARACTER.sourceUrl} target="_blank" rel="noreferrer">NotMeter ↗</a></div></header>
-    <section className="hero"><div><p className="eyebrow">АНАЛИЗАТОР ПЕРСОНАЖА / ЕВРОПА</p><h1>{title}<em> · сборка</em></h1><p className="sub">{localizeGameText(get(character,"className","class")) || CHARACTER.className} <span>•</span> {(get(character,"serverName","server")==="Kromede" ? "Кромеде" : localizeGameText(get(character,"serverName","server"))) || CHARACTER.server} <span>•</span> {get(character,"level","characterLevel") ? "Ур. "+get(character,"level","characterLevel") : "Уровень —"}</p></div><div className="hero-actions"><button className="primary" onClick={()=>loadProfile(true)} disabled={loading}>{loading?"Загружаю…":"Обновить профиль ↻"}</button></div></section>
+    <section className={"hero"+(profilePortrait?" has-portrait":"")}>
+      <div className="hero-copy">
+        <div className="hero-copy-main">
+          <p className="eyebrow">АНАЛИЗАТОР ПЕРСОНАЖА / ЕВРОПА</p>
+          <h1>{title}<em> · сборка</em></h1>
+          <p className="sub">{localizeGameText(get(character,"className","class")) || CHARACTER.className} <span>•</span> {(get(character,"serverName","server")==="Kromede" ? "Кромеде" : localizeGameText(get(character,"serverName","server"))) || CHARACTER.server} <span>•</span> {get(character,"level","characterLevel") ? "Ур. "+get(character,"level","characterLevel") : "Уровень —"}</p>
+        </div>
+        <div className="hero-actions"><button className="primary" onClick={()=>loadProfile(true)} disabled={loading}>{loading?"Загружаю…":"Обновить профиль ↻"}</button></div>
+      </div>
+      {profilePortrait && <figure className="hero-portrait">
+        <span className="hero-portrait-fallback" aria-hidden="true">AION 2</span>
+        <img src={profilePortrait} alt={`Портрет персонажа ${title} из профиля NCSOFT`} loading="eager" decoding="async" onError={event=>{event.currentTarget.hidden=true;}} />
+        <figcaption className="hero-portrait-caption"><small>ПРОФИЛЬ NCSOFT</small><strong>RANGER · EU / KROMEDE</strong></figcaption>
+      </figure>}
+    </section>
     {error && <section className="panel error-panel" role="alert"><b>{profile?"Не удалось обновить профиль":"Не удалось загрузить персонажа"}</b><p className="muted">{error}</p>{profile&&<small>Последний ответ NCSOFT: {updated}; отдельные разделы могут быть старее.</small>}<small>Источник: публичный API NCSOFT · Сервер 2316 · Европа</small><button className="secondary" onClick={()=>loadProfile(true)}>Повторить</button></section>}
     {profile?._partial && <section className="panel warning-panel" role="status"><b>Частичный ответ NCSOFT</b><p className="muted">{profile._staleSections?.length ? "Для недоступных разделов сохранён последний успешный снимок. Остальные разделы получены из текущего ответа." : "Один из публичных endpoints не ответил; предыдущего снимка для этого раздела ещё нет."}</p>{profile._staleSections?.length > 0 && <small>Из предыдущего снимка: {profile._staleSections.map(key=>STALE_SECTION_LABELS[key] || key).join(", ")}.</small>}{profile._lastCompleteAt && <small>Последний полный снимок: {new Date(profile._lastCompleteAt).toLocaleString("ru-RU")}</small>}{profile._warnings.map((warning,i)=><small key={i}>{warning}</small>)}</section>}
     <section className="metrics">
