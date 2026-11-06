@@ -287,10 +287,10 @@ function makeFarmPlan(items, stats, boards, skills, itemLevel, arcanaItems = [])
   });
   const vakronItems = equipped.filter(x => /vakron|вакрон/i.test(x.name || x.itemName || ""));
   if (vakronItems.length) plan.push({
-    title: "Нуакам · комплект из подземелья",
-    detail: vakronItems.length + " предмет(а) Вакрон в текущем профиле",
-    how: [entry2100, "Следующая цель для брони — комплект Нуакам из «Логова свирепого рога» (завоевание, тир 3). В базе AION2.GG указаны слоты, боссы и шанс получения за одно открытие куба энергии Одил.", "AION2.GG: Плащ и перчатки Нуакам — 1,27%; сапоги, шлем и наплечники — 1,02% за одно открытие куба энергии Одил. Шанс зависит от слота и босса.", "Это промежуточный маршрут через подземелье. В выборке сильнейших игроков мирового сервера чаще встречается комплект Владыки драконов — отдельная цель позднего этапа игры."],
-    priority: "Высокий", target: "Логово свирепого рога", sourceUrl: "https://aion2.gg/database/drop-rates?dungeon=600092&type=Equip", sourceLabel: "AION2.GG · Логово свирепого рога" 
+    title: "Нуакам — точечная замена слотов",
+    detail: vakronItems.length + " предмет(а) Вакрон в профиле · полный комплект автоматически не нужен",
+    how: [entry2100, "Логово Свирепого Рога (Conquest, iLvl 2 100) — источник Нуакам. Используй сравнение по слотам ниже: для текущих предметов Вакрон база iLvl 70 плюс +10 даёт iLvl 80, а Нуакам начинается с iLvl 86.", "Не собирай полный комплект только ради названия. Замена имеет смысл в слабом слоте после сравнения Soul Binding, гнёзд и бонусов навыков; один лишь более высокий iLvl не доказывает прирост DPS.", "AION2 META на 3 ноября показывает Dragon Lord как наиболее частую броню Global top-136. Нуакам остаётся промежуточной dungeon-целью, а не подтверждённым финальным сетом."],
+    priority: "Средний", target: "Логово Свирепого Рога · только слабые слоты", sourceUrl: "https://aion2-meta.com/guides/ranger/", sourceLabel: "AION2 META · Global gear / 3 ноя" 
   });
   const rawWeaponName = weapon?.name || weapon?.itemName || "";
   const weaponName = localizeGameText(rawWeaponName);
