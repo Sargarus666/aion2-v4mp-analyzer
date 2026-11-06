@@ -102,7 +102,7 @@ test("builds Ranger offense, defense and utility sections from actual API values
   assert.equal(offense.stats.find(x => x.id === "combatSpeed").value, "12%");
   assert.equal(offense.stats.find(x => x.id === "criticalHit").value, 1450);
   assert.equal(offense.stats.find(x => x.id === "accuracy").available, true);
-  assert.equal(offense.stats.find(x => x.id === "attack").available, false);
+  assert.equal(offense.stats.some(x => x.id === "attack"), false);
 
   const defense = sections.find(x => x.id === "defense");
   assert.equal(defense.stats.find(x => x.id === "hp").value, 25000);
@@ -117,12 +117,10 @@ test("does not fabricate missing Ranger stats or match unrelated stat names", ()
     { name: "Critical Hit Resist", value: 100 },
     { name: "Back Attack Damage", value: "9%" }
   ]);
-  const offense = sections.find(x => x.id === "offense");
   const defense = sections.find(x => x.id === "defense");
-  assert.equal(offense.stats.find(x => x.id === "combatSpeed").available, false);
-  assert.equal(offense.stats.find(x => x.id === "criticalHit").available, false);
+  assert.equal(sections.some(x => x.id === "offense"), false);
   assert.equal(defense.stats.find(x => x.id === "criticalResist").value, 100);
-  assert.equal(defense.stats.find(x => x.id === "hp").available, false);
+  assert.equal(defense.stats.some(x => x.id === "hp"), false);
 });
 
 
