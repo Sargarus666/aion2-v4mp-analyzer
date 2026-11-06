@@ -68,12 +68,25 @@ const GAME_TERMS = {
   "Earth": "Урон землёй",
   "Might": "Мощь",
   "Accuracy": "Точность",
+  "Attack Speed": "Скорость атаки",
+  "Attack Power": "Сила атаки",
   "Attack": "Атака",
+  "Critical Hit Resist": "Сопротивление критическим ударам",
+  "Critical Damage Boost": "Усиление критического урона",
   "Critical Hit": "Критический удар",
   "Critical Damage": "Критический урон",
+  "Boss Damage Boost": "Усиление урона по боссам",
+  "PvE Damage Boost": "Усиление урона в PvE",
+  "Damage Tolerance": "Сопротивление урону",
+  "Cooldown Reduction": "Сокращение перезарядки",
+  "Movement Speed": "Скорость передвижения",
+  "MP Regen": "Восстановление маны",
+  "Max HP": "Максимальное здоровье",
+  "Max MP": "Максимальная мана",
   "Combat Speed": "Скорость боя",
   "Item Level": "Уровень экипировки",
-  "Combat Power": "Боевая мощь"
+  "Combat Power": "Боевая мощь",
+  "Conquest Tier 3": "Завоевание · 3-й уровень"
 };
 
 const TERM_PATTERN = new RegExp(
