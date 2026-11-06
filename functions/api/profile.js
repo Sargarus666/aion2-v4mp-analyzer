@@ -22,6 +22,19 @@ function retryAfterMilliseconds(value) {
   return 1000;
 }
 
+function hasUsefulInfoPayload(payload) {
+  return hasUsefulProfileData(normalizeProfileResponse(payload, {}));
+}
+
+function hasUsefulEquipmentPayload(payload) {
+  const data = normalizeProfileResponse({}, payload);
+  const hasRows = value => Array.isArray(value) && value.length > 0;
+  return hasRows(data.equipment?.equipmentList) ||
+    hasRows(data.equipment?.skinList) ||
+    hasRows(data.skill?.skillList) ||
+    hasRows(data.arcana);
+}
+
 async function requestJson(url, { forceRefresh = false } = {}) {
   let response;
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -61,15 +74,23 @@ export async function onRequestGet({ request } = {}) {
       requestJson(base + "info?" + params.toString(), { forceRefresh }),
       requestJson(base + "equipment?" + params.toString(), { forceRefresh })
     ]);
-    const info = infoResult.status === "fulfilled" ? infoResult.value : {};
-    const gear = gearResult.status === "fulfilled" ? gearResult.value : {};
+    let info = infoResult.status === "fulfilled" ? infoResult.value : {};
+    let gear = gearResult.status === "fulfilled" ? gearResult.value : {};
     const warnings = [];
     const failedEndpoints = [];
-    if (infoResult.status === "rejected") {
+    if (infoResult.status === "fulfilled" && !hasUsefulInfoPayload(info)) {
+      info = {};
+      failedEndpoints.push("info");
+      warnings.push("Профиль и статы: NCSOFT вернул HTTP 200 без ожидаемых данных.");
+    } else if (infoResult.status === "rejected") {
       failedEndpoints.push("info");
       warnings.push("Профиль и статы: " + String(infoResult.reason?.message || "ошибка источника").slice(0, 180));
     }
-    if (gearResult.status === "rejected") {
+    if (gearResult.status === "fulfilled" && !hasUsefulEquipmentPayload(gear)) {
+      gear = {};
+      failedEndpoints.push("equipment");
+      warnings.push("Экипировка и навыки: NCSOFT вернул HTTP 200 без ожидаемых данных.");
+    } else if (gearResult.status === "rejected") {
       failedEndpoints.push("equipment");
       warnings.push("Экипировка и навыки: " + String(gearResult.reason?.message || "ошибка источника").slice(0, 180));
     }
@@ -93,6 +114,7 @@ export async function onRequestGet({ request } = {}) {
           boardCount,
           statKeys: Object.keys(stat || {}),
           equipmentCount: equipmentList.length,
+          petwingKeys: Object.keys(data.petwing || {}),
           failedEndpoints,
           warnings
         }
@@ -103,11 +125,11 @@ export async function onRequestGet({ request } = {}) {
       ok: true,
       source: "NCSOFT public character API",
       fetchedAt: new Date().toISOString(),
-      partial: warnings.length > 0,
+      partial: failedEndpoints.length > 0,
       failedEndpoints,
       warnings,
       data
-    }, { headers: { "Cache-Control": forceRefresh || warnings.length ? "no-store" : "public, max-age=20, s-maxage=45", "X-Content-Type-Options": "nosniff" } });
+    }, { headers: { "Cache-Control": forceRefresh || failedEndpoints.length ? "no-store" : "public, max-age=20, s-maxage=45", "X-Content-Type-Options": "nosniff" } });
   } catch (error) {
     return Response.json(
       { ok: false, error: error?.message || "Не удалось получить профиль NCSOFT." },

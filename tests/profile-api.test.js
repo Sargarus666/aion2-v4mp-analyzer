@@ -137,3 +137,72 @@ test("does not retry a 429 before a future Retry-After deadline", async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+
+test("marks an HTTP-200 empty equipment payload as partial instead of fresh", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/info?")) {
+      return new Response(JSON.stringify({ profile: { characterName: "v4mp", combatPower: 98198 } }), {
+        status: 200, headers: { "Content-Type": "application/json" }
+      });
+    }
+    return new Response(JSON.stringify({ equipment: { equipmentList: [] }, skill: { skillList: [] } }), {
+      status: 200, headers: { "Content-Type": "application/json" }
+    });
+  };
+  try {
+    const response = await onRequestGet({ request: new Request("https://example.test/api/profile") });
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(body.ok, true);
+    assert.equal(body.partial, true);
+    assert.deepEqual(body.failedEndpoints, ["equipment"]);
+    assert.match(body.warnings[0], /HTTP 200/);
+    assert.equal(response.headers.get("Cache-Control"), "no-store");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("marks an HTTP-200 empty info payload as partial when equipment is usable", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/info?")) {
+      return new Response(JSON.stringify({ profile: {}, stat: { statList: [] }, daevanion: { boardList: [] } }), {
+        status: 200, headers: { "Content-Type": "application/json" }
+      });
+    }
+    return new Response(JSON.stringify({
+      equipment: { equipmentList: [{ name: "Bow" }] },
+      skill: { skillList: [{ name: "Snipe", skillLevel: 16 }] }
+    }), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+  try {
+    const response = await onRequestGet({ request: new Request("https://example.test/api/profile") });
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(body.ok, true);
+    assert.equal(body.partial, true);
+    assert.deepEqual(body.failedEndpoints, ["info"]);
+    assert.equal(body.data.equipment.equipmentList[0].name, "Bow");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("rejects a profile when both HTTP-200 endpoints contain no usable data", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({ data: {} }), {
+    status: 200, headers: { "Content-Type": "application/json" }
+  });
+  try {
+    const response = await onRequestGet({ request: new Request("https://example.test/api/profile") });
+    const body = await response.json();
+    assert.equal(response.status, 502);
+    assert.equal(body.ok, false);
+    assert.deepEqual(body.diagnostic.failedEndpoints, ["info", "equipment"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

@@ -13,7 +13,7 @@ The latest successful GitHub diagnostic run against the public NCSOFT character 
 - The diagnostic sample contained 17 stat rows, 25 equipment rows, 35 skills and 6 Daevanion boards.
 - Each `statList` row can contain its own `statSecondList` array. Normalization now preserves the original row and exposes each nested bonus as a separate row; `desc` is also accepted as a value field.
 - The public profile exposes `combatPower` and an `ItemLevel` stat. It does **not** expose a separate `Gear Score` field in the observed response. Shugo.GG currently labels its own value as Gear Score 2,111 while the NCSOFT `ItemLevel` sample is 2,212; both sources show CP 98,198. These labels are not merged. The app uses NCSOFT ItemLevel for dungeon-entry planning and labels it iLvl.
-- The current equipment payload includes item identity, slot, grade, enchant/exceed and icon. It does not include full Soul Binding rolls or installed manastones in the observed payload.
+- The current equipment payload includes item identity, slot, grade, enchant/exceed and icon. It also includes a `petwing` object with `pet`, `wing` and `wingSkin` branches; the normalizer retains those branches and the equipment view surfaces populated entries. It does not include full Soul Binding rolls or installed manastones in the observed payload.
 - The current Daevanion payload provides board open state, open node count, total node count and percent, but not node-level effects. The UI shows only the confirmed board summary.
 - No arcana array was present in the observed NCSOFT equipment response. The app does not synthesize one; Shugo.GG remains an external cross-check.
 
@@ -23,7 +23,7 @@ The latest successful GitHub diagnostic run against the public NCSOFT character 
 - Upstream calls have a 10-second timeout; the browser request has a 15-second timeout.
 - One bounded retry is allowed for 429/502/503/504. A future `Retry-After` beyond the small retry budget is respected by not retrying early.
 - Upstream success responses use a 45-second edge cache; explicit refresh requests bypass that cache.
-- Partial responses include structured failed-endpoint identifiers and warnings. The browser keeps the last successful sections for a failed endpoint and marks those sections stale. A fully failed refresh leaves the last snapshot visible.
+- Partial responses include structured failed-endpoint identifiers and warnings. A successful HTTP 200 with an empty or structurally unusable `info` or `equipment` payload is treated as a failed endpoint, not as a fresh complete snapshot. The browser keeps the last successful sections for a failed endpoint and marks those sections stale. A fully failed refresh leaves the last snapshot visible.
 - Partial and error responses are not treated as a complete fresh snapshot. A complete response clears stale markers.
 - The function uses fixed public NCSOFT endpoints and fixed character identifiers; it does not accept arbitrary upstream URLs or bypass login, anti-bot controls or rate limits.
 
@@ -46,6 +46,8 @@ The visual system remains a custom AION 2 field-console identity: deep blue-blac
 - **Framer:** study dark, grid and large-type galleries for visual rhythm; keep the interface editorial without hiding operational data.
 - **Awwwards:** use craft and interaction quality as a benchmark, while prioritising task completion, reliability and mobile legibility over spectacle.
 
+Research references checked 6 November 2026: [Tilda Made on Tilda](https://tilda.cc/madeontilda/), [Wix Studio Inspiration](https://www.wix.com/studio/inspiration), [Webflow Interactions showcase](https://webflow.com/made-in-webflow/interactions), [Framer Quadro Studio](https://www.framer.com/marketplace/templates/quadro-studio/) and [Awwwards dark-site collection](https://www.awwwards.com/websites/dark/). The references support editorial hierarchy, strict grids, dark tonal systems, reusable card patterns and concise interaction feedback; no template, custom cursor, parallax scene or WebGL effect was copied.
+
 The interface uses short transform/opacity transitions, native details/summary for expandable farm guidance, lazy images and a `prefers-reduced-motion` override. No canvas, WebGL, continuous background video or heavy blur layer is introduced. A decorative box-shadow pulse was removed.
 
 ## Security, accessibility and performance review
@@ -66,3 +68,10 @@ The interface uses short transform/opacity transitions, native details/summary f
 3. Arcana are not supplied by the observed NCSOFT profile payload.
 4. The NotMeter deep link could not be independently rendered in the research browser; Shugo.GG's public profile was readable and explicitly identifies its data as NCSOFT character API.
 5. Production Cloudflare Pages runtime could not be fetched from this execution environment. GitHub build success is not treated as proof of production deployment.
+
+
+## Execution boundaries
+
+- No independent coding-agent/sub-agent connector was available in this execution environment. No delegated review was simulated.
+- `PlayGround` and `SmartSearch` were not modified.
+- The repository currently has no lint, typecheck, browser E2E, axe-core or Lighthouse CI scripts. Those checks remain unclaimed; the available Node tests, syntax checks, Vite build and npm audit are run by GitHub Actions.

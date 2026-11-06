@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { normalizeStatEntries, buildRelevantStatSections, safeImageSource as imageSource } from "./lib/character-data.js";
+import { normalizeStatEntries, normalizeDaevanionProgress, parseOptionalNumber, buildRelevantStatSections, safeImageSource as imageSource } from "./lib/character-data.js";
 import { mergeProfileSnapshot } from "./lib/profile-state.js";
 import { localizeGameText } from "./lib/game-localization.js";
 
@@ -209,7 +209,7 @@ function makeFarmPlan(items, stats, boards, skills, itemLevel, arcanaItems = [])
     how: ["Убедись, что список экипировки загрузился полностью.", "Когда название и характеристики лука появятся в профиле, их можно будет сравнить с таблицей добычи."],
     priority: "Проверка данных", target: "Оружие"
   });
-  const itemLevelNumber = Number(String(itemLevel ?? "").replace(/[^0-9.-]/g, ""));
+  const itemLevelNumber = parseOptionalNumber(itemLevel);
   const entry2100 = Number.isFinite(itemLevelNumber) && itemLevelNumber >= 2100
     ? "Требование по уровню экипировки выполнено: сейчас " + fmt(itemLevelNumber) + "."
     : "Для входа на третий уровень завоевания нужен уровень экипировки 2 100" + (Number.isFinite(itemLevelNumber) ? "; сейчас " + fmt(itemLevelNumber) + "." : ".");
@@ -242,7 +242,7 @@ function makeFarmPlan(items, stats, boards, skills, itemLevel, arcanaItems = [])
       "С 2 700 добавляются Hard Ущелье ауругу и Hard Парящий остров Вакрона. Фрагменты превращаются в Кристаллы Даэваниона: Ариэль.",
       "Для PvE-маршрута гайда приоритетны узлы «Увеличение урона в PvE» и «Увеличение урона по боссу», затем PvE-стойкость; маршрут рассчитан на ограниченный запас кристаллов."
     ],
-    priority: "Позже", target: "Ариэль · порог 2 600 / 2 700", sourceUrl: "https://aion2-guides.info/ru/ranger/", sourceLabel: "AION2 Guides · доски Даэваниона"
+    priority: "Позже", target: "Ариэль · порог 2 600 / 2 700", sourceUrl: "https://aion2-guides.info/en/ranger/", sourceLabel: "AION2 Guides · Global Ranger / Ariel"
   });
   if (Number.isFinite(itemLevelNumber) && itemLevelNumber >= 2600) plan.push({
     title: "Фрагменты Ариэль: Hard-подземелья",
@@ -318,7 +318,10 @@ function makeFarmPlan(items, stats, boards, skills, itemLevel, arcanaItems = [])
     priority: "Средний", target: localizeGameText(x.slotPosName || "Экипировка")
   }));
   if (boards.length) {
-    const incomplete = boards.filter(b => Number(b.openNodeCount ?? 0) < Number(b.totalNodeCount ?? 0));
+    const incomplete = boards.filter(b => {
+      const progress = normalizeDaevanionProgress(b);
+      return progress.opened !== null && progress.total !== null && progress.total > 0 && progress.opened < progress.total;
+    });
     incomplete.forEach(b => plan.push({
       title: "Даэванион: " + localizeGameText(b.name || "доска"),
       detail: (b.openNodeCount ?? "—") + " / " + (b.totalNodeCount ?? "—") + " открытых узлов",
@@ -351,6 +354,11 @@ export default function App() {
   const character=profile?.profile || {};
   const equipment=arr(profile?.equipment?.equipmentList);
   const skins=arr(profile?.equipment?.skinList);
+  const petwingItems=Object.entries(profile?.petwing || {}).flatMap(([slot,value]) => {
+    const values=Array.isArray(value) ? value : [value];
+    return values.filter(item=>item && typeof item==="object" && !Array.isArray(item))
+      .map(item=>({...item,slotPosName:item.slotPosName || slot}));
+  });
   const stats=statEntries(profile?.stat);
   const skills=arr(profile?.skill?.skillList);
   const arcanaCandidates=[...arr(profile?.arcana),...arr(profile?.equipment?.arcanaList),...equipment.filter(x=>/arcana|аркана/i.test([x.slotPosName,x.slotPos,x.slot,x.category].join(" ")))];
@@ -373,8 +381,8 @@ export default function App() {
       <Metric label="ЭКИПИРОВКА" value={equipment.length ? equipment.length+" предметов" : "—"} hint={equipment.length ? "Получено из профиля NCSOFT" : "Нет данных из профиля"}/>
     </section>
     <nav className="tabs" aria-label="Разделы анализатора">{tabs.map(t=><button key={t} className={tab===t?"active":""} aria-pressed={tab===t} onClick={()=>setTab(t)}>{t}</button>)}</nav>
-    {tab==="Обзор" && <><section className="content-grid"><article className="panel"><div className="panel-head"><div><p className="eyebrow">ДАННЫЕ ПЕРСОНАЖА</p><h2>Профиль персонажа</h2></div><span className="tag">{profile?"Данные получены":"Нет данных"}</span></div><Status label="Персонаж" value={title}/><Status label="Класс" value={localizeGameText(get(character,"className","class")) || CHARACTER.className}/><Status label="Сервер" value={(get(character,"serverName","server")==="Kromede" ? "Кромеде" : get(character,"serverName","server")) || CHARACTER.server}/><Status label="Уровень" value={get(character,"level","characterLevel") ?? "—"}/><Status label="Навыки" value={skills.length}/><p className="disclaimer">NCSOFT API отдаёт ItemLevel и Combat Power, но не отдельное поле Gear Score. Shugo.GG показывает собственный GS отдельно; эти метрики не смешиваются и не подменяют друг друга.</p></article><aside className="panel"><p className="eyebrow">СОСТОЯНИЕ ДАННЫХ</p><h2>Состав профиля</h2><Status label="Экипировка" value={equipment.length}/><Status label="Характеристики" value={stats.length}/><Status label="Навыки" value={skills.length}/><Status label="Арканы" value={arcana.length}/><Status label="Даэванион" value={boards.length}/><Status label="Облики" value={skins.length}/><div className="callout">{updated?"Ответ NCSOFT: "+updated:"Автоматическая загрузка профиля v4mp."}{profile?._partial&&profile?._lastCompleteAt&&<small>Полный снимок: {new Date(profile._lastCompleteAt).toLocaleString("ru-RU")}</small>}</div></aside></section><section className="panel build-image-panel"><div className="panel-head"><div><p className="eyebrow">ТЕКУЩАЯ СБОРКА</p><h2>Текущая сборка персонажа</h2></div><span className="tag">Скриншот</span></div><a className="build-image-link" href="https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg" target="_blank" rel="noreferrer"><img className="build-image" src="https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg" alt="Скриншот билда персонажа v4mp" loading="lazy"/></a><p className="muted">Скриншот сборки из GitHub проекта. Нажми на изображение, чтобы открыть его в полном размере.</p></section></>}
-    {tab==="Экипировка" && <section className="panel"><h2>Экипировка</h2>{equipment.length?<div className="visual-list">{equipment.map((x,i)=><VisualRow key={i} item={x} kind="item"/> )}</div>:<Empty error={error}/ >}<p className="stats-note">Текущий публичный equipment-ответ NCSOFT содержит название, ID, слот, грейд, заточку, exceed и иконку. Строки Soul Binding и установленные камни в этом ответе отсутствуют — не подставляю их из названия предмета.</p>{skins.length>0&&<><h2 className="section-subtitle">Облики</h2><div className="visual-list">{skins.map((x,i)=><VisualRow key={i} item={x} kind="item"/>)}</div></>}</section>}
+    {tab==="Обзор" && <><section className="content-grid"><article className="panel"><div className="panel-head"><div><p className="eyebrow">ДАННЫЕ ПЕРСОНАЖА</p><h2>Профиль персонажа</h2></div><span className="tag">{profile?"Данные получены":"Нет данных"}</span></div><Status label="Персонаж" value={title}/><Status label="Класс" value={localizeGameText(get(character,"className","class")) || CHARACTER.className}/><Status label="Сервер" value={(get(character,"serverName","server")==="Kromede" ? "Кромеде" : get(character,"serverName","server")) || CHARACTER.server}/><Status label="Уровень" value={get(character,"level","characterLevel") ?? "—"}/><Status label="Навыки" value={skills.length}/><p className="disclaimer">NCSOFT API отдаёт ItemLevel и Combat Power, но не отдельное поле Gear Score. Shugo.GG показывает собственный GS отдельно; эти метрики не смешиваются и не подменяют друг друга.</p></article><aside className="panel"><p className="eyebrow">СОСТОЯНИЕ ДАННЫХ</p><h2>Состав профиля</h2><Status label="Экипировка" value={equipment.length}/><Status label="Характеристики" value={stats.length}/><Status label="Навыки" value={skills.length}/><Status label="Арканы" value={arcana.length}/><Status label="Даэванион" value={boards.length}/><Status label="Облики" value={skins.length}/><Status label="Питомец и крылья" value={petwingItems.length}/><div className="callout">{updated?"Ответ NCSOFT: "+updated:"Автоматическая загрузка профиля v4mp."}{profile?._partial&&profile?._lastCompleteAt&&<small>Полный снимок: {new Date(profile._lastCompleteAt).toLocaleString("ru-RU")}</small>}</div></aside></section><section className="panel build-image-panel"><div className="panel-head"><div><p className="eyebrow">ТЕКУЩАЯ СБОРКА</p><h2>Текущая сборка персонажа</h2></div><span className="tag">Скриншот</span></div><a className="build-image-link" href="https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg" target="_blank" rel="noreferrer"><img className="build-image" src="https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg" alt="Скриншот билда персонажа v4mp" loading="lazy"/></a><p className="muted">Скриншот сборки из GitHub проекта. Нажми на изображение, чтобы открыть его в полном размере.</p></section></>}
+    {tab==="Экипировка" && <section className="panel"><h2>Экипировка</h2>{equipment.length?<div className="visual-list">{equipment.map((x,i)=><VisualRow key={i} item={x} kind="item"/> )}</div>:<Empty error={error}/ >}<p className="stats-note">Текущий публичный equipment-ответ NCSOFT содержит название, ID, слот, грейд, заточку, exceed и иконку. Строки Soul Binding и установленные камни в этом ответе отсутствуют — не подставляю их из названия предмета.</p>{skins.length>0&&<><h2 className="section-subtitle">Облики</h2><div className="visual-list">{skins.map((x,i)=><VisualRow key={i} item={x} kind="item"/>)}</div></>}{petwingItems.length>0&&<><h2 className="section-subtitle">Питомец и крылья</h2><div className="visual-list">{petwingItems.map((x,i)=><VisualRow key={x.id||x.name||i} item={x} kind="item"/>)}</div></>}</section>}
     {tab==="Характеристики" && <section className="panel stats-panel"><div className="panel-head"><div><p className="eyebrow">ХАРАКТЕРИСТИКИ ПЕРСОНАЖА</p><h2>Характеристики</h2></div><span className="tag">{stats.length} параметров</span></div>{stats.length?<><div className="stats-overview"><div><b>Боевые характеристики Стрелка</b><p>Здесь собраны важные для Стрелка параметры: урон по боссам, скорость атак, критические попадания и выживаемость.</p></div><span>{stats.length} параметров из профиля</span></div><div className="stats-sections">{buildRelevantStatSections(stats).filter(group=>group.stats.length>0).map(group=><section className="stats-group" key={group.id}><div className="stats-group-head"><div><h3>{group.title}</h3><p>{group.description}</p></div><span>{group.stats.length}</span></div><div className="stats-grid">{group.stats.map(item=><StatCard key={item.id} item={{name:item.label,value:item.value,group:item.hint,icon:item.icon,available:true}}/>)}</div></section>)}</div><p className="stats-note">Значения берутся из публичного профиля без расчётных подстановок. Для PvE-Стрелка особенно важны точность, скорость боя, критический урон и бонусы урона; защитные показатели помогают оценивать запас выживаемости.</p></>:<Empty error={error}/>}</section>}
     {tab==="Навыки" && <section className="panel"><h2>Навыки</h2>{skills.length?<div className="visual-list">{skills.map((x,i)=><VisualRow key={i} item={x} kind="skill"/>)}</div>:<Empty error={error}/>}</section>}
     {tab==="Арканы" && <section className="panel"><div className="panel-head"><div><p className="eyebrow">ЭКИПИРОВАННЫЕ АРКАНЫ</p><h2>Арканы персонажа</h2></div><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Профиль Shugo.GG ↗</a></div>{arcana.length?<div className="visual-list">{arcana.map((x,i)=><VisualRow key={x.id||x.slotPosName||i} item={x} kind="item"/>)}</div>:<div className="empty-state"><span>◇</span><b>Арканы не распознаны в ответе NCSOFT</b><small>Не подставляю старые или предполагаемые карты. Shugo.GG публикует экипированные арканы в открытом профиле персонажа.</small><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Открыть арканы v4mp ↗</a></div>}<div className="meta-section-head"><h3>Выборка сильнейших Стрелков на мировом сервере</h3><span>136 персонажей · 03.11.2026</span></div><p className="muted">Доли карт в открытых профилях сильнейших игроков. Это частота использования, а не прямое измерение урона; для трёх слотов источник пока не подтвердил популярные карты.</p><div className="arcana-meta-grid">{ARCANA_META.map((item,i)=><ArcanaMetaCard key={item.slot} item={item} index={i}/>)}</div></section>}
@@ -385,12 +393,14 @@ export default function App() {
   </main>;
 }
 function FarmTargets({itemLevel}) {
-  const value = Number(String(itemLevel ?? "").replace(/[^0-9.-]/g, ""));
-  const hasLevel = Number.isFinite(value);
+  const value = parseOptionalNumber(itemLevel);
+  const hasLevel = value !== null;
+  const locked = hasLevel && value < 2100;
   const current = hasLevel && value >= 2100 && value < 2600;
   const later = hasLevel && value >= 2600;
   return <section className="farm-targets">
     <div className="farm-library-head"><div><p className="eyebrow">КОНКРЕТНЫЕ ПРЕДМЕТЫ · GLOBAL</p><h3>Что выбивать по слотам</h3><p className="muted">Основные проценты ниже — точные значения EU-клиента AION2.GG на один бросок наградного куба. Это не шанс за удар босса и не гарантированная вероятность получить вещь за целое прохождение. AION2 Hub использует отдельную модельную оценку на clear.</p></div><span className="tag">{current?"Текущий этап 2 100–2 500":later?"Сверь как апгрейд":"Маршрут от 2 100"}</span></div>
+    {locked && <p className="farm-target-alert">Текущий iLvl {value.toLocaleString("ru-RU")} ниже входного порога 2 100. Храм огня и Логово Свирепого Рога (Conquest) пока закрыты: сначала подними ItemLevel, не трать энергию на недоступный маршрут.</p>}
     {later && <p className="farm-target-alert">При текущем iLvl {value.toLocaleString("ru-RU")} не фарми эти предметы автоматически: оставляй их в плане только если конкретный слот всё ещё слабее. Следующие рубежи: Hard Krao / Draupnir — 2 600; Hard Urugugu / Vakron — 2 700; Ludra Normal / Hard — 2 800 / 3 000.</p>}
     <div className="farm-target-grid">{FARM_TARGETS.map((item,i)=><article className="farm-target-card" key={item.slot}>
       <div className="farm-target-top"><span className="farm-index">{String(i+1).padStart(2,"0")}</span><small>{item.slot}</small></div>
@@ -405,18 +415,14 @@ function ArcanaMetaCard({item,index}) { return <article className="arcana-meta-c
 function MetaStigmaCard({item,index}) { const pct=item.level==null?0:Math.min(100,item.level/item.target*100); return <article className="meta-stigma-card"><div className="meta-skill-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><b>{item.name}</b><div className="meta-level">{item.level==null?"Нет данных":"Ур. "+item.level}<span>Рубеж {item.target}</span></div><div className="meta-progress"><i style={{width:pct+"%"}}/></div><small className="meta-cohort">Мировая выборка: {item.globalShare}%</small></article>; }
 function MetaSkillCard({item,index}) { const pct=item.level==null?0:Math.min(100,item.level/item.target*100); return <article className="meta-skill-card"><div className="meta-skill-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><h3>{item.name}</h3><div className="meta-level">{item.level==null?"Нет данных":"Ур. "+item.level}<span>Рубеж {item.target}</span></div><div className="meta-progress"><i style={{width:pct+"%"}}/></div><p>{item.note}</p><small className="meta-cohort">Мировая выборка: средний уровень {item.globalAverage} · PvE в Корее, уровень 20+: {item.koreanPve20}%</small></article>; }
 function DaevanionCard({item,index}) {
-  const opened=Number(item.openNodeCount);
-  const total=Number(item.totalNodeCount);
-  const rawPercent=item.openPercent == null ? NaN : Number(item.openPercent);
-  const percent=Number.isFinite(rawPercent) ? Math.max(0,Math.min(100,rawPercent))
-    : total>0 && Number.isFinite(opened) ? Math.round(opened/total*100) : null;
+  const {opened,total,percent}=normalizeDaevanionProgress(item);
   const icon=imageSource(item.icon);
   const name=localizeGameText(get(item,"name"))||"Доска";
   const state=item.open == null ? "Статус не указан" : Number(item.open)===1 ? "Открыта" : "Закрыта";
   return <article className="meta-skill-card daevanion-card">
     <div className="meta-skill-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{state}</span></div>
     <div className="daevanion-title">{icon&&<img src={icon} alt="" loading="lazy" decoding="async"/>}<h3>{name}</h3></div>
-    <div className="meta-level">{Number.isFinite(opened)&&Number.isFinite(total)?fmt(opened)+" / "+fmt(total)+" узлов":"Счётчик узлов —"}<span>{percent==null?"Нет %":percent+"%"}</span></div>
+    <div className="meta-level">{opened!==null&&total!==null&&total>0?fmt(opened)+" / "+fmt(total)+" узлов":"Счётчик узлов —"}<span>{percent==null?"Нет %":percent+"%"}</span></div>
     {percent!=null&&<div className="meta-progress" role="progressbar" aria-label={"Открытие доски "+name} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}><i style={{width:percent+"%"}}/></div>}
   </article>;
 }

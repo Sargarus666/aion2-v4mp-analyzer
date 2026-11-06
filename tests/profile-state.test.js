@@ -33,18 +33,20 @@ test("preserves gear, skills and arcana when the equipment endpoint is partial",
     equipment: { equipmentList: [{ name: "Spiritforged Bow" }], skinList: [] },
     skill: { skillList: [{ name: "Snipe", skillLevel: 16 }] },
     arcana: [{ name: "Chalice of Vigor" }],
+    petwing: { wing: { name: "Daeva Wings" } },
     profile: { name: "v4mp" }
   };
   const merged = mergeProfileSnapshot(previous, {
     profile: { name: "v4mp", combatPower: 90000 },
     stat: { statList: [] },
-    equipment: {}, skill: {}, arcana: []
+    equipment: {}, skill: {}, arcana: [], petwing: {}
   }, ["equipment"], ["Экипировка и навыки: timeout"], "2026-11-06T08:00:00.000Z");
 
   assert.deepEqual(merged.equipment, previous.equipment);
   assert.deepEqual(merged.skill, previous.skill);
   assert.deepEqual(merged.arcana, previous.arcana);
-  assert.deepEqual(merged._staleSections, ["equipment", "skill", "arcana"]);
+  assert.deepEqual(merged.petwing, previous.petwing);
+  assert.deepEqual(merged._staleSections, ["equipment", "skill", "arcana", "petwing"]);
   assert.equal(merged.profile.combatPower, 90000);
 });
 

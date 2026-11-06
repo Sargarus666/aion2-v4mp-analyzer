@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   normalizeProfileResponse,
+  normalizeDaevanionProgress,
+  parseOptionalNumber,
   normalizeStatEntries,
   hasUsefulProfileData,
   buildRelevantStatSections,
@@ -223,4 +225,40 @@ test("normalizes statSecondList descriptions supplied through desc", () => {
     statSecondList: [{ name: "Bonus", desc: "Attack +12" }]
   });
   assert.equal(normalized[0].value, "Attack +12");
+});
+
+
+test("preserves NCSOFT petwing data from the equipment endpoint", () => {
+  const data = normalizeProfileResponse(
+    { profile: { name: "v4mp" } },
+    { petwing: {
+      pet: { id: 1, name: "Equipped Pet", icon: "https://assets.playnccdn.com/pet.png" },
+      wing: { id: 2, name: "Daeva Wings" },
+      wingSkin: null
+    }, equipment: { equipmentList: [{ name: "Bow" }] } }
+  );
+  assert.equal(data.petwing.pet.name, "Equipped Pet");
+  assert.equal(data.petwing.wing.name, "Daeva Wings");
+  assert.equal(data.petwing.wingSkin, null);
+  assert.equal(hasUsefulProfileData(data), true);
+});
+
+test("does not coerce missing Daevanion counters into zero", () => {
+  assert.deepEqual(
+    normalizeDaevanionProgress({ openNodeCount: null, totalNodeCount: null, openPercent: null }),
+    { opened: null, total: null, percent: null }
+  );
+  assert.deepEqual(
+    normalizeDaevanionProgress({ openNodeCount: "2", totalNodeCount: "4" }),
+    { opened: 2, total: 4, percent: 50 }
+  );
+  assert.equal(normalizeDaevanionProgress({ openNodeCount: 9, totalNodeCount: 4, openPercent: 120 }).percent, 100);
+  assert.equal(normalizeDaevanionProgress({ openNodeCount: "", totalNodeCount: 0 }).percent, null);
+});
+
+test("keeps a missing item level distinct from zero", () => {
+  assert.equal(parseOptionalNumber(null), null);
+  assert.equal(parseOptionalNumber(""), null);
+  assert.equal(parseOptionalNumber("2 212"), 2212);
+  assert.equal(parseOptionalNumber("2,212"), 2212);
 });

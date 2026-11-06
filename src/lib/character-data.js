@@ -93,6 +93,7 @@ export function normalizeProfileResponse(info = {}, gear = {}) {
     : asArray(gear?.arcana).length ? asArray(gear.arcana)
     : asArray(equipment?.arcanaList);
   const daevanion = firstObject(info?.daevanion, infoData?.daevanion, character?.daevanion, profile?.daevanion);
+  const petwing = firstObject(gear?.petwing, gearData?.petwing);
 
   return {
     profile,
@@ -100,6 +101,7 @@ export function normalizeProfileResponse(info = {}, gear = {}) {
     daevanion,
     equipment,
     skill,
+    petwing,
     arcana,
     title: firstObject(info?.title, infoData?.title),
     ranking: firstObject(info?.ranking, infoData?.ranking)
@@ -113,11 +115,39 @@ export function hasUsefulProfileData(data = {}) {
   const boards = asArray(data.daevanion?.boardList);
   const arcana = asArray(data.arcana);
   const profile = data.profile || {};
+  const petwing = Object.values(data.petwing || {}).some(value =>
+    value != null && (typeof value !== "object" || Object.keys(value).length > 0)
+  );
   return Boolean(
     profile.name || profile.characterName || profile.character_name ||
     profile.combatPower != null || profile.combat_power != null ||
-    stats.length || equipment.length || skills.length || boards.length || arcana.length
+    stats.length || equipment.length || skills.length || boards.length || arcana.length || petwing
   );
+}
+
+export function parseOptionalNumber(value) {
+  if (value == null || value === "") return null;
+  const normalized = String(value).replace(/[^0-9.-]/g, "");
+  if (!normalized) return null;
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : null;
+}
+
+export function normalizeDaevanionProgress(board = {}) {
+  const read = value => {
+    if (value == null || value === "") return null;
+    const number = Number(value);
+    return Number.isFinite(number) && number >= 0 ? number : null;
+  };
+  const opened = read(board?.openNodeCount);
+  const total = read(board?.totalNodeCount);
+  const sourcePercent = read(board?.openPercent);
+  const percent = sourcePercent !== null
+    ? Math.max(0, Math.min(100, sourcePercent))
+    : total !== null && total > 0 && opened !== null
+      ? Math.max(0, Math.min(100, Math.round(opened / total * 100)))
+      : null;
+  return { opened, total, percent };
 }
 
 
