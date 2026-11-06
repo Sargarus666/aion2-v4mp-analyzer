@@ -721,3 +721,11 @@ footer { color:#72909d; }
  .farm-resource-grid { grid-template-columns:1fr; }
  .farm-library-head { flex-direction:column; }
 }
+
+
+.farm-rules { margin-top:25px; padding-top:22px; border-top:1px solid rgba(121,229,255,.16); }
+.farm-rule-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+.farm-rule { padding:13px 14px; border:1px solid rgba(121,229,255,.12); border-radius:13px; background:rgba(13,29,40,.75); }
+.farm-rule b { color:#b8efff; font-size:11px; }
+.farm-rule p { margin:6px 0 0; color:var(--md-sys-color-on-surface-variant); font-size:10px; line-height:1.65; }
+@media(max-width:680px) { .farm-rule-grid { grid-template-columns:1fr; } }
