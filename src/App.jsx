@@ -105,7 +105,7 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
   const weapon = equipped.find(x => /weapon|bow|лук|оруж/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
   if (weapon) plan.push({
     title: "Лук",
-    detail: "Текущий предмет: " + (weapon.name || weapon.itemName) + (weapon.enchantLevel != null ? " · заточка +" + weapon.enchantLevel : "") + (weapon.grade ? " · " + weapon.grade : ""),
+    detail: "Текущий предмет: " + localizeGameText(weapon.name || weapon.itemName) + (weapon.enchantLevel != null ? " · заточка +" + weapon.enchantLevel : "") + (weapon.grade ? " · " + localizeGameText(weapon.grade) : ""),
     how: ["Сравнить базовую атаку и атакующие характеристики нового лука с текущим.", "Сначала проверить дроп в доступных тебе данжах и награды за недельные активности.", "Менять оружие только если прирост реального урона по боссу выше, чем от заточки/камней текущего."],
     priority: "Высокий", target: "Оружие"
   });
@@ -152,7 +152,7 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
   if (magicChalice) plan.push({
     title: "Аркана: Чаша жизненной силы",
     detail: "Сейчас: " + localizeGameText(magicChalice.name || magicChalice.itemName) + (magicChalice.grade ? " · " + localizeGameText(magicChalice.grade) : ""),
-    how: ["В выборке 136 сильнейших игроков Global Чаша жизненной силы встречается у 94,1%, Чаша магии — у 5,9%.", "Проверь способ получения или обмена и сравни реальные бонусы карты перед заменой.", "Частота использования — только ориентир, а не доказательство прироста урона."],
+    how: ["Среди 136 сильнейших игроков Global Чаша жизненной силы встречается у 94,1%, Чаша магии — у 5,9%.", "Проверь способ получения или обмена и сравни реальные бонусы карты перед заменой.", "Частота использования — только ориентир, а не доказательство прироста урона."],
     priority: "Средний", target: "Арканы", sourceUrl: "https://aion2-meta.com/guides/ranger/", sourceLabel: "AION2 META · мировая выборка"
   });
   const weak = equipped.filter(x => x.enchantLevel != null).sort((a,b)=>Number(a.enchantLevel)-Number(b.enchantLevel)).slice(0,3);
