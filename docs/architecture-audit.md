@@ -58,7 +58,7 @@ The interface uses short transform/opacity transitions, native details/summary f
 - Remote icons and the hero portrait pass through an HTTPS NCSOFT-host allowlist; unknown hosts and non-HTTPS schemes are rejected. The portrait has descriptive alternative text and a text-only failure fallback.
 - New-tab links use `rel="noreferrer"`.
 - Native buttons, anchors and disclosure elements remain keyboard-operable; status and error regions use status/alert semantics; Daevanion progress has accessible labels and values.
-- Responsive breakpoints exist for desktop, tablet and narrow mobile layouts. This is a source-level review, not a device-lab certification.
+- Responsive breakpoints exist for desktop, tablet and narrow mobile layouts. Selected foreground/background token pairs were manually contrast-checked: primary button 12.59:1, primary-container text 11.33:1, secondary button 7.09:1, muted text 10.35:1 and outline text 6.13:1. This is a token sample, not a complete device-lab or automated axe certification.
 - The project uses Node's built-in test runner rather than Vitest. CI runs tests, syntax checks, production build and `npm audit`.
 - Playwright, axe-core and Lighthouse CI are not installed in this repository; no automated browser, contrast or Core Web Vitals result is claimed.
 - No dedicated secret-scanning action is configured in the current workflow. This audit does not claim a Gitleaks/secret-scanner pass.
@@ -83,7 +83,7 @@ The interface uses short transform/opacity transitions, native details/summary f
 
 - Fixed a data-quality edge case: when NCSOFT's equipment endpoint returns only `petwing`, it is no longer discarded as an empty equipment response. A regression test verifies that the partial shape remains available without marking the whole endpoint stale.
 - Added a responsive portrait panel to the hero using the live NCSOFT profile image, with a text-only fallback and descriptive `alt` text. The image is loaded eagerly because it is the only new above-the-fold visual.
-- Harmonised the remaining purple background and hover accents with the cyan/teal identity. Removed the infinite hero pulse and 5px hero blur; sticky navigation blur is reduced to 4px on desktop and disabled on narrow screens. No canvas, WebGL, video, new runtime dependency or additional animation library was added.
+- Harmonised all Material-derived surface, primary, secondary, outline and text tokens with the cyan/teal + muted-gold identity. Selected token contrast ratios were calculated manually. Removed the infinite hero pulse and 5px hero blur; sticky navigation blur is reduced to 4px on desktop and disabled on narrow screens. No canvas, WebGL, video, new runtime dependency or additional animation library was added.
 - Increased the smallest farm guidance text on narrow screens; the existing reduced-motion override still disables transitions and animations.
 - The public Shugo.GG FAQ says there is no public data API. Its current profile was useful to cross-check v4mp's displayed GS, gear and Arcana, but the project deliberately does not scrape or merge that value into NCSOFT's CP/iLvl fields.
 - AION2 Companion's Ranger guide was also checked on 6 November and labels its PvE stat order as editorial. It is treated as a separate community opinion, not a measured DPS formula.

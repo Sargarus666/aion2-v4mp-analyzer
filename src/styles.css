@@ -1,22 +1,22 @@
 :root {
   color-scheme: dark;
-  --md-sys-color-primary: #d0bcff;
-  --md-sys-color-on-primary: #381e72;
-  --md-sys-color-primary-container: #4f378b;
-  --md-sys-color-on-primary-container: #eaddff;
-  --md-sys-color-secondary: #ccc2dc;
-  --md-sys-color-on-secondary: #332d41;
-  --md-sys-color-secondary-container: #4a4458;
-  --md-sys-color-tertiary: #efb8c8;
-  --md-sys-color-surface: #141218;
-  --md-sys-color-surface-container-low: #1d1b20;
-  --md-sys-color-surface-container: #211f26;
-  --md-sys-color-surface-container-high: #2b2930;
-  --md-sys-color-surface-container-highest: #36343b;
-  --md-sys-color-outline: #938f99;
-  --md-sys-color-outline-variant: #49454f;
-  --md-sys-color-on-surface: #e6e1e9;
-  --md-sys-color-on-surface-variant: #cac4d0;
+  --md-sys-color-primary: #79e5ff;
+  --md-sys-color-on-primary: #041720;
+  --md-sys-color-primary-container: #123746;
+  --md-sys-color-on-primary-container: #d9f8ff;
+  --md-sys-color-secondary: #d8c69f;
+  --md-sys-color-on-secondary: #2b2111;
+  --md-sys-color-secondary-container: #594423;
+  --md-sys-color-tertiary: #d4c49e;
+  --md-sys-color-surface: #070c12;
+  --md-sys-color-surface-container-low: #0d1721;
+  --md-sys-color-surface-container: #101f2a;
+  --md-sys-color-surface-container-high: #172a37;
+  --md-sys-color-surface-container-highest: #203844;
+  --md-sys-color-outline: #7894a3;
+  --md-sys-color-outline-variant: #29424e;
+  --md-sys-color-on-surface: #e6f4f7;
+  --md-sys-color-on-surface-variant: #a9c0ca;
   font-family: Roboto, "Noto Sans", "Segoe UI", system-ui, sans-serif;
   color: var(--md-sys-color-on-surface);
   background: var(--md-sys-color-surface);
@@ -50,7 +50,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .primary,.secondary { border:0; border-radius:999px; padding:12px 19px; text-decoration:none; font-size:12px; font-weight:700; display:inline-flex; align-items:center; justify-content:center; min-height:44px; transition:filter .15s ease, background-color .15s ease; }
 .primary { background:var(--md-sys-color-primary); color:var(--md-sys-color-on-primary); }
 .primary:hover { filter:brightness(1.08); }
-.secondary { background:var(--md-sys-color-secondary-container); color:#e8def8; }
+.secondary { background:var(--md-sys-color-secondary-container); color:#f5dfb8; }
 .secondary:hover { filter:brightness(1.12); }
 .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:10px 0 25px; }
 .metric,.panel { background:var(--md-sys-color-surface-container); border:1px solid transparent; border-radius:24px; }
