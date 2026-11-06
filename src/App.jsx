@@ -383,7 +383,7 @@ export default function App() {
   const title=get(character,"name","characterName","character_name") || CHARACTER.name;
   const profilePortrait=imageSource(get(character,"profileImage","profile_image"));
   return <main className="shell">
-    <header className="topbar"><a className="brand" href="#"><span className="brand-mark">A2</span><span>AION 2 <b>МАСТЕРСКАЯ СБОРКИ</b></span></a><div className="top-actions"><span className="live-dot" role="status" aria-live="polite">{loading?"СИНХРОНИЗАЦИЯ · NCSOFT":error&&profile?"ОШИБКА ОБНОВЛЕНИЯ · ПОСЛЕДНИЕ ДАННЫЕ":profile?._partial?"ЧАСТИЧНЫЕ ДАННЫЕ · NCSOFT":profile?"ПРОФИЛЬ · ТОЛЬКО ЧТЕНИЕ":"ОЖИДАНИЕ ПРОФИЛЯ"}</span></div></header>
+    <header className="topbar"><a className="brand" href="#"><span className="brand-mark">A2</span><span>AION 2 <b>МАСТЕРСКАЯ СБОРКИ</b></span></a><div className="top-actions"><span className="live-dot" role="status" aria-live="polite">{loading?"СИНХРОНИЗАЦИЯ · NCSOFT":error&&profile?"ОШИБКА · ПОСЛЕДНИЕ ДАННЫЕ":profile?._partial?"ЧАСТИЧНЫЕ ДАННЫЕ · NCSOFT":profile?"ДАННЫЕ NCSOFT":"ОЖИДАНИЕ ПРОФИЛЯ"}</span><a className="profile-link" href="https://aion2.plaync.com/en-us/characters/index?region=eu" target="_blank" rel="noreferrer">NCSOFT · Европа ↗</a><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Shugo.GG ↗</a><a className="profile-link" href={CHARACTER.sourceUrl} target="_blank" rel="noreferrer">NotMeter ↗</a></div></header>
     <section className={"hero"+(profilePortrait?" has-portrait":"")}>
       <div className="hero-copy">
         <div className="hero-copy-main">
