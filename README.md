@@ -6,7 +6,7 @@
 
 - Профиль v4mp с запросами к публичным NCSOFT endpoints: character info и equipment.
 - Отдельные показатели Gear Score / Item Level и Combat Power — значения не смешиваются.
-- Нормализация основных и дополнительных характеристик: `statList`, `statSecondList`, `statAdditionalList`.
+- Нормализация исходных групп характеристик `statList`, `statSecondList`, `statAdditionalList` без преобразования вложенных текстовых бонусов в отдельные проценты.
 - Просмотр экипировки, скинов, навыков и Daevanion board summary.
 - Отдельная вкладка Arcana: показывает Arcana-слоты, если они присутствуют в ответе; иначе даёт ссылку на публичный профиль Shugo.GG, не подставляя устаревшие карты.
 - PvE Ranger reference с уровнями ключевых навыков, Stigma-ориентирами и ротацией; дополнительно показывает средние уровни и частоту использования по опубликованной выборке Global top 136 (3 Nov 2026).
@@ -21,7 +21,7 @@
 
 Схемы полей и endpoints описаны в [aion2_api API reference](https://github.com/axsddlr/aion2_api/blob/main/docs/API.md). Это неофициальная документация к публичным endpoints NCSOFT; стабильность API не гарантируется.
 
-Публичный профиль персонажа: [Shugo.GG · v4mp](https://shugo.gg/character/global/eu-kromede/v4mp). Shugo.GG отображает экипировку и Arcana, но сайт не используется как скрытый или несанкционированный API.
+Официальный поиск персонажей NCSOFT для EU: [AION 2 Character Search](https://aion2.plaync.com/en-us/characters/index?region=eu). В анализаторе ссылка находится в верхней панели. Публичный профиль персонажа на Shugo.GG: [v4mp](https://shugo.gg/character/global/eu-kromede/v4mp). Shugo.GG отображает экипировку и Arcana, но сайт не используется как скрытый или несанкционированный API.
 
 PvE reference:
 - [Mobalytics Ranger PvE guide](https://mobalytics.gg/gamebase/guides/aion-2-ranger-pve-build) — навыки, специализации, ротация и приоритеты экипировки.
