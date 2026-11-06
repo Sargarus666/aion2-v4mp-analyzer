@@ -750,3 +750,17 @@ footer { color:#72909d; }
 .daevanion-title h3 { min-width:0; margin:0; overflow-wrap:anywhere; }
 .daevanion-card .meta-level { margin-top:8px; }
 @media(max-width:680px) { .farm-target-links { gap:10px 14px; } }
+
+
+/* Per-slot farm comparison: item-level evidence only, never a DPS promise. */
+.farm-target-check { margin:11px 0; padding:10px; border:1px solid rgba(121,229,255,.12); border-radius:12px; background:rgba(5,15,22,.28); }
+.farm-target-check > b { display:block; margin-bottom:8px; color:#dcecf0; font-size:10px; line-height:1.5; }
+.farm-target-check-list { display:grid; gap:6px; }
+.farm-target-check-row { display:grid; grid-template-columns:82px minmax(110px,1fr) minmax(145px,1.35fr); gap:8px; align-items:start; font-size:9px; line-height:1.5; }
+.farm-target-check-slot { color:#80dff0; font-weight:800; }
+.farm-target-check-current { color:#c2d6dd; overflow-wrap:anywhere; }
+.farm-target-check-status { color:#9bdcb4; }
+.farm-target-check-row.is-skip .farm-target-check-status { color:#e5a5a5; }
+.farm-target-check-row.is-same .farm-target-check-status { color:#e5c58a; }
+.farm-target-check-row.is-unknown .farm-target-check-status { color:var(--md-sys-color-on-surface-variant); }
+@media(max-width:680px) { .farm-target-check-row { grid-template-columns:76px 1fr; } .farm-target-check-status { grid-column:2; } }

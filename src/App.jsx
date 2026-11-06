@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { normalizeStatEntries, normalizeDaevanionProgress, parseOptionalNumber, buildRelevantStatSections, safeImageSource as imageSource } from "./lib/character-data.js";
+import { assessFarmTargetCandidate } from "./lib/farm-targets.js";
 import { mergeProfileSnapshot } from "./lib/profile-state.js";
 import { localizeGameText } from "./lib/game-localization.js";
 
@@ -62,6 +63,8 @@ const META_STIGMAS = [
 const FARM_TARGETS = [
   {
     slot:"Лук", dungeon:"Храм огня · Conquest · iLvl 2 100",
+    primaryTarget:{baseLevel:45,maxEnhance:10,slots:["MainHand"]},
+    altTarget:{baseLevel:86,maxEnhance:15,slots:["MainHand"]},
     rewardPool:"Куб награды после прохождения · Кромед — финальный босс",
     item:"Corrupted Judicator Bow · эпический",
     chance:"7,38% за один бросок наградного куба",
@@ -74,6 +77,8 @@ const FARM_TARGETS = [
   },
   {
     slot:"Броня", dungeon:"Логово Свирепого Рога · Conquest · iLvl 2 100",
+    primaryTarget:{baseLevel:45,maxEnhance:10,slots:["Torso","Pants","Helmet","Shoulders","Gloves","Boots","Cape"]},
+    altTarget:{baseLevel:86,maxEnhance:15,slots:["Gloves"]},
     rewardPool:"Куб награды после прохождения · финальный босс — Ferocious Horn Nuakum",
     item:"Black Claw · нагрудник, поножи, шлем, наплечники, перчатки, сапоги и плащ · эпический",
     chance:"Нагрудник 9,18%; поножи 12,23%; шлем / наплечники / сапоги 14,68%; перчатки / плащ 18,35% за бросок",
@@ -92,6 +97,8 @@ const FARM_TARGETS = [
   },
   {
     slot:"Защитный слот / Guard", dungeon:"Логово Свирепого Рога · Conquest · iLvl 2 100",
+    primaryTarget:{baseLevel:45,maxEnhance:10,slots:["SubHand"]},
+    altTarget:{baseLevel:86,maxEnhance:15,slots:["SubHand"]},
     rewardPool:"Куб награды после прохождения · Ferocious Horn Nuakum",
     item:"Black Claw Guard · эпический",
     chance:"6,12% за бросок наградного куба",
@@ -104,6 +111,8 @@ const FARM_TARGETS = [
   },
   {
     slot:"Ожерелье", dungeon:"Храм огня · Conquest · iLvl 2 100",
+    primaryTarget:{baseLevel:45,maxEnhance:10,slots:["Necklace"]},
+    altTarget:{baseLevel:86,maxEnhance:15,slots:["Necklace"]},
     rewardPool:"Куб награды после прохождения · Кромед — финальный босс",
     item:"Corrupted Judicator Necklace · эпический",
     chance:"17,71% за бросок наградного куба",
@@ -116,6 +125,8 @@ const FARM_TARGETS = [
   },
   {
     slot:"Серьги и кольца", dungeon:"Храм огня / Логово Свирепого Рога · Conquest · iLvl 2 100",
+    primaryTarget:{baseLevel:45,maxEnhance:10,slots:["Earring","Ring"]},
+    altTarget:{baseLevel:86,maxEnhance:15,slots:["Earring","Ring"]},
     rewardPool:"Кубы наград Кромед / Nuakum",
     item:"Black Claw Earrings 18,35% · Ring 24,45%; Enraged Kromede Earrings 1,29% · Ring 1,72% за бросок",
     chance:"Все значения — на один бросок reward-cube; для Enraged Kromede аксессуаров есть выбор гарантированной награды раз в 28 использований куба Fire Temple.",
@@ -388,11 +399,11 @@ export default function App() {
     {tab==="Арканы" && <section className="panel"><div className="panel-head"><div><p className="eyebrow">ЭКИПИРОВАННЫЕ АРКАНЫ</p><h2>Арканы персонажа</h2></div><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Профиль Shugo.GG ↗</a></div>{arcana.length?<div className="visual-list">{arcana.map((x,i)=><VisualRow key={x.id||x.slotPosName||i} item={x} kind="item"/>)}</div>:<div className="empty-state"><span>◇</span><b>Арканы не распознаны в ответе NCSOFT</b><small>Не подставляю старые или предполагаемые карты. Shugo.GG публикует экипированные арканы в открытом профиле персонажа.</small><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Открыть арканы v4mp ↗</a></div>}<div className="meta-section-head"><h3>Выборка сильнейших Стрелков на мировом сервере</h3><span>136 персонажей · 03.11.2026</span></div><p className="muted">Доли карт в открытых профилях сильнейших игроков. Это частота использования, а не прямое измерение урона; для трёх слотов источник пока не подтвердил популярные карты.</p><div className="arcana-meta-grid">{ARCANA_META.map((item,i)=><ArcanaMetaCard key={item.slot} item={item} index={i}/>)}</div></section>}
     {tab==="Даэванион" && <section className="panel"><div className="panel-head"><div><p className="eyebrow">ПУБЛИЧНЫЙ СНИМОК NCSOFT</p><h2>Даэванион</h2></div><span className="tag">{boards.length} досок</span></div>{boards.length?<div className="meta-skill-grid daevanion-grid">{boards.map((x,i)=><DaevanionCard key={x.id||x.name||i} item={x} index={i}/>)}</div>:<Empty error={error}/>}<p className="stats-note">В текущем info-ответе NCSOFT доступны openNodeCount, totalNodeCount и openPercent. Узлы и их эффекты (nodeList) этим публичным запросом не возвращаются, поэтому персональный маршрут по узлам пока не вычисляется.</p></section>}
     {tab==="Мета PvE" && <section className="panel meta-panel"><div className="panel-head"><div><p className="eyebrow">СТРЕЛОК · УРОН ПО ОДНОЙ ЦЕЛИ</p><h2>Эталон PvE-сборки</h2></div><span className="tag">Гайды + мировая выборка · 3 ноя</span></div><p className="muted meta-intro">Сверка с Mobalytics (2 ноября), выборкой 12 575 сильнейших игроков KR (1 ноября) и Global top-136 Стрелков (3 ноября). Источники расходятся в первом навыке: AION2 META ставит Snipe первым в порядке Global, Mobalytics рекомендует сначала довести Deadshot до 20. Это разные ориентиры, не единый доказанный рейтинг DPS; уровни специализаций и популярность не являются замером урона v4mp.</p><div className="meta-skill-grid">{skillMeta.map((x,i)=><MetaSkillCard key={x.name} item={x} index={i}/>)}</div><div className="meta-section-head"><h3>Стигмы · ориентиры прокачки</h3><span>Уровни по Mobalytics · частота в мировой выборке</span></div><div className="meta-stigma-grid">{stigmaMeta.map((x,i)=><MetaStigmaCard key={x.name} item={x} index={i}/>)}</div><div className="meta-columns"><article className="meta-block"><span className="eyebrow">ПРИОРИТЕТ ХАРАКТЕРИСТИК</span><ol><li>Усиление урона в PvE</li><li>Усиление критического урона</li><li>Атака</li><li>Точность</li><li>Восстановление маны — если её не хватает в долгом бою</li></ol><small>Рекомендованный порядок для длительного PvE; важность точности и восстановления маны зависит от промахов и длительности боя.</small></article><article className="meta-block"><span className="eyebrow">РОТАЦИЯ ПО БОССУ</span><ol><li>Активируй «Силу Байзела», «Поддерживающий огонь» и «Благословение лука».</li><li>Запусти «Шквал стрел» и «Стрелу грифона» через атакующий макрос.</li><li>Примени «Помечающий выстрел», чтобы включить «Точность».</li><li>Полностью заряди «Прицельный выстрел» вручную под «Точность».</li><li>Продолжай атаковать через «Меткий выстрел» и макрос; обновляй «Точность» и береги усиления перед неуязвимостью босса.</li></ol><small>«Прицельный выстрел» и «Помечающий выстрел» лучше держать на ручном нажатии.</small></article></div><div className="meta-sources"><span>Источники рекомендаций:</span><a href="https://mobalytics.gg/gamebase/guides/aion-2-ranger-pve-build" target="_blank" rel="noreferrer">Mobalytics · уровни умений и порядок атак</a><a href="https://aion2companion.com/builds/ranger/" target="_blank" rel="noreferrer">AION2 Companion · приоритет характеристик</a><a href="https://aion2-meta.com/guides/ranger/" target="_blank" rel="noreferrer">AION2 META · выборка 136 игроков мирового сервера</a></div></section>}
-    {tab==="План добычи" && <section className="panel farm-panel"><div className="farm-hero"><div><p className="eyebrow">СТРЕЛОК · PvE · УРОН ПО БОССАМ</p><h2>План добычи</h2><p className="muted">Сверху — самые выгодные ближайшие цели. Раскрой пункт, чтобы увидеть маршрут, требования, советы по экипировке и источник.</p><span className="tag">{farm.length} целей · сортировка по приоритету</span></div><img src="https://aion2-guides.info/assets/art/ranger.webp" alt="Стрелок AION 2" loading="lazy"/></div><div className="farm-guide-note"><b>Пороги Global сверены по обновлениям октября и 4 ноября 2026.</b><span>Conquest Tier 3 (Храм огня / Логово Свирепого Рога) — iLvl 2 100; Hard Krao / Draupnir — 2 600; Hard Urugugu / Vakron — 2 700; Ludra Normal — 2 800, Hard — 3 000. Порог разрешает вход, но не гарантирует clear.</span></div><div className="farm-list">{farm.map((x,i)=><FarmCard key={i} item={x} index={i}/>)}</div>{!profile&&<Empty error={error}/>}<FarmTargets itemLevel={itemLevel}/><section className="farm-rules"><div className="farm-library-head"><div><p className="eyebrow">ЧТО ЕЩЁ ВАЖНО ДЛЯ DPS</p><h3>Приоритет привязки души по слотам</h3><p className="muted">Это не список обязательных дропов, а ориентир, какие строки искать на вещах перед дорогой перекруткой.</p></div></div><div className="farm-rule-grid"><article className="farm-rule"><b>Лук и наручи</b><p>Скорость боя · усиление урона оружием · усиление урона · Мощь. Для крафтового оружия дополнительно ценен мультиудар.</p></article><article className="farm-rule"><b>Шлем и плащ</b><p>Мощный удар / двойной шанс · увеличение атаки.</p></article><article className="farm-rule"><b>Наплечники и нагрудник</b><p>Наплечники — критический урон; нагрудник — увеличение урона.</p></article><article className="farm-rule"><b>Поножи, перчатки и сапоги</b><p>Поножи — атака и стойкость к урону; перчатки — скорость боя; сапоги — скорость передвижения.</p></article><article className="farm-rule"><b>Серьги, ожерелье и кольца</b><p>Серьги — скорость передвижения; ожерелье — скорость боя; кольца — уровни «Прицельного выстрела» и «Шквала стрел».</p></article><article className="farm-rule"><b>Контрольные ориентиры</b><p>Точность около 1 100–1 200 для обычного PvE; для рейда Ludra гайд приводит 1 200–1 300. Критический шанс ограничен 50%, а «Помечающий выстрел» даёт +300 крит. удара.</p></article></div><p className="farm-library-foot">Ориентиры взяты из гайда Стрелка и прогрессии сезона 1. Проверяй реальные строки и пороги в своём клиенте: патчи и региональные различия могут менять оптимальные значения.</p></section><section className="farm-library"><div className="farm-library-head"><div><p className="eyebrow">СПРАВОЧНИК И ИНСТРУМЕНТЫ</p><h3>Базы данных и полезные гайды</h3><p className="muted">Быстрые ссылки для проверки дропа, характеристик предметов, механик боссов и актуальных билдов.</p></div><span className="tag">{FARM_RESOURCES.length} источников</span></div><div className="farm-resource-grid">{FARM_RESOURCES.map(item=><article className="farm-resource" key={item.url}><small>{item.category}</small><b>{item.name}</b><p>{item.description}</p><a href={item.url} target="_blank" rel="noreferrer">{item.label} ↗</a></article>)}</div><p className="farm-library-foot">Фанатские базы могут обновляться с задержкой и различаться по региону. Для дропа сначала выбирай Global / EU и сверяй порог входа с клиентом игры; рекомендации по мета-сборкам не являются гарантией прироста DPS.</p></section></section>}
+    {tab==="План добычи" && <section className="panel farm-panel"><div className="farm-hero"><div><p className="eyebrow">СТРЕЛОК · PvE · УРОН ПО БОССАМ</p><h2>План добычи</h2><p className="muted">Сверху — самые выгодные ближайшие цели. Раскрой пункт, чтобы увидеть маршрут, требования, советы по экипировке и источник.</p><span className="tag">{farm.length} целей · сортировка по приоритету</span></div><img src="https://aion2-guides.info/assets/art/ranger.webp" alt="Стрелок AION 2" loading="lazy"/></div><div className="farm-guide-note"><b>Пороги Global сверены по обновлениям октября и 4 ноября 2026.</b><span>Conquest Tier 3 (Храм огня / Логово Свирепого Рога) — iLvl 2 100; Hard Krao / Draupnir — 2 600; Hard Urugugu / Vakron — 2 700; Ludra Normal — 2 800, Hard — 3 000. Порог разрешает вход, но не гарантирует clear.</span></div><div className="farm-list">{farm.map((x,i)=><FarmCard key={i} item={x} index={i}/>)}</div>{!profile&&<Empty error={error}/>}<FarmTargets itemLevel={itemLevel} equipment={equipment}/><section className="farm-rules"><div className="farm-library-head"><div><p className="eyebrow">ЧТО ЕЩЁ ВАЖНО ДЛЯ DPS</p><h3>Приоритет привязки души по слотам</h3><p className="muted">Это не список обязательных дропов, а ориентир, какие строки искать на вещах перед дорогой перекруткой.</p></div></div><div className="farm-rule-grid"><article className="farm-rule"><b>Лук и наручи</b><p>Скорость боя · усиление урона оружием · усиление урона · Мощь. Для крафтового оружия дополнительно ценен мультиудар.</p></article><article className="farm-rule"><b>Шлем и плащ</b><p>Мощный удар / двойной шанс · увеличение атаки.</p></article><article className="farm-rule"><b>Наплечники и нагрудник</b><p>Наплечники — критический урон; нагрудник — увеличение урона.</p></article><article className="farm-rule"><b>Поножи, перчатки и сапоги</b><p>Поножи — атака и стойкость к урону; перчатки — скорость боя; сапоги — скорость передвижения.</p></article><article className="farm-rule"><b>Серьги, ожерелье и кольца</b><p>Серьги — скорость передвижения; ожерелье — скорость боя; кольца — уровни «Прицельного выстрела» и «Шквала стрел».</p></article><article className="farm-rule"><b>Контрольные ориентиры</b><p>Точность около 1 100–1 200 для обычного PvE; для рейда Ludra гайд приводит 1 200–1 300. Критический шанс ограничен 50%, а «Помечающий выстрел» даёт +300 крит. удара.</p></article></div><p className="farm-library-foot">Ориентиры взяты из гайда Стрелка и прогрессии сезона 1. Проверяй реальные строки и пороги в своём клиенте: патчи и региональные различия могут менять оптимальные значения.</p></section><section className="farm-library"><div className="farm-library-head"><div><p className="eyebrow">СПРАВОЧНИК И ИНСТРУМЕНТЫ</p><h3>Базы данных и полезные гайды</h3><p className="muted">Быстрые ссылки для проверки дропа, характеристик предметов, механик боссов и актуальных билдов.</p></div><span className="tag">{FARM_RESOURCES.length} источников</span></div><div className="farm-resource-grid">{FARM_RESOURCES.map(item=><article className="farm-resource" key={item.url}><small>{item.category}</small><b>{item.name}</b><p>{item.description}</p><a href={item.url} target="_blank" rel="noreferrer">{item.label} ↗</a></article>)}</div><p className="farm-library-foot">Фанатские базы могут обновляться с задержкой и различаться по региону. Для дропа сначала выбирай Global / EU и сверяй порог входа с клиентом игры; рекомендации по мета-сборкам не являются гарантией прироста DPS.</p></section></section>}
     <footer>Фанатский помощник · Только чтение · {profile?"Профиль загружен":"Ожидание загрузки профиля"}{updated?" · "+updated:""}</footer>
   </main>;
 }
-function FarmTargets({itemLevel}) {
+function FarmTargets({itemLevel,equipment=[]}) {
   const value = parseOptionalNumber(itemLevel);
   const hasLevel = value !== null;
   const locked = hasLevel && value < 2100;
@@ -402,14 +413,31 @@ function FarmTargets({itemLevel}) {
     <div className="farm-library-head"><div><p className="eyebrow">КОНКРЕТНЫЕ ПРЕДМЕТЫ · GLOBAL</p><h3>Что выбивать по слотам</h3><p className="muted">Основные проценты ниже — точные значения EU-клиента AION2.GG на один бросок наградного куба. Это не шанс за удар босса и не гарантированная вероятность получить вещь за целое прохождение. AION2 Hub использует отдельную модельную оценку на clear.</p></div><span className="tag">{current?"Текущий этап 2 100–2 500":later?"Сверь как апгрейд":"Маршрут от 2 100"}</span></div>
     {locked && <p className="farm-target-alert">Текущий iLvl {value.toLocaleString("ru-RU")} ниже входного порога 2 100. Храм огня и Логово Свирепого Рога (Conquest) пока закрыты: сначала подними ItemLevel, не трать энергию на недоступный маршрут.</p>}
     {later && <p className="farm-target-alert">При текущем iLvl {value.toLocaleString("ru-RU")} не фарми эти предметы автоматически: оставляй их в плане только если конкретный слот всё ещё слабее. Следующие рубежи: Hard Krao / Draupnir — 2 600; Hard Urugugu / Vakron — 2 700; Ludra Normal / Hard — 2 800 / 3 000.</p>}
-    <div className="farm-target-grid">{FARM_TARGETS.map((item,i)=><article className="farm-target-card" key={item.slot}>
-      <div className="farm-target-top"><span className="farm-index">{String(i+1).padStart(2,"0")}</span><small>{item.slot}</small></div>
-      <h4>{item.item}</h4><p className="farm-target-alt">{item.alt}</p>
-      <div className="farm-target-meta"><span><b>Подземелье</b>{item.dungeon}</span><span><b>Наградный источник</b>{item.rewardPool}</span><span><b>Шанс в базе</b>{item.chance}</span></div>
-      <p>{item.note}</p><div className="farm-target-links">{arr(item.links).map(link=><a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label} ↗</a>)}</div>
-    </article>)}</div>
-    <p className="farm-library-foot">AION2.GG публикует шанс одного броска по EU-клиенту; AION2 Hub оценивает вероятность на прохождение по собственной модели. Эти проценты нельзя напрямую сравнивать. Гарантированный выбор после 28 использований куба указан только там, где он подтверждён страницей конкретного предмета. Проверяй Conquest / Exploration и регион перед входом.</p>
+    <div className="farm-target-grid">{FARM_TARGETS.map((item,i)=>{
+      const primaryRows=assessFarmTargetCandidate(item.primaryTarget,equipment);
+      const altRows=assessFarmTargetCandidate(item.altTarget,equipment);
+      return <article className="farm-target-card" key={item.slot}>
+        <div className="farm-target-top"><span className="farm-index">{String(i+1).padStart(2,"0")}</span><small>{item.slot}</small></div>
+        <h4>{item.item}</h4><p className="farm-target-alt">{item.alt}</p>
+        <div className="farm-target-meta"><span><b>Подземелье</b>{item.dungeon}</span><span><b>Наградный источник</b>{item.rewardPool}</span><span><b>Шанс в базе</b>{item.chance}</span></div>
+        {primaryRows.length>0&&<FarmTargetCheck label={item.item} rows={primaryRows}/>}
+        {altRows.length>0&&<FarmTargetCheck label={item.alt} rows={altRows}/>}
+        <p>{item.note}</p><div className="farm-target-links">{arr(item.links).map(link=><a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label} ↗</a>)}</div>
+      </article>;
+    })}</div>
+    <p className="farm-library-foot">Сверка текущего слота использует только подтверждённые базовые iLvl известных предметов и фактическую заточку из NCSOFT. Это фильтр по уровню предмета, не симулятор DPS: Soul Binding, гнёзда, бонусы навыков и итоговые характеристики всё равно сравнивай отдельно. Если текущий предмет неизвестен базе, приложение не делает вывод.</p>
+  <p className="farm-library-foot">AION2.GG публикует шанс одного броска по EU-клиенту; AION2 Hub оценивает вероятность на прохождение по собственной модели. Эти проценты нельзя напрямую сравнивать. Гарантированный выбор после 28 использований куба указан только там, где он подтверждён страницей конкретного предмета. Проверяй Conquest / Exploration и регион перед входом.</p>
   </section>;
+}
+function FarmTargetCheck({label,rows}) {
+  return <div className="farm-target-check">
+    <b>{label}</b>
+    <div className="farm-target-check-list">{rows.map((row,index)=><div className={"farm-target-check-row is-"+row.status} key={row.slot+"-"+index}>
+      <span className="farm-target-check-slot">{row.slotLabel}</span>
+      <span className="farm-target-check-current">{row.currentName||"Не распознан"}{row.enchantLevel!=null?" +"+row.enchantLevel:""}{row.currentLevel!=null?" · iLvl "+row.currentLevel:""}</span>
+      <span className="farm-target-check-status">{row.statusText}</span>
+    </div>)}</div>
+  </div>;
 }
 function ArcanaMetaCard({item,index}) { return <article className="arcana-meta-card"><div className="farm-card-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.slot}</span></div>{item.best?<><b>{item.best}</b><strong>{item.share}%</strong><small>{item.alternative}</small></>:<><b>Нет подтверждённого лидера</b><small>{item.alternative}</small></>}</article>; }
 function MetaStigmaCard({item,index}) { const pct=item.level==null?0:Math.min(100,item.level/item.target*100); return <article className="meta-stigma-card"><div className="meta-skill-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><b>{item.name}</b><div className="meta-level">{item.level==null?"Нет данных":"Ур. "+item.level}<span>Рубеж {item.target}</span></div><div className="meta-progress"><i style={{width:pct+"%"}}/></div><small className="meta-cohort">Мировая выборка: {item.globalShare}%</small></article>; }
