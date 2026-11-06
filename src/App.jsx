@@ -119,7 +119,7 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
   const entry2100 = Number.isFinite(gsNumber) && gsNumber >= 2100
     ? "Требование по уровню экипировки выполнено: сейчас " + fmt(gsNumber) + "."
     : "Для входа на третий уровень завоевания нужен уровень экипировки 2 100" + (Number.isFinite(gsNumber) ? "; сейчас " + fmt(gsNumber) + "." : ".");
-  const vakronItems = equipped.filter(x => /vakron/i.test(x.name || x.itemName || ""));
+  const vakronItems = equipped.filter(x => /vakron|вакрон/i.test(x.name || x.itemName || ""));
   if (vakronItems.length) plan.push({
     title: "Нуакам · комплект из подземелья",
     detail: vakronItems.length + " предмет(а) Вакрон в текущем профиле",
@@ -128,27 +128,27 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
   });
   const rawWeaponName = weapon?.name || weapon?.itemName || "";
   const weaponName = localizeGameText(rawWeaponName);
-  if (/spiritforged/i.test(rawWeaponName)) plan.push({
+  if (/spiritforged|выкованн.*духом/i.test(rawWeaponName)) plan.push({
     title: "Длинный лук разгневанной Кромед",
     detail: "Сейчас: " + weaponName + (weapon.enchantLevel != null ? " +" + weapon.enchantLevel : "") + " · альтернатива из подземелья",
     how: [entry2100, "Храм Огня (третий уровень завоевания): длинный лук разгневанной Кромед — 0,43% за одно открытие куба энергии Одил по таблице AION2.GG. Это не шанс за весь поход.", "Сравни базовую атаку, точность, критический удар и привязку души с текущим выкованным луком и его заточкой.", "Долгосрочный ориентир сильнейших игроков мирового сервера — сияющий лук Владыки драконов. Это не значит, что нужно немедленно переключаться на изготовление предметов."],
     priority: "Высокий", target: "Храм Огня", sourceUrl: "https://aion2.gg/database/drop-rates?dungeon=600022&type=Equip", sourceLabel: "AION2.GG · Храм Огня"
   });
-  const aulamusJewelry = equipped.filter(x => /aulamus/i.test(x.name || x.itemName || "") && /necklace|earring|ring|ожерель|серьг|кольц/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
+  const aulamusJewelry = equipped.filter(x => /aulamus|ауламус/i.test(x.name || x.itemName || "") && /necklace|earring|ring|ожерель|серьг|кольц/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
   if (aulamusJewelry.length) plan.push({
     title: "Аксессуары разгневанной Кромед",
     detail: aulamusJewelry.length + " аксессуар(а) Ауламус в текущем профиле",
     how: [entry2100, "Храм Огня (завоевание): по данным AION2.GG, за одно открытие куба энергии Одил шанс составляет: кольцо — 1,72%, серьги — 1,29%, ожерелье — 1,03%. Это не гарантированная добыча за поход.", "Сначала сравни предметы в слотах с самыми слабыми бонусами. Не жертвуй атакой, критическим ударом и точностью только ради уровня предмета.", "В выборке сильнейших игроков мирового сервера чаще встречаются аксессуары Владыки драконов. Аксессуары разгневанной Кромед — промежуточный этап, а не подтверждённый лучший комплект."],
     priority: "Средний", target: "Храм Огня", sourceUrl: "https://aion2.gg/database/drop-rates?type=Equip", sourceLabel: "AION2.GG · дроп-таблица 28.10"
   });
-  const clashRunes = equipped.filter(x => /clash rune/i.test(x.name || x.itemName || "") && Number(x.enchantLevel) < 5);
+  const clashRunes = equipped.filter(x => /clash rune|руна столкновения/i.test(x.name || x.itemName || "") && Number(x.enchantLevel) < 5);
   if (clashRunes.length) plan.push({
     title: "Руна столкновения · следующая цель +5",
     detail: clashRunes.length + " руны столкновения ниже +5",
     how: ["Все 136 Стрелков из мировой выборки использовали руны столкновения; типичный уровень заточки — +5.", "Сравни стоимость +5 с текущими приоритетами по оружию и данжевой броне.", "Это дополнительное улучшение после ключевых слотов, а не повод откладывать замену экипировки Вакрон."],
     priority: "Низкий", target: "Руны", sourceUrl: "https://aion2-meta.com/guides/ranger/", sourceLabel: "AION2 META · мировая выборка"
   });
-  const magicChalice = arcanaItems.find(x => /chalice of magic/i.test(x.name || x.itemName || ""));
+  const magicChalice = arcanaItems.find(x => /chalice of magic|чаша магии/i.test(x.name || x.itemName || ""));
   if (magicChalice) plan.push({
     title: "Аркана: Чаша жизненной силы",
     detail: "Сейчас: " + localizeGameText(magicChalice.name || magicChalice.itemName) + (magicChalice.grade ? " · " + localizeGameText(magicChalice.grade) : ""),
@@ -195,7 +195,7 @@ export default function App() {
   const skins=arr(profile?.equipment?.skinList);
   const stats=statEntries(profile?.stat);
   const skills=arr(profile?.skill?.skillList);
-  const arcanaCandidates=[...arr(profile?.arcana),...arr(profile?.equipment?.arcanaList),...equipment.filter(x=>/arcana/i.test([x.slotPosName,x.slotPos,x.slot,x.category].join(" ")))];
+  const arcanaCandidates=[...arr(profile?.arcana),...arr(profile?.equipment?.arcanaList),...equipment.filter(x=>/arcana|аркана/i.test([x.slotPosName,x.slotPos,x.slot,x.category].join(" ")))];
   const arcana=arcanaCandidates.filter((item,index,list)=>list.findIndex(other=>(item.id&&other.id===item.id)||(item.slotPosName&&other.slotPosName===item.slotPosName))===index);
   const boards=arr(profile?.daevanion?.boardList);
   const cp=get(character,"combatPower","combat_power") ?? statValue(stats,["CombatPower","Combat Power","CP"]);
