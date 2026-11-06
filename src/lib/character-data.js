@@ -137,7 +137,7 @@ export function buildRelevantStatSections(entries = []) {
     id: group.id,
     title: group.title,
     description: group.description,
-    stats: group.stats.map(([id, label, aliases, hint]) => {
+    stats: group.stats.flatMap(([id, label, aliases, hint]) => {
       const aliasSet = aliases.map(normalizeStatName);
       const match = source.find(entry => {
         const names = [
@@ -145,20 +145,22 @@ export function buildRelevantStatSections(entries = []) {
           entry?.typeName, entry?.label, entry?.title, entry?.statType,
           entry?.type, entry?.key, entry?.statCode, entry?.statId
         ].filter(Boolean).map(normalizeStatName);
-        return names.some(name => aliasSet.includes(name));
+        return names.some(name => aliasSet.includes(name)) &&
+          entry?.value != null && entry.value !== "" && entry.value !== "—";
       });
-      if (match) matchedEntries.add(match);
-      return {
+      if (!match) return [];
+      matchedEntries.add(match);
+      return [{
         id,
         label,
         hint,
-        value: match?.value ?? null,
-        available: Boolean(match && match.value != null && match.value !== "" && match.value !== "—"),
+        value: match.value,
+        available: true,
         sourceName: match?.name ?? match?.statName ?? match?.displayName ?? match?.statTypeName ?? match?.typeName ?? match?.type ?? null,
         icon: match?.icon ?? match?.iconUrl ?? match?.image ?? match?.imageUrl ?? null
-      };
+      }];
     })
-  }));
+  })).filter(group => group.stats.length > 0);
   const unmatched = source.filter(entry => !matchedEntries.has(entry) && entry?.value != null && entry.value !== "—");
   if (unmatched.length) sections.push({
     id: "other",
