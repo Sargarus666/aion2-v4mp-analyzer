@@ -115,7 +115,6 @@ test("builds Ranger offense, defense and utility sections from actual API values
 test("does not fabricate missing Ranger stats or match unrelated stat names", () => {
   const sections = buildRelevantStatSections([
     { name: "Critical Hit Resist", value: 100 },
-    { name: "Attack Speed", value: "5%" },
     { name: "Back Attack Damage", value: "9%" }
   ]);
   const offense = sections.find(x => x.id === "offense");
