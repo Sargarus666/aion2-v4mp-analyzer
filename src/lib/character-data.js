@@ -81,7 +81,7 @@ const RELEVANT_STAT_GROUPS = [
   {
     id: "offense",
     title: "Атака и DPS",
-    description: "Параметры, которые влияют на урон лучника по боссам.",
+    description: "Параметры, которые влияют на урон Стрелка по боссам.",
     stats: [
       ["attack", "Атака", ["attack", "basic attack", "pve attack", "boss attack", "атака"], "Базовая сила атак."],
       ["combatSpeed", "Скорость боя", ["combat speed", "attack speed", "скорость атаки", "скорость боя"], "Ускоряет атаки и применение умений."],
@@ -163,7 +163,7 @@ export function buildRelevantStatSections(entries = []) {
   if (unmatched.length) sections.push({
     id: "other",
     title: "Другие характеристики из профиля",
-    description: "Параметры, которые NCSOFT прислал, но названия которых пока не сопоставлены с категориями лучника.",
+    description: "Параметры, которые NCSOFT прислал, но названия которых пока не сопоставлены с категориями Стрелка.",
     stats: unmatched.map((entry, index) => ({
       id: "source-" + index,
       label: String(entry.name ?? entry.statName ?? entry.displayName ?? entry.statTypeName ?? entry.typeName ?? entry.type ?? entry.key ?? "Параметр " + (index + 1)),
