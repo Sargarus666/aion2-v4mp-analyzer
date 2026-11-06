@@ -124,3 +124,17 @@ test("does not fabricate missing Ranger stats or match unrelated stat names", ()
   assert.equal(defense.stats.find(x => x.id === "criticalResist").value, 100);
   assert.equal(defense.stats.find(x => x.id === "hp").available, false);
 });
+
+
+test("keeps real API stats visible when their names are not mapped yet", () => {
+  const sections = buildRelevantStatSections([
+    { statTypeName: "Combat Speed", statValue: "7%" },
+    { statType: "UnknownStat_42", statValue: 321, statId: 42 }
+  ]);
+  const offense = sections.find(x => x.id === "offense");
+  assert.equal(offense.stats.find(x => x.id === "combatSpeed").value, "7%");
+  const other = sections.find(x => x.id === "other");
+  assert.ok(other);
+  assert.equal(other.stats[0].label, "UnknownStat_42");
+  assert.equal(other.stats[0].value, 321);
+});
