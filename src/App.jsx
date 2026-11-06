@@ -481,7 +481,7 @@ function DaevanionCard({item,index}) {
     <div className="daevanion-title">{icon&&<img src={icon} alt="" loading="lazy" decoding="async"/>}<h3>{name}</h3></div>
     <div className="meta-level">{opened!==null&&total!==null&&total>0?fmt(opened)+" / "+fmt(total)+" узлов":"Счётчик узлов —"}<span>{percent==null?"Нет %":percent+"%"}</span></div>
     {percent!=null&&<div className="meta-progress" role="progressbar" aria-label={"Открытие доски "+name} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}><i style={{width:percent+"%"}}/></div>}
-    <button className="daevanion-detail-button" type="button" onClick={loadDetail} disabled={busy || !item.id}>{busy?"Загрузка узлов…":detail?"Обновить узлы":"Показать узлы и эффекты"}</button>
+    <button className="daevanion-detail-button" type="button" onClick={loadDetail} disabled={busy || !item.id}>{busy?"Загрузка узлов…":detail?"Узлы загружены":"Показать узлы и эффекты"}</button>
     {detailError&&<p className="daevanion-detail-error" role="alert">{detailError}</p>}
     {detail&&<div className="daevanion-detail">
       <div className="daevanion-effect-columns">
