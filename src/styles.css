@@ -217,10 +217,6 @@ footer { text-align:center; padding:30px 0; color:var(--md-sys-color-outline); f
     0%, 100% { opacity: .28; transform: scale(.96); }
     50% { opacity: .62; transform: scale(1.04); }
   }
-  @keyframes live-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(154, 126, 255, .35); }
-    50% { box-shadow: 0 0 0 5px rgba(154, 126, 255, 0); }
-  }
   .hero, .metrics, .tabs, .panel, .content-grid > * {
     animation: panel-arrive .48s cubic-bezier(.2,.7,.2,1) both;
   }
@@ -235,7 +231,6 @@ footer { text-align:center; padding:30px 0; color:var(--md-sys-color-outline); f
     border-color: color-mix(in srgb, var(--md-sys-color-primary) 58%, var(--md-sys-color-outline-variant));
     box-shadow: 0 12px 28px rgba(0,0,0,.22), 0 0 22px rgba(160,130,255,.08);
   }
-  .live-dot { animation: live-pulse 2.4s ease-in-out infinite; }
   .build-image { transition: transform .35s ease; }
   .build-image-link:hover .build-image { transform: scale(1.015); }
   .tabs button { transition: color .18s ease, background .18s ease, transform .18s ease; }
@@ -248,7 +243,6 @@ footer { text-align:center; padding:30px 0; color:var(--md-sys-color-outline); f
   content:""; position:absolute; z-index:-1; width:240px; height:180px; right:3%; top:0;
   pointer-events:none; border-radius:50%;
   background:radial-gradient(ellipse, rgba(150,120,255,.14), transparent 68%);
-  filter:blur(4px);
 }
 @media (prefers-reduced-motion: no-preference) {
   .hero::after { animation:aura-pulse 6s ease-in-out infinite; }
@@ -747,3 +741,12 @@ footer { color:#72909d; }
 .farm-target-card a:hover { text-decoration:underline; }
 .farm-target-alert { margin:0 0 14px; padding:12px 14px; border:1px solid rgba(240,185,109,.2); border-radius:12px; color:#e9d7b8; background:rgba(89,68,35,.16); font-size:11px; line-height:1.6; }
 @media(max-width:680px) { .farm-target-grid { grid-template-columns:1fr; } .farm-target-meta span { grid-template-columns:82px 1fr; } }
+
+
+/* Evidence-first drop links and compact Daevanion progress cards */
+.farm-target-links { display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px; }
+.daevanion-title { display:flex; align-items:center; gap:10px; margin:13px 0 8px; min-width:0; }
+.daevanion-title img { width:32px; height:32px; flex:0 0 32px; object-fit:contain; border:1px solid rgba(121,229,255,.16); border-radius:9px; background:rgba(5,15,22,.35); }
+.daevanion-title h3 { min-width:0; margin:0; overflow-wrap:anywhere; }
+.daevanion-card .meta-level { margin-top:8px; }
+@media(max-width:680px) { .farm-target-links { gap:10px 14px; } }
