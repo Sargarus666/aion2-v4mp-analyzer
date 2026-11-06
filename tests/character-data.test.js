@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import {
   normalizeProfileResponse,
   normalizeStatEntries,
-  hasUsefulProfileData
+  hasUsefulProfileData,
+  buildRelevantStatSections
 } from "../src/lib/character-data.js";
 
 test("normalizes primary and secondary stat groups without dropping values", () => {
@@ -81,4 +82,46 @@ test("preserves equipped Arcana slots when the source exposes them", () => {
   assert.equal(data.arcana.length, 1);
   assert.equal(data.arcana[0].slotPosName, "Arcana1");
   assert.equal(data.arcana[0].name, "Chalice of Magic");
+});
+
+
+test("builds Ranger offense, defense and utility sections from actual API values", () => {
+  const sections = buildRelevantStatSections([
+    { name: "Combat Speed", value: "12%" },
+    { name: "Critical Hit", value: 1450 },
+    { name: "Critical Damage Boost", value: "24%" },
+    { name: "Accuracy", value: 1320 },
+    { name: "HP", value: 25000 },
+    { name: "Evasion", value: 420 },
+    { name: "PvE Damage Tolerance", value: "8%" },
+    { name: "MP Regen", value: 30 }
+  ]);
+
+  assert.deepEqual(sections.map(x => x.id), ["offense", "defense", "utility"]);
+  const offense = sections.find(x => x.id === "offense");
+  assert.equal(offense.stats.find(x => x.id === "combatSpeed").value, "12%");
+  assert.equal(offense.stats.find(x => x.id === "criticalHit").value, 1450);
+  assert.equal(offense.stats.find(x => x.id === "accuracy").available, true);
+  assert.equal(offense.stats.find(x => x.id === "attack").available, false);
+
+  const defense = sections.find(x => x.id === "defense");
+  assert.equal(defense.stats.find(x => x.id === "hp").value, 25000);
+  assert.equal(defense.stats.find(x => x.id === "damageTolerance").value, "8%");
+
+  const utility = sections.find(x => x.id === "utility");
+  assert.equal(utility.stats.find(x => x.id === "mpRegen").value, 30);
+});
+
+test("does not fabricate missing Ranger stats or match unrelated stat names", () => {
+  const sections = buildRelevantStatSections([
+    { name: "Critical Hit Resist", value: 100 },
+    { name: "Attack Speed", value: "5%" },
+    { name: "Back Attack Damage", value: "9%" }
+  ]);
+  const offense = sections.find(x => x.id === "offense");
+  const defense = sections.find(x => x.id === "defense");
+  assert.equal(offense.stats.find(x => x.id === "combatSpeed").available, false);
+  assert.equal(offense.stats.find(x => x.id === "criticalHit").available, false);
+  assert.equal(defense.stats.find(x => x.id === "criticalResist").value, 100);
+  assert.equal(defense.stats.find(x => x.id === "hp").available, false);
 });
