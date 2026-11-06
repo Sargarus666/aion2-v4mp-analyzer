@@ -16,7 +16,10 @@ jobs:
         with:
           node-version: 22
       - run: npm install
-      - name: Diagnose live NCSOFT profile payload (non-blocking)\n        run: node scripts/diagnose-live-profile.mjs\n        continue-on-error: true\n      - run: npm test
+      - name: Diagnose live NCSOFT profile payload (non-blocking)
+        run: node scripts/diagnose-live-profile.mjs
+        continue-on-error: true
+      - run: npm test
       - run: npm run build
       - run: node --check functions/api/profile.js
       - run: node --check src/lib/character-data.js
