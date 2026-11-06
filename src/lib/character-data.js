@@ -26,7 +26,7 @@ export function normalizeStatEntries(stat = {}) {
       item.typeName ?? item.label ?? item.title ?? item.statType ?? item.type ??
       item.key ?? item.statCode ?? item.statId ?? item.id;
     const value = item.value ?? item.statValue ?? item.displayValue ?? item.currentValue ??
-      item.totalValue ?? item.baseValue ?? item.amount ?? item.description ?? item.text;
+      item.totalValue ?? item.baseValue ?? item.amount ?? item.desc ?? item.description ?? item.text;
     const normalized = {
       ...item,
       name: name ?? (group === "Доп. бонусы" ? "Доп. бонус " + (index + 1) : "Параметр " + (index + 1)),
@@ -63,6 +63,20 @@ export function normalizeStatEntries(stat = {}) {
 
     return [normalized, ...secondary];
   }));
+}
+
+export function safeImageSource(value) {
+  if (!value || typeof value !== "string") return "";
+  try {
+    const url = new URL(value.trim(), "https://aion2.plaync.com/");
+    const host = url.hostname.toLowerCase();
+    const allowed = host === "plaync.com" || host.endsWith(".plaync.com") ||
+      host === "playnccdn.com" || host.endsWith(".playnccdn.com") ||
+      host === "ncsoft.com" || host.endsWith(".ncsoft.com");
+    return url.protocol === "https:" && allowed ? url.href : "";
+  } catch {
+    return "";
+  }
 }
 
 export function normalizeProfileResponse(info = {}, gear = {}) {

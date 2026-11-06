@@ -207,3 +207,19 @@ test("supports arcana arrays at the top level of the equipment response", () => 
   assert.equal(data.arcana.length, 1);
   assert.equal(data.arcana[0].id, 9);
 });
+
+
+test("allows only HTTPS NCSOFT image hosts", () => {
+  assert.equal(safeImageSource("https://assets.playnccdn.com/aion2/icon.png"), "https://assets.playnccdn.com/aion2/icon.png");
+  assert.equal(safeImageSource("/static-aion2-gamedata/icon.png"), "https://aion2.plaync.com/static-aion2-gamedata/icon.png");
+  assert.equal(safeImageSource("http://assets.playnccdn.com/icon.png"), "");
+  assert.equal(safeImageSource("https://assets.playnccdn.com.evil.test/icon.png"), "");
+  assert.equal(safeImageSource("javascript:alert(1)"), "");
+});
+
+test("normalizes statSecondList descriptions supplied through desc", () => {
+  const normalized = normalizeStatEntries({
+    statSecondList: [{ name: "Bonus", desc: "Attack +12" }]
+  });
+  assert.equal(normalized[0].value, "Attack +12");
+});
