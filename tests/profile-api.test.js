@@ -206,3 +206,37 @@ test("rejects a profile when both HTTP-200 endpoints contain no usable data", as
     globalThis.fetch = originalFetch;
   }
 });
+
+
+test("accepts a petwing-only equipment payload as useful data", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/info?")) {
+      return new Response(JSON.stringify({
+        profile: { characterName: "v4mp", combatPower: 98198 }
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify({
+      petwing: {
+        pet: { id: 1, name: "Equipped Pet" },
+        wing: { id: 2, name: "Daeva Wings" },
+        wingSkin: null
+      }
+    }), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+
+  try {
+    const response = await onRequestGet({
+      request: new Request("https://example.test/api/profile")
+    });
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(body.ok, true);
+    assert.equal(body.partial, false);
+    assert.deepEqual(body.failedEndpoints, []);
+    assert.equal(body.data.petwing.pet.name, "Equipped Pet");
+    assert.equal(body.data.petwing.wing.name, "Daeva Wings");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

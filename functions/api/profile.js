@@ -29,10 +29,14 @@ function hasUsefulInfoPayload(payload) {
 function hasUsefulEquipmentPayload(payload) {
   const data = normalizeProfileResponse({}, payload);
   const hasRows = value => Array.isArray(value) && value.length > 0;
+  const hasPetwing = Object.values(data.petwing || {}).some(value =>
+    value != null && (typeof value !== "object" || Object.keys(value).length > 0)
+  );
   return hasRows(data.equipment?.equipmentList) ||
     hasRows(data.equipment?.skinList) ||
     hasRows(data.skill?.skillList) ||
-    hasRows(data.arcana);
+    hasRows(data.arcana) ||
+    hasPetwing;
 }
 
 async function requestJson(url, { forceRefresh = false } = {}) {
