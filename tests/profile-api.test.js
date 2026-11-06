@@ -71,3 +71,38 @@ test("keeps usable equipment when the profile endpoint fails and bypasses cache 
     globalThis.fetch = originalFetch;
   }
 });
+
+
+test("retries a 429 response with an HTTP-date Retry-After header", async () => {
+  const originalFetch = globalThis.fetch;
+  let attempts = 0;
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/info?")) {
+      attempts += 1;
+      if (attempts === 1) {
+        return new Response("rate limited", {
+          status: 429,
+          headers: { "Retry-After": new Date(Date.now() - 1000).toUTCString() }
+        });
+      }
+      return new Response(JSON.stringify({ data: { profile: { name: "v4mp" } } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    return new Response(JSON.stringify({ data: { equipmentList: [{ name: "Bow" }] } }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  };
+
+  try {
+    const response = await onRequestGet({ request: new Request("https://example.test/api/profile") });
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(body.ok, true);
+    assert.equal(attempts, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
