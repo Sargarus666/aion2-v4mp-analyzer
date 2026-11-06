@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   normalizeProfileResponse,
   normalizeDaevanionProgress,
+  normalizeDaevanionBoard,
   parseOptionalNumber,
   normalizeStatEntries,
   hasUsefulProfileData,
@@ -261,4 +262,24 @@ test("keeps a missing item level distinct from zero", () => {
   assert.equal(parseOptionalNumber(""), null);
   assert.equal(parseOptionalNumber("2 212"), 2212);
   assert.equal(parseOptionalNumber("2,212"), 2212);
+});
+
+
+test("normalizes detailed Daevanion nodes and effects without fabricating missing data", () => {
+  const board = normalizeDaevanionBoard({ data: {
+    boardId: 12,
+    nodeList: [
+      { nodeId: 1, row: 0, col: 0, type: "Start", open: 1, effectList: [{ desc: "Attack +10" }] },
+      null,
+      { nodeId: 2, row: 0, col: 1, type: "Stat", open: 0, effectList: [] }
+    ],
+    openStatEffectList: [{ desc: "Critical Hit +5" }],
+    openSkillEffectList: []
+  }});
+  assert.equal(board.boardId, 12);
+  assert.equal(board.nodeList.length, 2);
+  assert.equal(board.nodeList[0].effectList[0].desc, "Attack +10");
+  assert.equal(board.openStatEffectList[0].desc, "Critical Hit +5");
+  assert.deepEqual(board.openSkillEffectList, []);
+  assert.deepEqual(normalizeDaevanionBoard({}).nodeList, []);
 });

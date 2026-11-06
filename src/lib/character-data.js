@@ -252,3 +252,14 @@ export function buildRelevantStatSections(entries = []) {
   });
   return sections;
 }
+
+export function normalizeDaevanionBoard(board = {}) {
+  const source = board?.data && typeof board.data === "object" && !Array.isArray(board.data) ? board.data : board;
+  return {
+    ...source,
+    boardId: source?.boardId ?? null,
+    nodeList: asArray(source?.nodeList).filter(node => node && typeof node === "object" && !Array.isArray(node)),
+    openStatEffectList: asArray(source?.openStatEffectList),
+    openSkillEffectList: asArray(source?.openSkillEffectList)
+  };
+}

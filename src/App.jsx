@@ -462,11 +462,39 @@ function DaevanionCard({item,index}) {
   const icon=imageSource(item.icon);
   const name=localizeGameText(get(item,"name"))||"Доска";
   const state=item.open == null ? "Статус не указан" : Number(item.open)===1 ? "Открыта" : "Закрыта";
+  const [detail,setDetail]=useState(null), [busy,setBusy]=useState(false), [detailError,setDetailError]=useState("");
+  async function loadDetail() {
+    if(detail || busy) return;
+    setBusy(true); setDetailError("");
+    try {
+      const response=await fetch("/api/daevanion?boardId="+encodeURIComponent(item.id),{cache:"no-store",signal:AbortSignal.timeout(12000)});
+      const result=await response.json();
+      if(!response.ok || !result.ok) throw new Error(result.error || "Не удалось получить узлы доски");
+      setDetail(result.data);
+    } catch(error) { setDetailError(error.name==="TimeoutError"?"NCSOFT не ответил за 12 секунд. Попробуй ещё раз.":error.message || "Ошибка загрузки"); }
+    finally { setBusy(false); }
+  }
+  const nodes=Array.isArray(detail?.nodeList)?detail.nodeList:[];
+  const effects=value=>Array.isArray(value)?value.map(x=>typeof x==="string"?x:x?.desc||x?.name||"").filter(Boolean):[];
   return <article className="meta-skill-card daevanion-card">
     <div className="meta-skill-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{state}</span></div>
     <div className="daevanion-title">{icon&&<img src={icon} alt="" loading="lazy" decoding="async"/>}<h3>{name}</h3></div>
     <div className="meta-level">{opened!==null&&total!==null&&total>0?fmt(opened)+" / "+fmt(total)+" узлов":"Счётчик узлов —"}<span>{percent==null?"Нет %":percent+"%"}</span></div>
     {percent!=null&&<div className="meta-progress" role="progressbar" aria-label={"Открытие доски "+name} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}><i style={{width:percent+"%"}}/></div>}
+    <button className="daevanion-detail-button" type="button" onClick={loadDetail} disabled={busy || !item.id}>{busy?"Загрузка узлов…":detail?"Обновить узлы":"Показать узлы и эффекты"}</button>
+    {detailError&&<p className="daevanion-detail-error" role="alert">{detailError}</p>}
+    {detail&&<div className="daevanion-detail">
+      <div className="daevanion-effect-columns">
+        <div><small>ОТКРЫТЫЕ ЭФФЕКТЫ ХАРАКТЕРИСТИК</small>{effects(detail.openStatEffectList).length?effects(detail.openStatEffectList).map((x,i)=><p key={i}>{x}</p>):<p>Нет данных</p>}</div>
+        <div><small>ОТКРЫТЫЕ ЭФФЕКТЫ НАВЫКОВ</small>{effects(detail.openSkillEffectList).length?effects(detail.openSkillEffectList).map((x,i)=><p key={i}>{x}</p>):<p>Нет данных</p>}</div>
+      </div>
+      <div className="daevanion-node-list">{nodes.map((node,i)=><div className={"daevanion-node "+(Number(node.open)===1?"is-open":"")} key={node.nodeId||i}>
+        <span>{node.row!=null&&node.col!=null?"R"+node.row+" · C"+node.col:"Узел "+(i+1)}</span>
+        <b>{localizeGameText(node.name||node.type||"Узел")}</b>
+        <small>{Number(node.open)===1?"Открыт":"Закрыт"}{node.grade?" · "+localizeGameText(node.grade):""}</small>
+        {effects(node.effectList).map((effect,j)=><em key={j}>{effect}</em>)}
+      </div>)}</div>
+    </div>}
   </article>;
 }
 function FarmCard({item,index}) { return <details className="farm-accordion" open={index===0}><summary><span className="farm-rank">{String(index+1).padStart(2,"0")}</span><span className="farm-summary-copy"><b>{item.title}</b><small>{item.detail}</small></span><span className={"farm-priority "+(item.priority==="Высокий"?"is-high":item.priority==="Позже"?"is-later":"")}>{item.priority}</span><span className="chevron">⌄</span></summary><div className="farm-detail"><div className="farm-detail-label">МАРШРУТ И ПОЯСНЕНИЯ</div><ol>{item.how.map((line,i)=><li key={i}>{line}</li>)}</ol><div className="farm-detail-foot"><span>Цель: {item.target}</span><span>Приоритет: {item.priority}</span>{item.sourceUrl&&<a className="farm-source" href={item.sourceUrl} target="_blank" rel="noreferrer">{item.sourceLabel||"Источник данных"} ↗</a>}</div></div></details>; }
