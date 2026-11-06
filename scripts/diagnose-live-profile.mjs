@@ -61,3 +61,44 @@ console.log("NCSOFT_INFO_STAT_SAMPLE", JSON.stringify(statList.map(x => ({
   statSecondList: x?.statSecondList ?? null,
   keys: x && typeof x === "object" ? Object.keys(x) : []
 }))));
+
+const boards = Array.isArray(info?.daevanion?.boardList) ? info.daevanion.boardList : [];
+const items = Array.isArray(gear?.equipment?.equipmentList) ? gear.equipment.equipmentList : [];
+async function readDetail(label, path, extra) {
+  if (!extra) { console.log("NCSOFT_" + label + "_SKIPPED", "No source identifier"); return; }
+  const query = new URLSearchParams(params);
+  for (const [key, value] of Object.entries(extra)) query.set(key, String(value));
+  try {
+    const response = await fetch(base + path + "?" + query.toString(), {
+      headers,
+      signal: AbortSignal.timeout(15000)
+    });
+    const body = await response.text();
+    console.log("NCSOFT_" + label + "_HTTP_STATUS", response.status);
+    if (!response.ok) { console.log("NCSOFT_" + label + "_ERROR_BODY", body.slice(0, 350)); return; }
+    let payload;
+    try { payload = JSON.parse(body); } catch { console.log("NCSOFT_" + label + "_NON_JSON", body.slice(0, 350)); return; }
+    const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
+    console.log("NCSOFT_" + label + "_ROOT_KEYS", Object.keys(data || {}));
+    if (label === "DAEVANION") {
+      console.log("NCSOFT_DAEVANION_NODE_COUNT", Array.isArray(data?.nodeList) ? data.nodeList.length : null);
+      console.log("NCSOFT_DAEVANION_NODE_SAMPLE", JSON.stringify(data?.nodeList?.slice(0, 3) ?? null));
+    } else {
+      console.log("NCSOFT_ITEM_DETAIL_NAME", data?.name ?? null);
+      console.log("NCSOFT_ITEM_DETAIL_MAIN_STATS", JSON.stringify(data?.mainStats?.slice(0, 5) ?? null));
+      console.log("NCSOFT_ITEM_DETAIL_SUB_STATS", JSON.stringify(data?.subStats?.slice(0, 5) ?? null));
+      console.log("NCSOFT_ITEM_DETAIL_STONES", JSON.stringify(data?.magicStoneStat?.slice(0, 5) ?? null));
+    }
+  } catch (error) {
+    console.log("NCSOFT_" + label + "_ERROR", error?.name + ": " + (error?.message || "unknown"));
+  }
+}
+const firstBoard = boards.find(x => Number.isSafeInteger(Number(x?.id)) && Number(x.id) > 0);
+const firstItem = items.find(x => Number.isSafeInteger(Number(x?.id)) && Number(x.id) > 0 && Number.isSafeInteger(Number(x?.slotPos)) && Number(x.slotPos) > 0);
+await Promise.all([
+  readDetail("DAEVANION", "daevanion/detail", firstBoard ? { boardId: firstBoard.id } : null),
+  readDetail("ITEM_DETAIL", "equipment/item", firstItem ? {
+    id: firstItem.id, slotPos: firstItem.slotPos,
+    enchantLevel: firstItem.enchantLevel ?? 0, exceedLevel: firstItem.exceedLevel ?? 0
+  } : null)
+]);
