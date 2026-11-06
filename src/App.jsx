@@ -53,6 +53,16 @@ const META_STIGMAS = [
   { name:"Поддерживающий огонь", aliases:["Supporting Fire","Поддерживающий огонь"], target:15, globalShare:91.2, priority:"Следом" },
   { name:"Благословение лука", aliases:["Bow of Blessing","Благословение лука","Благословенный лук"], target:15, globalShare:90.4, priority:"Следом" }
 ];
+const FARM_RESOURCES = [
+  { category:"База данных · EU", name:"AION2.GG", description:"Предметы, источники дропа, шанс выпадения, подземелья и карты. Данные EU-клиента обновлены 5 ноября 2026.", url:"https://aion2.gg/database", label:"Открыть базу" },
+  { category:"Русская база данных", name:"DBAion2.ru", description:"Предметы, монстры, задания, навыки, стигмы, подземелья, карта и калькуляторы; есть русский интерфейс.", url:"https://dbaion2.ru/ru/", label:"Открыть базу" },
+  { category:"Гайд · Стрелок", name:"AION2 Guides — Стрелок", description:"PvE-билд, порядок прокачки умений, стигмы, арканы, характеристики и доски Даэваниона.", url:"https://aion2-guides.info/ru/ranger/", label:"Открыть гайд" },
+  { category:"Гайд · Прогресс экипировки", name:"После 45 уровня", description:"Маршрут по порогам 1400 → 1900 → 2100 → 2500 → 2800; что фармить, где крафтить и когда переносить заточку.", url:"https://aion2-guides.info/ru/progression/", label:"Маршрут экипировки" },
+  { category:"Гайд · Механики боссов", name:"Подземелья и боссы", description:"Механики Пещеры крао, Драупнира, Ущелья ауругу, Вакрона, Храма огня, Логова Свирепого Рога и Рудры.", url:"https://aion2-guides.info/ru/dungeons/", label:"Разбор боссов" },
+  { category:"Билды и калькуляторы", name:"AION2 Gaming Tools", description:"База предметов и навыков, калькуляторы крафта, Даэваниона, заточки и планировщик аркан.", url:"https://aion2.gaming.tools/", label:"Открыть инструменты" },
+  { category:"Мета и сравнение", name:"AION2 META", description:"Сравнение сборок и открытых профилей сильных игроков. Использовать как ориентир, а не как доказательство прироста DPS.", url:"https://aion2-meta.com/guides/ranger/", label:"Сравнить мету" },
+  { category:"Профиль персонажа", name:"Shugo.GG — v4mp", description:"Быстро сверить экипировку и публичные данные персонажа.", url:"https://shugo.gg/character/global/eu-kromede/v4mp", label:"Открыть профиль" }
+];
 function getStigmaProgress(skills) {
   return META_STIGMAS.map(meta => {
     const found = skills.find(skill => {
@@ -119,6 +129,67 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
   const entry2100 = Number.isFinite(gsNumber) && gsNumber >= 2100
     ? "Требование по уровню экипировки выполнено: сейчас " + fmt(gsNumber) + "."
     : "Для входа на третий уровень завоевания нужен уровень экипировки 2 100" + (Number.isFinite(gsNumber) ? "; сейчас " + fmt(gsNumber) + "." : ".");
+  if (Number.isFinite(gsNumber) && gsNumber >= 2100 && gsNumber < 2500) plan.push({
+    title: "Главная цель этапа: поднять уровень экипировки до 2 500",
+    detail: "Сейчас " + fmt(gsNumber) + " · доступен тир 3, следующий крупный рубеж — 2 500",
+    how: [
+      "Храм огня и Логово Свирепого Рога доступны уже с 2 100. Не путай порог входа с целью прогрессии: маршрут AION2 Guides рекомендует выйти примерно на 2 500 перед тем, как надолго застревать на фарме полного сета.",
+      "Броню целенаправленно собирай в Логове Свирепого Рога. Храм огня оставь для оружия и аксессуаров; сравнивай выпавшую вещь с текущей по атаке, точности, криту и привязке души.",
+      "Закрывай недостающие слоты гарантированными наградами и жетонами, если они доступны. Не трать эфирную энергию на низшие тиры, когда предмет уже перестал быть улучшением.",
+      "После каждой замены пересчитывай уровень экипировки: заточка и манастоуны могут дать недостающий порог дешевле, чем ещё один случайный заход."
+    ],
+    priority: "Высокий", target: "Прогресс 2 100 → 2 500", sourceUrl: "https://aion2-guides.info/ru/progression/", sourceLabel: "AION2 Guides · маршрут после 45"
+  });
+  if (Number.isFinite(gsNumber) && gsNumber >= 2500 && gsNumber < 2800) plan.push({
+    title: "Фарм брони: Логово Свирепого Рога",
+    detail: "Уровень экипировки " + fmt(gsNumber) + " · приоритет комплекта брони",
+    how: [
+      "На этапе 2 500 маршрут прогрессии советует сосредоточить эфирную энергию на Логове Свирепого Рога и собирать недостающие части брони.",
+      "Храм огня используй для оружия и аксессуаров. Если предмет не выпадает, проверь жетоны гарантии и обмен в трансмутации вещества.",
+      "Переноси заточку со старого предмета только после проверки привязки души: перенос имеет смысл на вещь, которую планируешь оставить надолго."
+    ],
+    priority: "Высокий", target: "Логово Свирепого Рога", sourceUrl: "https://aion2-guides.info/ru/progression/", sourceLabel: "AION2 Guides · этап 2 500"
+  });
+  if (Number.isFinite(gsNumber) && gsNumber < 2600) plan.push({
+    title: "На будущее: доска Ариэль и PvE-бонусы",
+    detail: "Пока рано фармить фрагменты: Hard Пещеры крао и Драупнира требует 2 600",
+    how: [
+      "Не сливай время на эту цель до порога 2 600. По гайду фрагменты Ариэль в Hard выпадают из Пещеры крао и Драупнира с уровня предметов 2 600.",
+      "С 2 700 добавляются Hard Ущелье ауругу и Hard Парящий остров Вакрона. Фрагменты превращаются в Кристаллы Даэваниона: Ариэль.",
+      "Для PvE-маршрута гайда приоритетны узлы «Увеличение урона в PvE» и «Увеличение урона по боссу», затем PvE-стойкость; маршрут рассчитан на ограниченный запас кристаллов."
+    ],
+    priority: "Позже", target: "Ариэль · порог 2 600 / 2 700", sourceUrl: "https://aion2-guides.info/ru/ranger/", sourceLabel: "AION2 Guides · доски Даэваниона"
+  });
+  if (Number.isFinite(gsNumber) && gsNumber >= 2600) plan.push({
+    title: "Фрагменты Ариэль: Hard-подземелья",
+    detail: "Порог 2 600 открыт" + (gsNumber >= 2700 ? " · доступны все четыре источника из гайда" : " · пока доступны Пещера крао и Драупнир"),
+    how: [
+      "На 2 600 фарми Hard Пещеру крао и Hard Драупнир. С 2 700 добавь Hard Ущелье ауругу и Hard Парящий остров Вакрона.",
+      "100 фрагментов превращаются в один Кристалл Даэваниона: Ариэль. Гайд указывает лимит до 30 кристаллов с каждого подземелья.",
+      "Сначала прокладывай маршрут к PvE-урону и урону по боссам; не расходуй кристаллы на PvP-узлы, если цель — DPS по боссам."
+    ],
+    priority: "Высокий", target: "Ариэль · Hard", sourceUrl: "https://aion2-guides.info/ru/ranger/", sourceLabel: "AION2 Guides · маршрут Ариэль"
+  });
+  if (Number.isFinite(gsNumber) && gsNumber < 2800) plan.push({
+    title: "Долгосрочный рубеж: рейд Плавильня Бездны — Рудра",
+    detail: "Обычная сложность открывается с уровня предметов 2 800, сложная — с 3 000",
+    how: [
+      "Пока не достигнут 2 800, это подготовительная цель, а не текущий фарм. Рейд рассчитан на 10 игроков.",
+      "Перед первым заходом изучи механику Раху, Кету и Рудры: ошибки с лужами и безопасными клетками могут сорвать весь бой.",
+      "После открытия рейда пересмотри арканы, браслеты и экипировку по таблице наград; не переноси старые рекомендации на новый патч без проверки."
+    ],
+    priority: "Позже", target: "Рудра · 2 800 / 3 000", sourceUrl: "https://aion2-guides.info/ru/dungeons/", sourceLabel: "AION2 Guides · механики Рудры"
+  });
+  if (Number.isFinite(gsNumber) && gsNumber >= 2800) plan.push({
+    title: "Рейд Рудры и переход на топовую экипировку",
+    detail: "Уровень предметов " + fmt(gsNumber) + " · доступен рейд на 10 игроков",
+    how: [
+      "Обычная сложность Плавильни Бездны открывается с 2 800, сложная — с 3 000. Изучи механику рейда до входа.",
+      "На этом этапе оцени золотые арканы из Возвышения ★4 и предметы из рейда. По гайду дальнейшая заточка выше +15 требует отдельного Камня прорыва.",
+      "Для долгосрочной экипировки сравни крафтовые предметы уровня 94/102 с дропом уровня 86: не вкладывай дорогие материалы в вещь, которую скоро заменишь."
+    ],
+    priority: "Высокий", target: "Плавильня Бездны · Рудра", sourceUrl: "https://aion2-guides.info/ru/progression/", sourceLabel: "AION2 Guides · этап 2 800"
+  });
   const vakronItems = equipped.filter(x => /vakron|вакрон/i.test(x.name || x.itemName || ""));
   if (vakronItems.length) plan.push({
     title: "Нуакам · комплект из подземелья",
@@ -132,7 +203,7 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
     title: "Длинный лук разгневанной Кромед",
     detail: "Сейчас: " + weaponName + (weapon.enchantLevel != null ? " +" + weapon.enchantLevel : "") + " · альтернатива из подземелья",
     how: [entry2100, "Храм Огня (третий уровень завоевания): длинный лук разгневанной Кромед — 0,43% за одно открытие куба энергии Одил по таблице AION2.GG. Это не шанс за весь поход.", "Сравни базовую атаку, точность, критический удар и привязку души с текущим выкованным луком и его заточкой.", "Долгосрочный ориентир сильнейших игроков мирового сервера — сияющий лук Владыки драконов. Это не значит, что нужно немедленно переключаться на изготовление предметов."],
-    priority: "Высокий", target: "Храм Огня", sourceUrl: "https://aion2.gg/database/drop-rates?dungeon=600022&type=Equip", sourceLabel: "AION2.GG · Храм Огня"
+    priority: "Средний", target: "Храм Огня", sourceUrl: "https://aion2.gg/database/drop-rates?dungeon=600022&type=Equip", sourceLabel: "AION2.GG · Храм Огня"
   });
   const aulamusJewelry = equipped.filter(x => /aulamus|ауламус/i.test(x.name || x.itemName || "") && /necklace|earring|ring|ожерель|серьг|кольц/i.test([x.slotPosName,x.slot,x.name,x.itemName].join(" ")));
   if (aulamusJewelry.length) plan.push({
@@ -172,7 +243,8 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
     }));
   }
   if (!plan.length) plan.push({title:"Недостаточно данных",detail:"Профиль пока не содержит экипировки для ранжирования.",how:["Обновить профиль и проверить источник данных."],priority:"Ожидание",target:"Профиль"});
-  return plan;
+  const priorityOrder = { "Высокий": 0, "Средний": 1, "Низкий": 2, "Позже": 3, "Проверка данных": 4, "Ожидание": 5 };
+  return plan.map((item,index)=>({...item,_order:index})).sort((a,b)=>(priorityOrder[a.priority]??9)-(priorityOrder[b.priority]??9)||a._order-b._order);
 }
 
 export default function App() {
@@ -222,14 +294,14 @@ export default function App() {
     {tab==="Арканы" && <section className="panel"><div className="panel-head"><div><p className="eyebrow">ЭКИПИРОВАННЫЕ АРКАНЫ</p><h2>Арканы персонажа</h2></div><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Профиль Shugo.GG ↗</a></div>{arcana.length?<div className="visual-list">{arcana.map((x,i)=><VisualRow key={x.id||x.slotPosName||i} item={x} kind="item"/>)}</div>:<div className="empty-state"><span>◇</span><b>Арканы не распознаны в ответе NCSOFT</b><small>Не подставляю старые или предполагаемые карты. Shugo.GG публикует экипированные арканы в открытом профиле персонажа.</small><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Открыть арканы v4mp ↗</a></div>}<div className="meta-section-head"><h3>Выборка сильнейших Стрелков на мировом сервере</h3><span>136 персонажей · 03.11.2026</span></div><p className="muted">Доли карт в открытых профилях сильнейших игроков. Это частота использования, а не прямое измерение урона; для трёх слотов источник пока не подтвердил популярные карты.</p><div className="arcana-meta-grid">{ARCANA_META.map((item,i)=><ArcanaMetaCard key={item.slot} item={item} index={i}/>)}</div></section>}
     {tab==="Даэванион" && <section className="panel"><h2>Даэванион</h2>{boards.length?boards.map((x,i)=><DataRow key={i} title={localizeGameText(get(x,"name"))||"Доска"} detail={(x.openNodeCount??"—")+" / "+(x.totalNodeCount??"—")+" узлов"}/>):<Empty error={error}/>}</section>}
     {tab==="Мета PvE" && <section className="panel meta-panel"><div className="panel-head"><div><p className="eyebrow">СТРЕЛОК · УРОН ПО ОДНОЙ ЦЕЛИ</p><h2>Эталон PvE-сборки</h2></div><span className="tag">Гайды + мировая выборка · 3 ноя</span></div><p className="muted meta-intro">Сверка с PvE-руководством и выборкой 136 сильнейших Стрелков на мировом сервере. Рубежи специализаций и средние уровни выборки показаны отдельно: популярность не доказывает прирост урона.</p><div className="meta-skill-grid">{skillMeta.map((x,i)=><MetaSkillCard key={x.name} item={x} index={i}/>)}</div><div className="meta-section-head"><h3>Стигмы · ориентиры прокачки</h3><span>Уровни по Mobalytics · частота в мировой выборке</span></div><div className="meta-stigma-grid">{stigmaMeta.map((x,i)=><MetaStigmaCard key={x.name} item={x} index={i}/>)}</div><div className="meta-columns"><article className="meta-block"><span className="eyebrow">ПРИОРИТЕТ ХАРАКТЕРИСТИК</span><ol><li>Усиление урона в PvE</li><li>Усиление критического урона</li><li>Атака</li><li>Точность</li><li>Восстановление маны — если её не хватает в долгом бою</li></ol><small>Рекомендованный порядок для длительного PvE; важность точности и восстановления маны зависит от промахов и длительности боя.</small></article><article className="meta-block"><span className="eyebrow">РОТАЦИЯ ПО БОССУ</span><ol><li>Активируй «Силу Байзела», «Поддерживающий огонь» и «Благословение лука».</li><li>Запусти «Шквал стрел» и «Стрелу грифона» через атакующий макрос.</li><li>Примени «Помечающий выстрел», чтобы включить «Точность».</li><li>Полностью заряди «Прицельный выстрел» вручную под «Точность».</li><li>Продолжай атаковать через «Меткий выстрел» и макрос; обновляй «Точность» и береги усиления перед неуязвимостью босса.</li></ol><small>«Прицельный выстрел» и «Помечающий выстрел» лучше держать на ручном нажатии.</small></article></div><div className="meta-sources"><span>Источники рекомендаций:</span><a href="https://mobalytics.gg/gamebase/guides/aion-2-ranger-pve-build" target="_blank" rel="noreferrer">Mobalytics · уровни умений и порядок атак</a><a href="https://aion2companion.com/builds/ranger/" target="_blank" rel="noreferrer">AION2 Companion · приоритет характеристик</a><a href="https://aion2-meta.com/guides/ranger/" target="_blank" rel="noreferrer">AION2 META · выборка 136 игроков мирового сервера</a></div></section>}
-    {tab==="План добычи" && <section className="panel farm-panel"><div className="farm-heading"><div><p className="eyebrow">СТРЕЛОК · УРОН ПО БОССАМ</p><h2>План добычи</h2></div><span className="tag">{farm.length} приоритетов</span></div><p className="muted farm-intro">Приоритеты рассчитаны по предметам, найденным в профиле. Подземелье указано только там, где источник подтверждает предмет в таблице добычи. Для третьего уровня завоевания требуется уровень экипировки 2 100 по карте прогрессии AION2 META. Указанный шанс относится к одному открытию куба энергии Одил, а не ко всему прохождению подземелья.</p><div className="farm-grid">{farm.map((x,i)=><FarmCard key={i} item={x} index={i}/>)}</div>{!profile&&<Empty error={error}/>}</section>}
+    {tab==="План добычи" && <section className="panel farm-panel"><div className="farm-hero"><div><p className="eyebrow">СТРЕЛОК · PvE · УРОН ПО БОССАМ</p><h2>План добычи</h2><p className="muted">Сверху — самые выгодные ближайшие цели. Раскрой пункт, чтобы увидеть маршрут, требования, советы по экипировке и источник.</p><span className="tag">{farm.length} целей · сортировка по приоритету</span></div><img src="https://aion2-guides.info/assets/art/ranger.webp" alt="Стрелок AION 2" loading="lazy"/></div><div className="farm-guide-note"><b>Логика маршрута обновлена по гайдам сезона 1.</b><span>Вход в тир 3 — от 2 100; ориентир следующего этапа экипировки — 2 500; Hard-фрагменты Ариэль — с 2 600/2 700; рейд Рудры — с 2 800.</span></div><div className="farm-list">{farm.map((x,i)=><FarmCard key={i} item={x} index={i}/>)}</div>{!profile&&<Empty error={error}/>}<section className="farm-library"><div className="farm-library-head"><div><p className="eyebrow">СПРАВОЧНИК И ИНСТРУМЕНТЫ</p><h3>Базы данных и полезные гайды</h3><p className="muted">Быстрые ссылки для проверки дропа, характеристик предметов, механик боссов и актуальных билдов.</p></div><span className="tag">{FARM_RESOURCES.length} источников</span></div><div className="farm-resource-grid">{FARM_RESOURCES.map(item=><article className="farm-resource" key={item.url}><small>{item.category}</small><b>{item.name}</b><p>{item.description}</p><a href={item.url} target="_blank" rel="noreferrer">{item.label} ↗</a></article>)}</div><p className="farm-library-foot">Фанатские базы могут обновляться с задержкой и различаться по региону. Для дропа сначала выбирай Global / EU и сверяй порог входа с клиентом игры; рекомендации по мета-сборкам не являются гарантией прироста DPS.</p></section></section>}
     <footer>Фанатский помощник · Только чтение · {profile?"Профиль загружен":"Ожидание загрузки профиля"}{updated?" · "+updated:""}</footer>
   </main>;
 }
 function ArcanaMetaCard({item,index}) { return <article className="arcana-meta-card"><div className="farm-card-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.slot}</span></div>{item.best?<><b>{item.best}</b><strong>{item.share}%</strong><small>{item.alternative}</small></>:<><b>Нет подтверждённого лидера</b><small>{item.alternative}</small></>}</article>; }
 function MetaStigmaCard({item,index}) { const pct=item.level==null?0:Math.min(100,item.level/item.target*100); return <article className="meta-stigma-card"><div className="meta-skill-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><b>{item.name}</b><div className="meta-level">{item.level==null?"Нет данных":"Ур. "+item.level}<span>Рубеж {item.target}</span></div><div className="meta-progress"><i style={{width:pct+"%"}}/></div><small className="meta-cohort">Мировая выборка: {item.globalShare}%</small></article>; }
 function MetaSkillCard({item,index}) { const pct=item.level==null?0:Math.min(100,item.level/item.target*100); return <article className="meta-skill-card"><div className="meta-skill-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><h3>{item.name}</h3><div className="meta-level">{item.level==null?"Нет данных":"Ур. "+item.level}<span>Рубеж {item.target}</span></div><div className="meta-progress"><i style={{width:pct+"%"}}/></div><p>{item.note}</p><small className="meta-cohort">Мировая выборка: средний уровень {item.globalAverage} · PvE в Корее, уровень 20+: {item.koreanPve20}%</small></article>; }
-function FarmCard({item,index}) { return <article className="farm-card"><div className="farm-card-top"><span className="farm-index">{String(index+1).padStart(2,"0")}</span><span className="priority">{item.priority}</span></div><h3>{item.title}</h3><p className="farm-card-detail">{item.detail}</p><div className="farm-next"><span>СЛЕДУЮЩИЙ ШАГ</span><p>{item.how[0]}</p></div>{item.how.length>1&&<ul className="farm-card-notes">{item.how.slice(1,3).map((line,i)=><li key={i}>{line}</li>)}</ul>}{item.sourceUrl&&<a className="farm-source" href={item.sourceUrl} target="_blank" rel="noreferrer">{item.sourceLabel||"Источник данных"} ↗</a>}<div className="farm-card-foot"><span>{item.target}</span><span>По данным профиля</span></div></article>; }
+function FarmCard({item,index}) { return <details className="farm-accordion" open={index===0}><summary><span className="farm-rank">{String(index+1).padStart(2,"0")}</span><span className="farm-summary-copy"><b>{item.title}</b><small>{item.detail}</small></span><span className={"farm-priority "+(item.priority==="Высокий"?"is-high":item.priority==="Позже"?"is-later":"")}>{item.priority}</span><span className="chevron">⌄</span></summary><div className="farm-detail"><div className="farm-detail-label">МАРШРУТ И ПОЯСНЕНИЯ</div><ol>{item.how.map((line,i)=><li key={i}>{line}</li>)}</ol><div className="farm-detail-foot"><span>Цель: {item.target}</span><span>Приоритет: {item.priority}</span>{item.sourceUrl&&<a className="farm-source" href={item.sourceUrl} target="_blank" rel="noreferrer">{item.sourceLabel||"Источник данных"} ↗</a>}</div></div></details>; }
 function Metric({label,value,hint}){return <div className="metric"><span>{label}</span><strong>{value}</strong><small>{hint}</small></div>}
 function Status({label,value}){return <div className="status-row"><span>{label}</span><b>{value}</b></div>}
 function DataRow({title,detail}){return <div className="plan-row"><span className="number">•</span><div className="plan-copy"><b>{title}</b><p>{detail}</p></div></div>}
