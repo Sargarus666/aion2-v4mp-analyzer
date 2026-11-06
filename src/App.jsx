@@ -3,6 +3,7 @@ import { normalizeStatEntries, normalizeDaevanionProgress, parseOptionalNumber, 
 import { assessFarmTargetCandidate } from "./lib/farm-targets.js";
 import { mergeProfileSnapshot } from "./lib/profile-state.js";
 import { localizeGameText } from "./lib/game-localization.js";
+import { formatItemStat } from "./lib/item-detail.js";
 
 const CHARACTER = {
   name: "v4mp", className: "Стрелок", server: "Европа · Кромеде",
@@ -529,11 +530,11 @@ function EquipmentDetail({item}) {
   const rows=[["Основные характеристики",detail?.mainStats],["Дополнительные характеристики",detail?.subStats],["Камни",detail?.magicStoneStat],["Божественные камни",detail?.godStoneStat],["Доп. навыки",detail?.subSkills]];
   if(!id||!slotPos)return null;
   return <div className="equipment-detail-wrap">
-    <button type="button" className="equipment-detail-button" onClick={load} disabled={busy||!!detail}>{busy?"Загрузка…":detail?"Подробности загружены":"Подробности предмета"}</button>
+    <button type="button" className="equipment-detail-button" onClick={load} disabled={busy||!!detail} aria-expanded={!!detail} aria-controls={"equipment-detail-"+id+"-"+slotPos}>{busy?"Загрузка…":detail?"Подробности загружены":"Подробности предмета"}</button>
     {error&&<small className="equipment-detail-error" role="alert">{error}</small>}
-    {detail&&<div className="equipment-detail-data">
+    {detail&&<div className="equipment-detail-data" id={"equipment-detail-"+id+"-"+slotPos} aria-live="polite">
       <div className="equipment-detail-heading"><b>{localizeGameText(detail.name||item.name)}</b><span>{detail.enchantLevel!=null?"+"+detail.enchantLevel:""}</span></div>
-      {rows.map(([label,values])=>Array.isArray(values)&&values.length>0&&<section key={label}><small>{label}</small>{values.map((value,i)=><p key={value.id||value.name||i}>{localizeGameText(value.name||value.desc||"—")}{value.value!=null?" · "+value.value:""}{value.level!=null?" · ур. "+value.level:""}</p>)}</section>)}
+      {rows.map(([label,values])=>Array.isArray(values)&&values.length>0&&<section key={label}><small>{label}</small>{values.map((value,i)=><p key={value.id||value.name||i}>{localizeGameText(value.name||value.desc||"—")}{formatItemStat(value)?" · "+formatItemStat(value):""}{value.level!=null?" · ур. "+value.level:""}</p>)}</section>)}
       {Array.isArray(detail.sources)&&detail.sources.length>0&&<section><small>ИСТОЧНИКИ ПРЕДМЕТА В ОТВЕТЕ NCSOFT</small>{detail.sources.map((value,i)=><p key={i}>{localizeGameText(value)}</p>)}</section>}
     </div>}
   </div>;
