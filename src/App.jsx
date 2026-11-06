@@ -357,7 +357,7 @@ export default function App() {
   const arcana=arcanaCandidates.filter((item,index,list)=>list.findIndex(other=>(item.id&&other.id===item.id)||(item.slotPosName&&other.slotPosName===item.slotPosName))===index);
   const boards=arr(profile?.daevanion?.boardList);
   const cp=get(character,"combatPower","combat_power") ?? statValue(stats,["CombatPower","Combat Power","CP"]);
-  const itemLevel=statValue(stats,["ItemLevel","Уровень экипировки","GearScore","Gear Score","GS"]) ?? get(character,"itemLevel","item_level");
+  const itemLevel=statValue(stats,["ItemLevel","Уровень экипировки"]) ?? get(character,"itemLevel","item_level");
   const skillMeta=getSkillProgress(skills);
   const stigmaMeta=getStigmaProgress(skills);
   const farm=useMemo(()=>makeFarmPlan(equipment,stats,boards,skills,itemLevel,arcana),[profile]);

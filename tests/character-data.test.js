@@ -4,7 +4,8 @@ import {
   normalizeProfileResponse,
   normalizeStatEntries,
   hasUsefulProfileData,
-  buildRelevantStatSections
+  buildRelevantStatSections,
+  safeImageSource
 } from "../src/lib/character-data.js";
 
 test("normalizes primary and secondary stat groups without dropping values", () => {
