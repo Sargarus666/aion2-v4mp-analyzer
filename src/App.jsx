@@ -88,7 +88,7 @@ const GAME_RU = {
   "Weapon":"Оружие","Bow":"Лук","Helmet":"Шлем","Helm":"Шлем","Gloves":"Перчатки",
   "Boots":"Сапоги","Cloak":"Плащ","Pauldrons":"Наплечники","Ring":"Кольцо",
   "Earrings":"Серьги","Necklace":"Ожерелье","Legendary":"Легендарный","Epic":"Эпический",
-  "Rare":"Редкий","Uncommon":"Необычный","Common":"Обычный"
+  "Rare":"Редкий","Uncommon":"Необычный","Common":"Обычный","Active":"Активное умение","Passive":"Пассивное умение","Stigma":"Стигма","Chain Skill":"Цепное умение","Mastery":"Мастерство","Physical":"Физический урон","Wind":"Урон ветром","Fire":"Урон огнём","Earth":"Урон землёй"
 };
 const localizeGameText = value => {
   if (value == null) return value;
@@ -151,7 +151,7 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
   const weaponName = localizeGameText(rawWeaponName);
   if (/spiritforged/i.test(rawWeaponName)) plan.push({
     title: "Длинный лук разгневанной Кромед",
-    detail: "Сейчас: " + weaponName + (weapon.enchantLevel != null ? " +" + weapon.enchantLevel : "") + " · данжевая альтернатива",
+    detail: "Сейчас: " + weaponName + (weapon.enchantLevel != null ? " +" + weapon.enchantLevel : "") + " · альтернатива из подземелья",
     how: [entry2100, "Храм Огня (третий уровень завоевания): длинный лук разгневанной Кромед — 0,43% за одно открытие куба энергии Одил по таблице AION2.GG. Это не шанс за весь поход.", "Сравни базовую атаку, точность, критический удар и привязку души с текущим выкованным луком и его заточкой.", "Долгосрочный ориентир сильнейших игроков Global — сияющий лук Владыки драконов. Это не значит, что нужно немедленно переключаться на изготовление предметов."],
     priority: "Высокий", target: "Fire Temple", sourceUrl: "https://aion2.gg/database/drop-rates?dungeon=600022&type=Equip", sourceLabel: "AION2.GG · Храм Огня"
   });
@@ -172,7 +172,7 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
   const magicChalice = arcanaItems.find(x => /chalice of magic/i.test(x.name || x.itemName || ""));
   if (magicChalice) plan.push({
     title: "Аркана: Чаша жизненной силы",
-    detail: "Сейчас: " + (magicChalice.name || magicChalice.itemName) + (magicChalice.grade ? " · " + magicChalice.grade : ""),
+    detail: "Сейчас: " + localizeGameText(magicChalice.name || magicChalice.itemName) + (magicChalice.grade ? " · " + localizeGameText(magicChalice.grade) : ""),
     how: ["В выборке 136 сильнейших игроков Global Чаша жизненной силы встречается у 94,1%, Чаша магии — у 5,9%.", "Проверь способ получения или обмена и сравни реальные бонусы карты перед заменой.", "Частота использования — только ориентир, а не доказательство прироста урона."],
     priority: "Средний", target: "Arcana", sourceUrl: "https://aion2-meta.com/guides/ranger/", sourceLabel: "AION2 META · Global top 136"
   });
@@ -261,7 +261,7 @@ function StatCard({item}) {
 function VisualRow({item,kind}) {
   const name=localizeGameText(get(item,"name","itemName","skillName"))||"Без названия";
   const icon=imageSource(get(item,"icon","iconUrl","image","imageUrl","thumbnail"));
-  const meta=kind==="skill"?["Ур. "+(get(item,"skillLevel","level")??"—"),get(item,"category"),item.equip?"Надет":null].filter(Boolean).join(" · "):[localizeGameText(get(item,"slotPosName","slot")),localizeGameText(get(item,"grade")),item.enchantLevel!=null?"+"+item.enchantLevel:null].filter(Boolean).join(" · ");
+  const meta=kind==="skill"?["Ур. "+(get(item,"skillLevel","level")??"—"),localizeGameText(get(item,"category")),item.equip?"Надет":null].filter(Boolean).join(" · "):[localizeGameText(get(item,"slotPosName","slot")),localizeGameText(get(item,"grade")),item.enchantLevel!=null?"+"+item.enchantLevel:null].filter(Boolean).join(" · ");
   return <div className="visual-row"><div className={"visual-icon "+(kind==="skill"?"skill-icon":"")}>{icon?<img src={icon} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display="none";}}/>:<span>{kind==="skill"?"✦":"◇"}</span>}</div><div className="visual-copy"><b>{name}</b><small>{meta||"—"}</small></div>{kind==="skill"&&<span className="skill-level">{get(item,"skillLevel","level")??""}</span>}</div>;
 }
 function Empty({error}){return <div className="empty-state"><span>＋</span><b>{error?"Не удалось получить данные из источника":"В этом разделе пока нет данных"}</b><small>{error||"Попробуй обновить профиль позже."}</small></div>}
