@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { normalizeStatEntries, buildRelevantStatSections } from "./lib/character-data.js";
+import { mergeProfileSnapshot } from "./lib/profile-state.js";
 import { localizeGameText } from "./lib/game-localization.js";
 
 const CHARACTER = {
@@ -11,6 +12,11 @@ const arr = v => Array.isArray(v) ? v : [];
 const get = (o, ...keys) => { for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null && o?.[k] !== "") return o[k]; return null; };
 const fmt = v => { if (v == null || v === "") return "—"; const raw = String(v).trim(); const numeric = raw.replace(/[\s,]/g, ""); const parsed = numeric !== "" ? Number(numeric) : NaN; return Number.isFinite(parsed) ? parsed.toLocaleString("ru-RU") : raw; };
 const norm = v => String(v ?? "").toLowerCase().replace(/[ _-]/g, "");
+const STALE_SECTION_LABELS = {
+  profile: "профиль", stat: "характеристики", daevanion: "Даэванион",
+  title: "титулы", ranking: "рейтинг", equipment: "экипировка",
+  skill: "навыки", arcana: "арканы", petwing: "питомец и крылья"
+};
 const statEntries = normalizeStatEntries;
 function statIcon(name) {
   const n = norm(name);
@@ -265,8 +271,10 @@ export default function App() {
       const r=await fetch(url,{cache:"no-store",signal:AbortSignal.timeout(15000)});
       const result=await r.json();
       if(!r.ok || !result.ok) throw new Error(result.error || "Импорт не удался");
-      setProfile({ ...result.data, _partial: Boolean(result.partial), _warnings: arr(result.warnings) });
-      setUpdated(new Date().toLocaleString("ru-RU"));
+      const fetchedAt = result.fetchedAt || new Date().toISOString();
+      setProfile(previous => mergeProfileSnapshot(previous, result.data, result.failedEndpoints, result.warnings, fetchedAt));
+      const fetchedDate = new Date(fetchedAt);
+      setUpdated(Number.isNaN(fetchedDate.getTime()) ? new Date().toLocaleString("ru-RU") : fetchedDate.toLocaleString("ru-RU"));
     } catch(e) { setError(e.name==="TimeoutError" ? "NCSOFT не ответил за 15 секунд. Попробуй обновить профиль ещё раз." : (e.message || "Ошибка загрузки")); }
     finally { setLoading(false); }
   }
@@ -289,7 +297,7 @@ export default function App() {
     <header className="topbar"><a className="brand" href="#"><span className="brand-mark">A2</span><span>AION 2 <b>МАСТЕРСКАЯ СБОРКИ</b></span></a><div className="top-actions"><span className="live-dot" role="status" aria-live="polite">{loading?"СИНХРОНИЗАЦИЯ · NCSOFT":error&&profile?"ОШИБКА ОБНОВЛЕНИЯ · ПОСЛЕДНИЕ ДАННЫЕ":profile?._partial?"ЧАСТИЧНЫЕ ДАННЫЕ · NCSOFT":profile?"ПРОФИЛЬ · ТОЛЬКО ЧТЕНИЕ":"ОЖИДАНИЕ ПРОФИЛЯ"}</span><a className="profile-link" href="https://aion2.plaync.com/en-us/characters/index?region=eu" target="_blank" rel="noreferrer">NCSOFT · Европа ↗</a><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Shugo.GG ↗</a><a className="profile-link" href={CHARACTER.sourceUrl} target="_blank" rel="noreferrer">NotMeter ↗</a></div></header>
     <section className="hero"><div><p className="eyebrow">АНАЛИЗАТОР ПЕРСОНАЖА / ЕВРОПА</p><h1>{title}<em> · сборка</em></h1><p className="sub">{localizeGameText(get(character,"className","class")) || CHARACTER.className} <span>•</span> {(get(character,"serverName","server")==="Kromede" ? "Кромеде" : localizeGameText(get(character,"serverName","server"))) || CHARACTER.server} <span>•</span> {get(character,"level","characterLevel") ? "Ур. "+get(character,"level","characterLevel") : "Уровень —"}</p></div><div className="hero-actions"><button className="primary" onClick={()=>loadProfile(true)} disabled={loading}>{loading?"Загружаю…":"Обновить профиль ↻"}</button></div></section>
     {error && <section className="panel error-panel" role="alert"><b>{profile?"Не удалось обновить профиль":"Не удалось загрузить персонажа"}</b><p className="muted">{error}</p>{profile&&<small>Оставлен последний успешный снимок от {updated}; данные могут быть устаревшими.</small>}<small>Источник: публичный API NCSOFT · Сервер 2316 · Европа</small><button className="secondary" onClick={()=>loadProfile(true)}>Повторить</button></section>}
-    {profile?._partial && <section className="panel warning-panel" role="status"><b>Частичный ответ NCSOFT</b><p className="muted">Некоторые разделы могут быть пустыми, потому что один из публичных endpoints не ответил.</p>{profile._warnings.map((warning,i)=><small key={i}>{warning}</small>)}</section>}
+    {profile?._partial && <section className="panel warning-panel" role="status"><b>Частичный ответ NCSOFT</b><p className="muted">{profile._staleSections?.length ? "Для недоступных разделов сохранён последний успешный снимок. Остальные разделы получены из текущего ответа." : "Один из публичных endpoints не ответил; предыдущего снимка для этого раздела ещё нет."}</p>{profile._staleSections?.length > 0 && <small>Из предыдущего снимка: {profile._staleSections.map(key=>STALE_SECTION_LABELS[key] || key).join(", ")}.</small>}{profile._warnings.map((warning,i)=><small key={i}>{warning}</small>)}</section>}
     <section className="metrics">
       <Metric label="УРОВЕНЬ ЭКИПИРОВКИ" value={fmt(gs)} hint="Из характеристик профиля NCSOFT"/>
       <Metric label="БОЕВАЯ МОЩЬ" value={fmt(cp)} hint="Боевая мощь персонажа"/>

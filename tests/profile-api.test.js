@@ -65,6 +65,7 @@ test("keeps usable equipment when the profile endpoint fails and bypasses cache 
     assert.equal(body.partial, true);
     assert.equal(body.data.equipment.equipmentList[0].name, "Longbow");
     assert.equal(body.warnings.length, 1);
+    assert.deepEqual(body.failedEndpoints, ["info"]);
     assert.deepEqual(cacheTtls, [0, 0]);
     assert.equal(response.headers.get("Cache-Control"), "no-store");
   } finally {
@@ -102,6 +103,36 @@ test("retries a 429 response with an HTTP-date Retry-After header", async () => 
     assert.equal(response.status, 200);
     assert.equal(body.ok, true);
     assert.equal(attempts, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+
+test("does not retry a 429 before a future Retry-After deadline", async () => {
+  const originalFetch = globalThis.fetch;
+  let infoAttempts = 0;
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/info?")) {
+      infoAttempts += 1;
+      return new Response("rate limited", {
+        status: 429,
+        headers: { "Retry-After": "60" }
+      });
+    }
+    return new Response(JSON.stringify({ data: { equipmentList: [{ name: "Bow" }] } }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  };
+
+  try {
+    const response = await onRequestGet({ request: new Request("https://example.test/api/profile") });
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(body.partial, true);
+    assert.deepEqual(body.failedEndpoints, ["info"]);
+    assert.equal(infoAttempts, 1);
   } finally {
     globalThis.fetch = originalFetch;
   }

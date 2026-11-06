@@ -13,13 +13,13 @@ const headers = {
   "Referer": "https://aion2.plaync.com/"
 };
 
-function retryAfterSeconds(value) {
-  if (!value) return 1;
+function retryAfterMilliseconds(value) {
+  if (!value) return 1000;
   const seconds = Number(value);
-  if (Number.isFinite(seconds)) return Math.max(0, Math.min(seconds, 3));
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
   const date = Date.parse(value);
-  if (Number.isFinite(date)) return Math.max(0, Math.min((date - Date.now()) / 1000, 3));
-  return 1;
+  if (Number.isFinite(date)) return Math.max(0, date - Date.now());
+  return 1000;
 }
 
 async function requestJson(url, { forceRefresh = false } = {}) {
@@ -30,10 +30,13 @@ async function requestJson(url, { forceRefresh = false } = {}) {
       signal: AbortSignal.timeout(10000),
       cf: { cacheTtl: forceRefresh ? 0 : 45, cacheEverything: true }
     });
-    if (attempt === 0 && (response.status === 429 || response.status === 503)) {
-      const waitSeconds = retryAfterSeconds(response.headers.get("Retry-After"));
+    if (attempt === 0 && [429, 502, 503, 504].includes(response.status)) {
+      const waitMs = retryAfterMilliseconds(response.headers.get("Retry-After"));
       await response.body?.cancel();
-      await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+      // Do not retry before the upstream Retry-After deadline. If it exceeds
+      // this function's small retry budget, surface the response immediately.
+      if (waitMs > 3000) break;
+      await new Promise(resolve => setTimeout(resolve, waitMs));
       continue;
     }
     break;
@@ -61,8 +64,15 @@ export async function onRequestGet({ request } = {}) {
     const info = infoResult.status === "fulfilled" ? infoResult.value : {};
     const gear = gearResult.status === "fulfilled" ? gearResult.value : {};
     const warnings = [];
-    if (infoResult.status === "rejected") warnings.push("Профиль и статы: " + String(infoResult.reason?.message || "ошибка источника").slice(0, 180));
-    if (gearResult.status === "rejected") warnings.push("Экипировка и навыки: " + String(gearResult.reason?.message || "ошибка источника").slice(0, 180));
+    const failedEndpoints = [];
+    if (infoResult.status === "rejected") {
+      failedEndpoints.push("info");
+      warnings.push("Профиль и статы: " + String(infoResult.reason?.message || "ошибка источника").slice(0, 180));
+    }
+    if (gearResult.status === "rejected") {
+      failedEndpoints.push("equipment");
+      warnings.push("Экипировка и навыки: " + String(gearResult.reason?.message || "ошибка источника").slice(0, 180));
+    }
 
     const data = normalizeProfileResponse(info, gear);
     const { profile, stat, daevanion, equipment, skill } = data;
@@ -83,6 +93,7 @@ export async function onRequestGet({ request } = {}) {
           boardCount,
           statKeys: Object.keys(stat || {}),
           equipmentCount: equipmentList.length,
+          failedEndpoints,
           warnings
         }
       }, { status: 502, headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
@@ -93,6 +104,7 @@ export async function onRequestGet({ request } = {}) {
       source: "NCSOFT public character API",
       fetchedAt: new Date().toISOString(),
       partial: warnings.length > 0,
+      failedEndpoints,
       warnings,
       data
     }, { headers: { "Cache-Control": forceRefresh || warnings.length ? "no-store" : "public, max-age=20, s-maxage=45", "X-Content-Type-Options": "nosniff" } });
