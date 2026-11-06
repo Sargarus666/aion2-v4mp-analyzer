@@ -50,7 +50,7 @@ The visual system remains a custom AION 2 field-console identity: deep blue-blac
 
 Research references checked 6 November 2026: [Tilda Made on Tilda](https://tilda.cc/madeontilda/), [Wix Studio Inspiration](https://www.wix.com/studio/inspiration), [Webflow Interactions showcase](https://webflow.com/made-in-webflow/interactions), [Framer Quadro Studio](https://www.framer.com/marketplace/templates/quadro-studio/) and [Awwwards dark-site collection](https://www.awwwards.com/websites/dark/). The references support editorial hierarchy, strict grids, dark tonal systems, reusable card patterns and concise interaction feedback; no template, custom cursor, parallax scene or WebGL effect was copied. The art direction pass also removes the residual purple tint in the global background and hover glow in favour of the same cyan/teal signal palette used by the AION 2 cards.
 
-The interface uses short transform/opacity transitions, native details/summary for expandable farm guidance, lazy images and a `prefers-reduced-motion` override. No canvas, WebGL, continuous background video or heavy blur layer is introduced. A decorative box-shadow pulse was removed.
+The interface uses short transform/opacity transitions, native details/summary for expandable farm guidance, lazy images and a `prefers-reduced-motion` override. The hero aura is static (no infinite pulse), the hero gradient has no blur filter, sticky surfaces use a 4px blur on desktop and opaque backgrounds without backdrop blur on narrow screens. No canvas, WebGL or continuous background video is introduced.
 
 ## Security, accessibility and performance review
 
@@ -83,7 +83,7 @@ The interface uses short transform/opacity transitions, native details/summary f
 
 - Fixed a data-quality edge case: when NCSOFT's equipment endpoint returns only `petwing`, it is no longer discarded as an empty equipment response. A regression test verifies that the partial shape remains available without marking the whole endpoint stale.
 - Added a responsive portrait panel to the hero using the live NCSOFT profile image, with a text-only fallback and descriptive `alt` text. The image is loaded eagerly because it is the only new above-the-fold visual.
-- Harmonised the remaining purple background and hover accents with the cyan/teal identity. No canvas, WebGL, video, new runtime dependency or additional animation library was added.
+- Harmonised the remaining purple background and hover accents with the cyan/teal identity. Removed the infinite hero pulse and 5px hero blur; sticky navigation blur is reduced to 4px on desktop and disabled on narrow screens. No canvas, WebGL, video, new runtime dependency or additional animation library was added.
 - Increased the smallest farm guidance text on narrow screens; the existing reduced-motion override still disables transitions and animations.
 - The public Shugo.GG FAQ says there is no public data API. Its current profile was useful to cross-check v4mp's displayed GS, gear and Arcana, but the project deliberately does not scrape or merge that value into NCSOFT's CP/iLvl fields.
 - AION2 Companion's Ranger guide was also checked on 6 November and labels its PvE stat order as editorial. It is treated as a separate community opinion, not a measured DPS formula.

@@ -396,7 +396,7 @@ export default function App() {
       {profilePortrait && <figure className="hero-portrait">
         <span className="hero-portrait-fallback" aria-hidden="true">AION 2</span>
         <img src={profilePortrait} alt={`Портрет персонажа ${title} из профиля NCSOFT`} loading="eager" decoding="async" onError={event=>{event.currentTarget.hidden=true;}} />
-        <figcaption className="hero-portrait-caption"><small>ПРОФИЛЬ NCSOFT</small><strong>RANGER · EU / KROMEDE</strong></figcaption>
+        <figcaption className="hero-portrait-caption"><small>ПРОФИЛЬ NCSOFT</small><strong>RANGER · KROMEDE</strong></figcaption>
       </figure>}
     </section>
     {error && <section className="panel error-panel" role="alert"><b>{profile?"Не удалось обновить профиль":"Не удалось загрузить персонажа"}</b><p className="muted">{error}</p>{profile&&<small>Последний ответ NCSOFT: {updated}; отдельные разделы могут быть старее.</small>}<small>Источник: публичный API NCSOFT · Сервер 2316 · Европа</small><button className="secondary" onClick={()=>loadProfile(true)}>Повторить</button></section>}
