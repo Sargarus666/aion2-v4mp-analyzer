@@ -1093,3 +1093,16 @@ footer { color:#72909d; }
 .daevanion-node b{font-size:12px}
 .daevanion-node em{font-size:11px;font-style:normal;line-height:1.4}
 @media(max-width:520px){.daevanion-effect-columns,.daevanion-node-list{grid-template-columns:1fr}}
+
+/* Lazy item detail disclosure */
+.equipment-detail-wrap{margin-top:7px}
+.equipment-detail-button{padding:5px 9px;border:1px solid var(--md-sys-color-outline-variant);border-radius:8px;background:var(--md-sys-color-surface-container);color:var(--md-sys-color-primary);font:inherit;font-size:10px;font-weight:700;cursor:pointer}
+.equipment-detail-button:focus-visible{outline:2px solid var(--md-sys-color-primary);outline-offset:2px}
+.equipment-detail-button:disabled{opacity:.65}
+.equipment-detail-error{display:block;color:var(--md-sys-color-error);margin-top:5px}
+.equipment-detail-data{margin-top:9px;padding:10px;border:1px solid var(--md-sys-color-outline-variant);border-radius:10px;background:var(--md-sys-color-surface-container-low)}
+.equipment-detail-heading{display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.equipment-detail-heading span{color:var(--md-sys-color-primary)}
+.equipment-detail-data section{margin-top:9px}
+.equipment-detail-data section>small{color:var(--md-sys-color-primary);font-size:9px;font-weight:800;text-transform:uppercase}
+.equipment-detail-data p{margin:4px 0 0;color:var(--md-sys-color-on-surface-variant);font-size:11px;line-height:1.4}

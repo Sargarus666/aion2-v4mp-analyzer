@@ -509,6 +509,33 @@ function VisualRow({item,kind}) {
   const name=localizeGameText(get(item,"name","itemName","skillName"))||"Без названия";
   const icon=imageSource(get(item,"icon","iconUrl","image","imageUrl","thumbnail"));
   const meta=kind==="skill"?["Ур. "+(get(item,"skillLevel","level")??"—"),localizeGameText(get(item,"category")),item.equip?"Надет":null].filter(Boolean).join(" · "):[localizeGameText(get(item,"slotPosName","slot")),localizeGameText(get(item,"grade")),item.enchantLevel!=null?"+"+item.enchantLevel:null].filter(Boolean).join(" · ");
-  return <div className="visual-row"><div className={"visual-icon "+(kind==="skill"?"skill-icon":"")}>{icon?<img src={icon} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display="none";}}/>:<span>{kind==="skill"?"✦":"◇"}</span>}</div><div className="visual-copy"><b>{name}</b><small>{meta||"—"}</small></div>{kind==="skill"&&<span className="skill-level">{get(item,"skillLevel","level")??""}</span>}</div>;
+  return <div className="visual-row"><div className={"visual-icon "+(kind==="skill"?"skill-icon":"")}>{icon?<img src={icon} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display="none";}}/>:<span>{kind==="skill"?"✦":"◇"}</span>}</div><div className="visual-copy"><b>{name}</b><small>{meta||"—"}</small>{kind==="item"&&<EquipmentDetail item={item}/>}</div>{kind==="skill"&&<span className="skill-level">{get(item,"skillLevel","level")??""}</span>}</div>;
+}
+function EquipmentDetail({item}) {
+  const [detail,setDetail]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState("");
+  const id=get(item,"id","itemId"),slotPos=get(item,"slotPos");
+  async function load() {
+    if(detail||busy||!id||!slotPos)return;
+    setBusy(true);setError("");
+    try {
+      const params=new URLSearchParams({id:String(id),slotPos:String(slotPos),enchantLevel:String(get(item,"enchantLevel")??0),exceedLevel:String(get(item,"exceedLevel")??0)});
+      const response=await fetch("/api/equipment-item?"+params.toString(),{cache:"no-store",signal:AbortSignal.timeout(12000)});
+      const result=await response.json();
+      if(!response.ok||!result.ok)throw new Error(result.error||"Не удалось получить характеристики предмета");
+      setDetail(result.data);
+    } catch(e) {setError(e.name==="TimeoutError"?"NCSOFT не ответил за 12 секунд.":e.message||"Ошибка загрузки");}
+    finally{setBusy(false);}
+  }
+  const rows=[["Основные характеристики",detail?.mainStats],["Дополнительные характеристики",detail?.subStats],["Камни",detail?.magicStoneStat],["Божественные камни",detail?.godStoneStat],["Доп. навыки",detail?.subSkills]];
+  if(!id||!slotPos)return null;
+  return <div className="equipment-detail-wrap">
+    <button type="button" className="equipment-detail-button" onClick={load} disabled={busy||!!detail}>{busy?"Загрузка…":detail?"Подробности загружены":"Подробности предмета"}</button>
+    {error&&<small className="equipment-detail-error" role="alert">{error}</small>}
+    {detail&&<div className="equipment-detail-data">
+      <div className="equipment-detail-heading"><b>{localizeGameText(detail.name||item.name)}</b><span>{detail.enchantLevel!=null?"+"+detail.enchantLevel:""}</span></div>
+      {rows.map(([label,values])=>Array.isArray(values)&&values.length>0&&<section key={label}><small>{label}</small>{values.map((value,i)=><p key={value.id||value.name||i}>{localizeGameText(value.name||value.desc||"—")}{value.value!=null?" · "+value.value:""}{value.level!=null?" · ур. "+value.level:""}</p>)}</section>)}
+      {Array.isArray(detail.sources)&&detail.sources.length>0&&<section><small>ИСТОЧНИКИ ПРЕДМЕТА В ОТВЕТЕ NCSOFT</small>{detail.sources.map((value,i)=><p key={i}>{localizeGameText(value)}</p>)}</section>}
+    </div>}
+  </div>;
 }
 function Empty({error}){return <div className="empty-state"><span>＋</span><b>{error?"Не удалось получить данные из источника":"В этом разделе пока нет данных"}</b><small>{error||"Попробуй обновить профиль позже."}</small></div>}
