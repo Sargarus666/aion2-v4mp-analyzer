@@ -74,6 +74,28 @@ function getSkillProgress(skills) {
     return { ...meta, level, found:!!found };
   });
 }
+const GAME_RU = {
+  "Ranger":"Стрелок","Kromede":"Кромеде","Deadshot":"Прицельный выстрел","Snipe":"Меткий выстрел",
+  "Tempest Shot":"Скоростная стрельба","Drill Dart":"Пронзающая стрела","Gale Arrow":"Шквал стрел",
+  "Marking Shot":"Помечающий выстрел","Snare Shot":"Опутывающий выстрел","Burst Arrow":"Рассекающая стрела",
+  "Tempest Arrow":"Стрела бури","Vaizel's Authority":"Власть Вайзеля","Vaizel’s Authority":"Власть Вайзеля",
+  "Supporting Fire":"Поддерживающий огонь","Bow of Blessing":"Благословение лука","Griffon Arrow":"Стрела грифона",
+  "Chalice of Vigor":"Чаша жизненной силы","Chalice of Magic":"Чаша магии",
+  "Parchment of Vigor":"Пергамент жизненной силы","Parchment of Magic":"Пергамент магии",
+  "Enraged Kromede Longbow":"Длинный лук разгневанной Кромед","Spiritforged Bow":"Выкованный духом лук",
+  "Splendent Dragon Lord Bow":"Сияющий лук Владыки драконов","Nuakum":"Нуакам","Vakron":"Вакрон",
+  "Ferocious Horn Den":"Логово свирепого рога","Fire Temple":"Храм Огня",
+  "Weapon":"Оружие","Bow":"Лук","Helmet":"Шлем","Helm":"Шлем","Gloves":"Перчатки",
+  "Boots":"Сапоги","Cloak":"Плащ","Pauldrons":"Наплечники","Ring":"Кольцо",
+  "Earrings":"Серьги","Necklace":"Ожерелье","Legendary":"Легендарный","Epic":"Эпический",
+  "Rare":"Редкий","Uncommon":"Необычный","Common":"Обычный"
+};
+const localizeGameText = value => {
+  if (value == null) return value;
+  const raw = String(value);
+  if (GAME_RU[raw]) return GAME_RU[raw];
+  return raw.replace(/Deadshot|Snipe|Tempest Shot|Drill Dart|Gale Arrow|Marking Shot|Snare Shot|Burst Arrow|Tempest Arrow|Vaizel’s Authority|Vaizel's Authority|Supporting Fire|Bow of Blessing|Griffon Arrow|Chalice of Vigor|Chalice of Magic|Parchment of Vigor|Parchment of Magic|Enraged Kromede Longbow|Spiritforged Bow|Splendent Dragon Lord Bow|Ferocious Horn Den|Fire Temple|Nuakum|Vakron/g, name => GAME_RU[name] || name);
+};
 function imageSource(value) {
   if (!value || typeof value !== "string") return "";
   const v = value.trim();
@@ -125,7 +147,7 @@ function makeFarmPlan(items, stats, boards, skills, gs, arcanaItems = []) {
     how: [entry2100, "Следующая цель для брони — комплект Нуакам из «Логова свирепого рога» (завоевание, тир 3). В базе AION2.GG указаны слоты, боссы и шанс получения за одно открытие куба энергии Одил.", "AION2.GG: Плащ и перчатки Нуакам — 1,27%; сапоги, шлем и наплечники — 1,02% за одно открытие куба энергии Одил. Шанс зависит от слота и босса.", "Это промежуточный маршрут через подземелье. В выборке сильнейших игроков Global чаще встречается комплект Владыки драконов — отдельная цель позднего этапа игры."],
     priority: "Высокий", target: "Ferocious Horn Den", sourceUrl: "https://aion2.gg/database/drop-rates?dungeon=600092&type=Equip", sourceLabel: "AION2.GG · Ferocious Horn Den Conquest" 
   });
-  const weaponName = weapon?.name || weapon?.itemName || "";
+  const weaponName = localizeGameText(weapon?.name || weapon?.itemName || "");
   if (/spiritforged/i.test(weaponName)) plan.push({
     title: "Длинный лук разгневанной Кромед",
     detail: "Сейчас: " + weaponName + (weapon.enchantLevel != null ? " +" + weapon.enchantLevel : "") + " · данжевая альтернатива",
@@ -213,7 +235,7 @@ export default function App() {
       <Metric label="ЭКИПИРОВКА" value={equipment.length ? equipment.length+" предметов" : "—"} hint={equipment.length ? "Получено из профиля NCSOFT" : "Нет данных из профиля"}/>
     </section>
     <nav className="tabs" aria-label="Разделы анализатора">{tabs.map(t=><button key={t} className={tab===t?"active":""} aria-pressed={tab===t} onClick={()=>setTab(t)}>{t}</button>)}</nav>
-    {tab==="Обзор" && <><section className="content-grid"><article className="panel"><div className="panel-head"><div><p className="eyebrow">ДАННЫЕ ПЕРСОНАЖА</p><h2>Профиль персонажа</h2></div><span className="tag">{profile?"Данные получены":"Нет данных"}</span></div><Status label="Персонаж" value={title}/><Status label="Класс" value={get(character,"className","class") || CHARACTER.className}/><Status label="Сервер" value={get(character,"serverName","server") || CHARACTER.server}/><Status label="Уровень" value={get(character,"level","characterLevel") ?? "—"}/><Status label="Навыки" value={skills.length}/><p className="disclaimer">Только публичные данные NCSOFT. Значения GS и CP показываются отдельно и не подменяются расчётными числами.</p></article><aside className="panel"><p className="eyebrow">СОСТОЯНИЕ ДАННЫХ</p><h2>Состав профиля</h2><Status label="Экипировка" value={equipment.length}/><Status label="Статы" value={stats.length}/><Status label="Навыки" value={skills.length}/><Status label="Арканы" value={arcana.length}/><Status label="Дэва" value={boards.length}/><Status label="Образы/скины" value={skins.length}/><div className="callout">{updated?"Обновлено: "+updated:"Автозагрузка профиля v4mp."}</div></aside></section><section className="panel build-image-panel"><div className="panel-head"><div><p className="eyebrow">ТЕКУЩАЯ СБОРКА</p><h2>Текущий билд персонажа</h2></div><span className="tag">Скриншот</span></div><a className="build-image-link" href="https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg" target="_blank" rel="noreferrer"><img className="build-image" src="https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg" alt="Скриншот билда персонажа v4mp" loading="lazy"/></a><p className="muted">Скриншот билда из твоего GitHub. Нажми на изображение, чтобы открыть его в полном размере.</p></section></>}
+    {tab==="Обзор" && <><section className="content-grid"><article className="panel"><div className="panel-head"><div><p className="eyebrow">ДАННЫЕ ПЕРСОНАЖА</p><h2>Профиль персонажа</h2></div><span className="tag">{profile?"Данные получены":"Нет данных"}</span></div><Status label="Персонаж" value={title}/><Status label="Класс" value={(get(character,"className","class")==="Ranger" ? "Стрелок" : get(character,"className","class")) || CHARACTER.className}/><Status label="Сервер" value={(get(character,"serverName","server")==="Kromede" ? "Кромеде" : get(character,"serverName","server")) || CHARACTER.server}/><Status label="Уровень" value={get(character,"level","characterLevel") ?? "—"}/><Status label="Навыки" value={skills.length}/><p className="disclaimer">Только публичные данные NCSOFT. Значения GS и CP показываются отдельно и не подменяются расчётными числами.</p></article><aside className="panel"><p className="eyebrow">СОСТОЯНИЕ ДАННЫХ</p><h2>Состав профиля</h2><Status label="Экипировка" value={equipment.length}/><Status label="Статы" value={stats.length}/><Status label="Навыки" value={skills.length}/><Status label="Арканы" value={arcana.length}/><Status label="Дэва" value={boards.length}/><Status label="Образы/скины" value={skins.length}/><div className="callout">{updated?"Обновлено: "+updated:"Автозагрузка профиля v4mp."}</div></aside></section><section className="panel build-image-panel"><div className="panel-head"><div><p className="eyebrow">ТЕКУЩАЯ СБОРКА</p><h2>Текущий билд персонажа</h2></div><span className="tag">Скриншот</span></div><a className="build-image-link" href="https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg" target="_blank" rel="noreferrer"><img className="build-image" src="https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg" alt="Скриншот билда персонажа v4mp" loading="lazy"/></a><p className="muted">Скриншот билда из твоего GitHub. Нажми на изображение, чтобы открыть его в полном размере.</p></section></>}
     {tab==="Экипировка" && <section className="panel"><h2>Экипировка</h2>{equipment.length?<div className="visual-list">{equipment.map((x,i)=><VisualRow key={i} item={x} kind="item"/> )}</div>:<Empty error={error}/ >}{skins.length>0&&<><h2 className="section-subtitle">Облики</h2><div className="visual-list">{skins.map((x,i)=><VisualRow key={i} item={x} kind="item"/>)}</div></>}</section>}
     {tab==="Статы" && <section className="panel stats-panel"><div className="panel-head"><div><p className="eyebrow">ХАРАКТЕРИСТИКИ ПЕРСОНАЖА</p><h2>Характеристики</h2></div><span className="tag">{stats.length} параметров</span></div>{stats.length?<><div className="stats-overview"><div><b>Боевые характеристики Стрелка</b><p>Здесь собраны важные для Стрелка параметры: урон по боссам, скорость атак, критические попадания и выживаемость.</p></div><span>{stats.length} параметров из профиля</span></div><div className="stats-sections">{buildRelevantStatSections(stats).map(group=><section className="stats-group" key={group.id}><div className="stats-group-head"><div><h3>{group.title}</h3><p>{group.description}</p></div><span>{group.stats.filter(x=>x.available).length}/{group.stats.length}</span></div><div className="stats-grid">{group.stats.map(item=><StatCard key={item.id} item={{name:item.label,value:item.available?item.value:"Нет данных",group:item.hint,icon:item.icon,available:item.available}}/>)}</div></section>)}</div><p className="stats-note">Значения берутся из публичного профиля без расчётных подстановок. «Нет в API» означает, что NCSOFT не прислал этот параметр в текущем ответе. Для PvE-лучника особенно важны точность, скорость боя, критический урон и бонусы урона; защитные показатели помогают оценивать запас выживаемости.</p></>:<Empty error={error}/>}</section>}
     {tab==="Навыки" && <section className="panel"><h2>Навыки</h2>{skills.length?<div className="visual-list">{skills.map((x,i)=><VisualRow key={i} item={x} kind="skill"/>)}</div>:<Empty error={error}/>}</section>}
@@ -236,9 +258,9 @@ function StatCard({item}) {
   return <article className={"stat-card "+(item.available===false?"stat-card-missing":"")}><div className="stat-card-icon">{icon?<img src={icon} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display="none";}}/>:<span>{statIcon(item.name)}</span>}</div><div className="stat-card-copy"><small>{item.group}</small><b>{item.name}</b><strong>{typeof item.value==="number" ? fmt(item.value) : String(item.value ?? "—")}</strong></div></article>;
 }
 function VisualRow({item,kind}) {
-  const name=get(item,"name","itemName","skillName")||"Без названия";
+  const name=localizeGameText(get(item,"name","itemName","skillName"))||"Без названия";
   const icon=imageSource(get(item,"icon","iconUrl","image","imageUrl","thumbnail"));
-  const meta=kind==="skill"?["Ур. "+(get(item,"skillLevel","level")??"—"),get(item,"category"),item.equip?"Надет":null].filter(Boolean).join(" · "):[get(item,"slotPosName","slot"),get(item,"grade"),item.enchantLevel!=null?"+"+item.enchantLevel:null].filter(Boolean).join(" · ");
+  const meta=kind==="skill"?["Ур. "+(get(item,"skillLevel","level")??"—"),get(item,"category"),item.equip?"Надет":null].filter(Boolean).join(" · "):[localizeGameText(get(item,"slotPosName","slot")),localizeGameText(get(item,"grade")),item.enchantLevel!=null?"+"+item.enchantLevel:null].filter(Boolean).join(" · ");
   return <div className="visual-row"><div className={"visual-icon "+(kind==="skill"?"skill-icon":"")}>{icon?<img src={icon} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display="none";}}/>:<span>{kind==="skill"?"✦":"◇"}</span>}</div><div className="visual-copy"><b>{name}</b><small>{meta||"—"}</small></div>{kind==="skill"&&<span className="skill-level">{get(item,"skillLevel","level")??""}</span>}</div>;
 }
 function Empty({error}){return <div className="empty-state"><span>＋</span><b>{error?"Не удалось получить данные из источника":"В этом разделе пока нет данных"}</b><small>{error||"Попробуй обновить профиль позже."}</small></div>}
