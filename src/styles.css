@@ -729,3 +729,21 @@ footer { color:#72909d; }
 .farm-rule b { color:#b8efff; font-size:11px; }
 .farm-rule p { margin:6px 0 0; color:var(--md-sys-color-on-surface-variant); font-size:10px; line-height:1.65; }
 @media(max-width:680px) { .farm-rule-grid { grid-template-columns:1fr; } }
+
+
+/* Slot-by-slot drop targets with explicit Global loot-table provenance */
+.farm-targets { margin-top:28px; padding-top:22px; border-top:1px solid rgba(121,229,255,.18); }
+.farm-target-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px; }
+.farm-target-card { min-width:0; padding:15px; border:1px solid rgba(121,229,255,.16); border-radius:16px; background:linear-gradient(145deg,rgba(18,38,51,.94),rgba(12,25,35,.98)); }
+.farm-target-top { display:flex; align-items:center; gap:9px; color:#8feaff; }
+.farm-target-top small { font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+.farm-target-card h4 { margin:11px 0 5px; color:#edfaff; font-size:13px; line-height:1.45; }
+.farm-target-alt { margin:0 0 12px !important; color:#d9c59f !important; }
+.farm-target-card p { color:var(--md-sys-color-on-surface-variant); font-size:10px; line-height:1.65; }
+.farm-target-meta { display:grid; gap:7px; margin:12px 0; padding:10px; border:1px solid rgba(121,229,255,.1); border-radius:11px; background:rgba(5,15,22,.35); }
+.farm-target-meta span { display:grid; grid-template-columns:90px 1fr; gap:8px; color:#c2d6dd; font-size:10px; line-height:1.45; }
+.farm-target-meta b { color:#80dff0; }
+.farm-target-card a { color:var(--md-sys-color-primary); font-size:10px; font-weight:750; text-decoration:none; }
+.farm-target-card a:hover { text-decoration:underline; }
+.farm-target-alert { margin:0 0 14px; padding:12px 14px; border:1px solid rgba(240,185,109,.2); border-radius:12px; color:#e9d7b8; background:rgba(89,68,35,.16); font-size:11px; line-height:1.6; }
+@media(max-width:680px) { .farm-target-grid { grid-template-columns:1fr; } .farm-target-meta span { grid-template-columns:82px 1fr; } }
