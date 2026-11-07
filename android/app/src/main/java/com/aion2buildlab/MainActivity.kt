@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -140,7 +139,7 @@ private fun BuildLabApp() {
                                 }
                                 override fun onPageFinished(view: WebView?, url: String?) {
                                     loading = false
-                                    applyWebTheme(view, selectedTheme, colors)
+                                    applyWebTheme(view, selectedTheme, colors, dark)
                                 }
                                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                                     val uri = request.url
@@ -157,7 +156,7 @@ private fun BuildLabApp() {
                     },
                     update = { view ->
                         view.setBackgroundColor(colors.background.toArgb())
-                        applyWebTheme(view, selectedTheme, colors)
+                        applyWebTheme(view, selectedTheme, colors, dark)
                     }
                 )
                 if (loading) LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
@@ -179,7 +178,7 @@ private fun BuildLabApp() {
                                     onClick = {
                                         selectedTheme = theme
                                         prefs.edit().putString("theme", theme.key).apply()
-                                        webView?.let { applyWebTheme(it, theme, colors) }
+                                        webView?.let { applyWebTheme(it, theme, colors, dark) }
                                     }
                                 )
                                 Column(Modifier.weight(1f).padding(start = 8.dp)) {
@@ -235,9 +234,9 @@ private fun BuildLabApp() {
     }
 }
 
-private fun applyWebTheme(view: WebView?, theme: AppTheme, colors: ColorScheme) {
+private fun applyWebTheme(view: WebView?, theme: AppTheme, colors: ColorScheme, dark: Boolean) {
     if (view == null) return
-    val mode = if (colors.background.luminance() < 0.5f) "dark" else "light"
+    val mode = if (dark) "dark" else "light"
     val variables = listOf(
         "--md-sys-color-primary:" + colorHex(colors.primary),
         "--md-sys-color-on-primary:" + colorHex(colors.onPrimary),
