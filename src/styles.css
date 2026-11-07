@@ -443,13 +443,22 @@ body::before {
 }
 .shell { position:relative; z-index:1; width:min(1240px,100%); }
 .topbar {
-  position:sticky;
-  top:0;
-  z-index:30;
   min-height:76px;
-  background:rgba(7,12,18,.88);
-  border-bottom-color:rgba(121,229,255,.16);
-  backdrop-filter:blur(4px);
+  margin-top:8px;
+  padding:10px 14px;
+  border:1px solid rgba(121,229,255,.22);
+  border-radius:18px;
+  background:rgba(7,12,18,.92);
+}
+@media (prefers-reduced-motion:no-preference) {
+  @keyframes masthead-arrive {
+    from { opacity:0; transform:translateY(-4px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+  .topbar {
+    animation:masthead-arrive .22s ease-out both;
+    transition:transform .18s ease, opacity .18s ease;
+  }
 }
 .brand { letter-spacing:.08em; }
 .brand-mark {
@@ -459,7 +468,7 @@ body::before {
 }
 .brand b { color:var(--md-sys-color-primary); }
 .live-dot { font-size:9px; color:#c2d8df; }
-.live-dot::before { background:#f0b96d; box-shadow:0 0 12px rgba(240,185,109,.5); }
+.live-dot::before { display:none; }
 .profile-link {
   border-color:rgba(121,229,255,.25);
   background:rgba(13,31,42,.62);
@@ -522,13 +531,13 @@ body::before {
 .metric strong { font-size:clamp(25px,3vw,34px); color:#f1fbfd; }
 .metric small { color:#89a8b5; }
 .tabs {
-  position:sticky;
-  top:76px;
-  z-index:20;
+  position:static;
+  top:auto;
+  z-index:auto;
   padding:12px 0;
   border-bottom-color:rgba(121,229,255,.15);
-  background:rgba(7,12,18,.9);
-  backdrop-filter:blur(4px);
+  background:transparent;
+  backdrop-filter:none;
 }
 .tabs button { border:1px solid transparent; }
 .tabs button.active {
@@ -590,10 +599,8 @@ footer { color:#72909d; }
   .primary:hover { box-shadow:0 12px 34px rgba(49,190,218,.28); }
 }
 @media (max-width:760px) {
-  .topbar { top:0; }
   .hero { min-height:0; padding:38px 0 26px; }
   .hero h1 { font-size:clamp(48px,13vw,68px); }
-  .tabs { top:62px; }
   .top-actions { gap:6px; }
   .profile-link { padding:8px 10px; }
   .metrics { margin-top:14px; }
@@ -961,7 +968,7 @@ footer { color:#72909d; }
     min-height:66px;
     align-items:center;
     gap:8px;
-    padding:10px 0;
+    padding:10px 12px;
   }
   .brand { font-size:13px; gap:10px; }
   .brand b { font-size:9px; letter-spacing:.1em; }
