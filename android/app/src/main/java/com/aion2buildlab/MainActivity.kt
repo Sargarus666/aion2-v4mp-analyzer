@@ -139,7 +139,7 @@ private fun BuildLabApp() {
                                 }
                                 override fun onPageFinished(view: WebView?, url: String?) {
                                     loading = false
-                                    applyWebTheme(view, selectedTheme)
+                                    applyWebTheme(view, selectedTheme, colors)
                                 }
                                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                                     val uri = request.url
@@ -156,7 +156,7 @@ private fun BuildLabApp() {
                     },
                     update = { view ->
                         view.setBackgroundColor(colors.background.toArgb())
-                        applyWebTheme(view, selectedTheme)
+                        applyWebTheme(view, selectedTheme, colors)
                     }
                 )
                 if (loading) LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
@@ -178,7 +178,7 @@ private fun BuildLabApp() {
                                     onClick = {
                                         selectedTheme = theme
                                         prefs.edit().putString("theme", theme.key).apply()
-                                        webView?.let { applyWebTheme(it, theme) }
+                                        webView?.let { applyWebTheme(it, theme, colors) }
                                     }
                                 )
                                 Column(Modifier.weight(1f).padding(start = 8.dp)) {
@@ -234,18 +234,35 @@ private fun BuildLabApp() {
     }
 }
 
-private fun applyWebTheme(view: WebView?, theme: AppTheme) {
+private fun applyWebTheme(view: WebView?, theme: AppTheme, colors: ColorScheme) {
     if (view == null) return
-    val rule = when (theme) {
-        AppTheme.OLED_BLACK -> "color-scheme:dark;background:#000!important;color:#fff!important"
-        AppTheme.OLED -> "color-scheme:dark"
-        AppTheme.OLED_WHITE -> "color-scheme:light;background:#fff!important;color:#111!important"
-        AppTheme.MONO -> "color-scheme:light dark;filter:grayscale(1)"
-        AppTheme.MONET, AppTheme.STANDARD -> "color-scheme:light dark"
-    }
-    val script = "(function(){var id='aion-native-theme';var old=document.getElementById(id);if(old)old.remove();var s=document.createElement('style');s.id=id;s.textContent='html{" + rule + "}';document.head.appendChild(s);document.documentElement.dataset.aionNativeTheme='" + theme.key + "';})();"
+    val mode = if (colors.background.luminance() < 0.5f) "dark" else "light"
+    val variables = listOf(
+        "--md-sys-color-primary:" + colorHex(colors.primary),
+        "--md-sys-color-on-primary:" + colorHex(colors.onPrimary),
+        "--md-sys-color-primary-container:" + colorHex(colors.primaryContainer),
+        "--md-sys-color-on-primary-container:" + colorHex(colors.onPrimaryContainer),
+        "--md-sys-color-secondary:" + colorHex(colors.secondary),
+        "--md-sys-color-on-secondary:" + colorHex(colors.onSecondary),
+        "--md-sys-color-secondary-container:" + colorHex(colors.secondaryContainer),
+        "--md-sys-color-tertiary:" + colorHex(colors.tertiary),
+        "--md-sys-color-surface:" + colorHex(colors.surface),
+        "--md-sys-color-surface-container-low:" + colorHex(colors.surfaceContainerLow),
+        "--md-sys-color-surface-container:" + colorHex(colors.surfaceContainer),
+        "--md-sys-color-surface-container-high:" + colorHex(colors.surfaceContainerHigh),
+        "--md-sys-color-surface-container-highest:" + colorHex(colors.surfaceContainerHighest),
+        "--md-sys-color-outline:" + colorHex(colors.outline),
+        "--md-sys-color-outline-variant:" + colorHex(colors.outlineVariant),
+        "--md-sys-color-on-surface:" + colorHex(colors.onSurface),
+        "--md-sys-color-on-surface-variant:" + colorHex(colors.onSurfaceVariant)
+    ).joinToString(";")
+    val css = ":root{color-scheme:" + mode + ";" + variables + ";color:var(--md-sys-color-on-surface);background:var(--md-sys-color-surface)}" +
+        "html,body{background:var(--md-sys-color-surface)!important;color:var(--md-sys-color-on-surface)!important}"
+    val script = "(function(){var id='aion-native-theme';var old=document.getElementById(id);if(old)old.remove();var s=document.createElement('style');s.id=id;s.textContent='" + css + "';document.head.appendChild(s);document.documentElement.dataset.aionNativeTheme='" + theme.key + "';})();"
     view.evaluateJavascript(script, null)
 }
+
+private fun colorHex(color: Color): String = "#%06X".format(color.toArgb() and 0xFFFFFF)
 
 private fun fetchLatestRelease(): ReleaseInfo? = try {
     val connection = URL(RELEASE_API).openConnection() as HttpURLConnection
