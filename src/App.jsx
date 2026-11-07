@@ -80,11 +80,11 @@ const FARM_TARGETS = [
     slot:"Броня", dungeon:"Логово Свирепого Рога · Conquest · iLvl 2 100",
     primaryTarget:{baseLevel:45,maxEnhance:10,slots:["Torso","Pants","Helmet","Shoulders","Gloves","Boots","Cape"]},
     altTarget:{baseLevel:86,maxEnhance:15,slots:["Gloves"]},
-    rewardPool:"Куб награды после прохождения · финальный босс — Ferocious Horn Nuakum",
+    rewardPool:"Odyle Energy Cube · Conquest · проценты ниже — пул финального Нуакам",
     item:"Black Claw · нагрудник, поножи, шлем, наплечники, перчатки, сапоги и плащ · эпический",
-    chance:"Нагрудник 9,18%; поножи 12,23%; шлем / наплечники / сапоги 14,68%; перчатки / плащ 18,35% за бросок",
+    chance:"От Нуакам за одно использование куба: нагрудник ≈8,97%; поножи ≈11,86%; шлем / наплечники / сапоги ≈14,14%; перчатки / плащ ≈17,5%",
     alt:"Nuakum Gloves · уникальные, 1,27% за бросок; выбор гарантированной награды раз в 28 кубов",
-    note:"Это пул наградного куба после прохождения, не прямой drop с Nuakum. Части имеют разные шансы. Сначала закрывай самый слабый слот по реальным статам и Soul Binding; не собирай комплект ради самого факта комплекта.",
+    note:"Сверено с таблицей AION2.GG EU/NA 2.0.10.0 от 5 ноября. Знак ≈ означает оценку по весам reward-группы. Указаны шансы из пула Нуакам на одно использование Odyle Energy Cube, не прямой drop с босса; у других побеждённых боссов отдельные броски и отдельные шансы. Не складывай их вручную. Сначала закрывай самый слабый слот по реальным статам и Soul Binding; не собирай комплект ради самого факта комплекта.",
     links:[
       {label:"Breastplate",url:"https://aion2.gg/database/items/black-claw-breastplate-210140048"},
       {label:"Greaves",url:"https://aion2.gg/database/items/black-claw-greaves-210240048"},
@@ -93,7 +93,8 @@ const FARM_TARGETS = [
       {label:"Gloves",url:"https://aion2.gg/database/items/black-claw-gloves-210540048"},
       {label:"Boots",url:"https://aion2.gg/database/items/black-claw-boots-210640048"},
       {label:"Cloak",url:"https://aion2.gg/database/items/black-claw-cloak-210740048"},
-      {label:"Nuakum Gloves",url:"https://aion2.gg/database/items/nuakum-gloves-210530053"}
+      {label:"Nuakum Gloves",url:"https://aion2.gg/database/items/nuakum-gloves-210530053"},
+      {label:"Таблица куба Conquest · Логово · EU/NA 2.0.10.0",url:"https://aion2.gg/database/drop-rates?dungeon=600092&type=Equip"}
     ]
   },
   {
@@ -128,16 +129,18 @@ const FARM_TARGETS = [
     slot:"Серьги и кольца", dungeon:"Храм огня / Логово Свирепого Рога · Conquest · iLvl 2 100",
     primaryTarget:{baseLevel:45,maxEnhance:10,slots:["Earring","Ring"]},
     altTarget:{baseLevel:86,maxEnhance:15,slots:["Earring","Ring"]},
-    rewardPool:"Кубы наград Кромед / Nuakum",
-    item:"Black Claw Earrings 18,35% · Ring 24,45%; Enraged Kromede Earrings 1,29% · Ring 1,72% за бросок",
-    chance:"Все значения — на один бросок reward-cube; для Enraged Kromede аксессуаров есть выбор гарантированной награды раз в 28 использований куба Fire Temple.",
+    rewardPool:"Odyle Energy Cube · Храм огня / Логово · отдельные пулы боссов",
+    item:"Black Claw Earrings ≈17,5% · Ring ≈22,96%; Enraged Kromede Earrings 1,29% · Ring 1,72% за использование куба",
+    chance:"Black Claw от Нуакам в Логове: ≈17,5% серьги / ≈22,96% кольцо; Enraged Kromede от Кромед в Храме огня: 1,29% серьги / 1,72% кольцо за использование куба. Enraged Kromede входит в выбор гарантированной награды раз в 28 использований Fire Temple.",
     alt:"Black Claw — эпический пул Логова; Enraged Kromede — уникальные аксессуары Храма огня",
-    note:"Не складывай вероятности из разных боссов и подземелий. На кольцах особенно цени бонусы к уровням Deadshot, Gale Arrow, Drill Dart и Snipe, но проверяй итоговый уровень навыка до замены.",
+    note:"Знак ≈ у Black Claw — оценка по весам reward-группы из EU/NA 2.0.10.0 (5 ноября); у каждого босса свой отдельный пул. Не складывай проценты разных боссов и подземелий как один бросок. На кольцах особенно цени бонусы к уровням Deadshot, Gale Arrow, Drill Dart и Snipe, но проверяй итоговый уровень навыка до замены.",
     links:[
       {label:"Black Claw Earrings",url:"https://aion2.gg/database/items/black-claw-earrings-310240052"},
       {label:"Black Claw Ring",url:"https://aion2.gg/database/items/black-claw-ring-310340052"},
       {label:"Enraged Kromede Earrings",url:"https://aion2.gg/database/items/enraged-kromede-earrings-310230053"},
-      {label:"Enraged Kromede Ring",url:"https://aion2.gg/database/items/enraged-kromede-ring-310330053"}
+      {label:"Enraged Kromede Ring",url:"https://aion2.gg/database/items/enraged-kromede-ring-310330053"},
+      {label:"Таблица куба Conquest · Храм огня",url:"https://aion2.gg/database/drop-rates?dungeon=600022&type=Equip"},
+      {label:"Таблица куба Conquest · Логово · EU/NA 2.0.10.0",url:"https://aion2.gg/database/drop-rates?dungeon=600092&type=Equip"}
     ]
   },
   {
@@ -306,7 +309,7 @@ function makeFarmPlan(items, stats, boards, skills, itemLevel, arcanaItems = [])
     title: "Аксессуары разгневанной Кромед",
     detail: aulamusJewelry.length + " аксессуар(а) Ауламус в текущем профиле",
     how: [entry2100, "Храм Огня (завоевание): по данным AION2.GG, за одно открытие куба энергии Одил шанс составляет: кольцо — 1,72%, серьги — 1,29%, ожерелье — 1,03%. Это не гарантированная добыча за поход.", "Сначала сравни предметы в слотах с самыми слабыми бонусами. Не жертвуй атакой, критическим ударом и точностью только ради уровня предмета.", "В выборке сильнейших игроков мирового сервера чаще встречаются аксессуары Владыки драконов. Аксессуары разгневанной Кромед — промежуточный этап, а не подтверждённый лучший комплект."],
-    priority: "Средний", target: "Храм Огня", sourceUrl: "https://aion2.gg/database/drop-rates?type=Equip", sourceLabel: "AION2.GG · дроп-таблица 28.10"
+    priority: "Средний", target: "Храм Огня", sourceUrl: "https://aion2.gg/database/drop-rates?dungeon=600022&type=Equip", sourceLabel: "AION2.GG · Fire Temple · EU/NA 2.0.10.0 · 05.11"
   });
   const clashRunes = equipped.filter(x => /clash rune|руна столкновения/i.test(x.name || x.itemName || "") && Number(x.enchantLevel) < 5);
   if (clashRunes.length) plan.push({
