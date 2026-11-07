@@ -99,7 +99,7 @@ export function normalizeProfileResponse(info = {}, gear = {}) {
   // must never be reclassified as Arcana.
   const equippedArcana = asArray(equipment?.equipmentList).filter(item => {
     const slot = item?.slotPosName ?? item?.slot_pos_name ?? item?.slotName ?? item?.slot;
-    return typeof slot === "string" && /^(?:arcana|аркана)\\s*\\d+$/i.test(slot.trim());
+    return typeof slot === "string" && /^(?:arcana|аркана)\s*\\d+$/i.test(slot.trim());
   });
   const arcana = [];
   const seenArcanaSlots = new Set();
