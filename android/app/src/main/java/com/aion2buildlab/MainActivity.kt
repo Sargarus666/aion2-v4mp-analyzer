@@ -288,7 +288,7 @@ private fun fetchLatestRelease(): ReleaseInfo? = try {
     ReleaseInfo(version, json.optString("html_url"), apk)
 } catch (_: Exception) { null }
 
-private fun compareVersions(a: String, b: String): Int {
+internal fun compareVersions(a: String, b: String): Int {
     val left = a.split(".").map { it.toIntOrNull() ?: 0 }
     val right = b.split(".").map { it.toIntOrNull() ?: 0 }
     for (i in 0 until maxOf(left.size, right.size)) {
