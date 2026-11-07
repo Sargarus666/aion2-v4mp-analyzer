@@ -283,3 +283,38 @@ test("normalizes detailed Daevanion nodes and effects without fabricating missin
   assert.deepEqual(board.openSkillEffectList, []);
   assert.deepEqual(normalizeDaevanionBoard({}).nodeList, []);
 });
+
+
+test("normalizes equipped Arcana rows from equipmentList and deduplicates explicit copies", () => {
+  const equipped = [
+    { id: 101, slotPosName: "Arcana1", name: "Chalice of Vigor" },
+    { id: 102, slotPosName: "Arcana2", name: "Parchment of Vigor" },
+    { id: 103, slotPosName: "Arcana3", name: "Compass of Vigor" },
+    { id: 104, slotPosName: "Arcana4", name: "Bell of Vigor" },
+    { id: 105, slotPosName: "Arcana5", name: "Mirror of Magic" },
+    { id: 201, slotPosName: "MainHand", name: "Bow" },
+    { id: 202, slotPosName: "Ring1", name: "Ring" }
+  ];
+  const data = normalizeProfileResponse(
+    { profile: { name: "v4mp" } },
+    {
+      equipment: { equipmentList: equipped },
+      data: { arcanaList: [{ id: 101, slotPosName: "Arcana1", name: "Chalice of Vigor" }] }
+    }
+  );
+
+  assert.equal(data.arcana.length, 5);
+  assert.deepEqual(data.arcana.map(item => item.slotPosName), [
+    "Arcana1", "Arcana2", "Arcana3", "Arcana4", "Arcana5"
+  ]);
+  assert.equal(data.arcana.some(item => item.slotPosName === "MainHand"), false);
+  assert.equal(data.arcana.some(item => item.slotPosName === "Ring1"), false);
+});
+
+test("does not infer Arcana identity when equipment slot information is missing", () => {
+  const data = normalizeProfileResponse(
+    { profile: { name: "v4mp" } },
+    { equipment: { equipmentList: [{ id: 1, name: "Unknown accessory" }] } }
+  );
+  assert.deepEqual(data.arcana, []);
+});
