@@ -8,15 +8,15 @@ const equipment = [
   { name: "Vakron Breastplate", slotPosName: "Torso", enchantLevel: 10 },
   { name: "Spectral Greaves", slotPosName: "Pants", enchantLevel: 10 },
   { name: "Vakron Helm", slotPosName: "Helmet", enchantLevel: 10 },
-  { name: "Vakron Pauldrons", slotPosName: "Shoulders", enchantLevel: 10 },
+  { name: "Vakron Pauldrons", slotPosName: "Shoulder", enchantLevel: 10 },
   { name: "Vakron Gloves", slotPosName: "Gloves", enchantLevel: 10 },
   { name: "Vakron Boots", slotPosName: "Boots", enchantLevel: 10 },
   { name: "Vakron Cloak", slotPosName: "Cape", enchantLevel: 10 },
   { name: "Aulamus Necklace", slotPosName: "Necklace", enchantLevel: 10 },
-  { name: "Aulamus Earrings", slotPosName: "Earring", enchantLevel: 10 },
-  { name: "Aulamus Earrings", slotPosName: "Earring", enchantLevel: 10 },
-  { name: "Aulamus Ring", slotPosName: "Ring", enchantLevel: 10 },
-  { name: "Aulamus Ring", slotPosName: "Ring", enchantLevel: 10 }
+  { name: "Aulamus Earrings", slotPosName: "Earring1", enchantLevel: 10 },
+  { name: "Aulamus Earrings", slotPosName: "Earring2", enchantLevel: 10 },
+  { name: "Aulamus Ring", slotPosName: "Ring1", enchantLevel: 10 },
+  { name: "Aulamus Ring", slotPosName: "Ring2", enchantLevel: 10 }
 ];
 
 test("filters a lower bow candidate and keeps the higher unique bow as a real target", () => {
@@ -60,4 +60,27 @@ test("does not rank an item with exceed until its item-level contribution is mod
   assert.equal(rows[0].status, "unknown");
   assert.equal(rows[0].currentLevel, null);
   assert.match(rows[0].statusText, /превышение \+1 не включено в модель iLvl/);
+});
+
+test("matches the live NCSOFT slot names for shoulders and paired accessories", () => {
+  const rows = assessFarmTargetCandidate({
+    baseLevel: 86,
+    maxEnhance: 15,
+    slots: ["Shoulders", "Earring", "Ring"]
+  }, [
+    { name: "Vakron Pauldrons", slotPosName: "Shoulder", enchantLevel: 10 },
+    { name: "Aulamus Earrings", slotPosName: "Earring1", enchantLevel: 10 },
+    { name: "Aulamus Earrings", slotPosName: "Earring2", enchantLevel: 10 },
+    { name: "Aulamus Ring", slotPosName: "Ring1", enchantLevel: 10 },
+    { name: "Aulamus Ring", slotPosName: "Ring2", enchantLevel: 10 }
+  ]);
+
+  assert.equal(rows.length, 5);
+  assert.deepEqual(rows.map(row => row.slotLabel), [
+    "Наплечники", "Серьги 1", "Серьги 2", "Кольцо 1", "Кольцо 2"
+  ]);
+  assert.deepEqual(rows.map(row => row.status), [
+    "candidate", "candidate", "candidate", "candidate", "candidate"
+  ]);
+  assert.deepEqual(rows.map(row => row.currentLevel), [80, 80, 80, 80, 80]);
 });

@@ -15,6 +15,12 @@ const CURRENT_ITEM_BASE_LEVELS = {
   "Aulamus Ring": 70
 };
 
+const SLOT_ALIASES = {
+  Shoulders: ["Shoulder"],
+  Earring: ["Earring1", "Earring2"],
+  Ring: ["Ring1", "Ring2"]
+};
+
 const SLOT_LABELS = {
   MainHand: "Лук",
   SubHand: "Guard",
@@ -35,6 +41,14 @@ function readField(value, key) {
   const normalize = text => String(text).toLowerCase().replace(/[\s_-]/g, "");
   const actualKey = Object.keys(value).find(candidate => normalize(candidate) === normalize(key));
   return actualKey ? value[actualKey] : undefined;
+}
+
+function matchesSlot(item, slot) {
+  const current = readField(item, "slotPosName");
+  if (current == null) return false;
+  const normalize = value => String(value).toLowerCase().replaceAll(" ", "").replaceAll("_", "").replaceAll("-", "");
+  return [slot, ...(SLOT_ALIASES[slot] || [])]
+    .some(candidate => normalize(candidate) === normalize(current));
 }
 
 function currentItemLevel(item) {
@@ -60,7 +74,7 @@ export function assessFarmTargetCandidate(candidate, equipment = []) {
   const rows = [];
 
   for (const slot of candidate.slots) {
-    const matches = equipment.filter(item => readField(item, "slotPosName") === slot);
+    const matches = equipment.filter(item => matchesSlot(item, slot));
     if (!matches.length) {
       rows.push({
         slot,
