@@ -28,7 +28,20 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.10.2"
+      - name: Decode private signing key when configured
+        if: startsWith(github.ref, 'refs/tags/android-v')
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/aion2-buildlab.jks"
+          fi
       - name: Build APKs
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && format('{0}/aion2-buildlab.jks', runner.temp) || '' }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: gradle --no-daemon -p android :app:assembleDebug :app:assembleRelease
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -44,13 +57,22 @@ jobs:
           path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 30
+      - name: Prepare GitHub Release APK
+        if: startsWith(github.ref, 'refs/tags/android-v')
+        run: |
+          if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/AION2-BuildLab.apk
+          else
+            cp android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/AION2-BuildLab.apk
+          fi
       - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/android-v')
         uses: softprops/action-gh-release@v2
         with:
           name: AION 2 Build Lab ${{ github.ref_name }}
           generate_release_notes: true
-          files: android/app/build/outputs/apk/debug/*.apk
+          files: android/app/build/outputs/apk/AION2-BuildLab.apk
           body: |
-            Android Material You build. The attached debug-signed APK is suitable for initial installation and testing.
-            For seamless in-place native APK updates, future releases must use one stable private signing key configured as repository Actions secrets. The live analyzer content itself updates from the website automatically.
+            AION 2 Build Lab for Android 8+. Material You / Monet themes included.
+            The app checks this release feed for updates. Android asks the user to confirm every APK installation.
+            For seamless in-place APK updates, configure one stable private keystore using the four ANDROID_KEYSTORE_* repository Actions secrets before the first install. The live analyzer website itself updates automatically.
