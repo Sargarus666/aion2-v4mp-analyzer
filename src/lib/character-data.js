@@ -87,11 +87,34 @@ export function normalizeProfileResponse(info = {}, gear = {}) {
   const stat = firstObject(info?.stat, infoData?.stat, character?.stat, profile?.stat);
   const equipment = firstObject(gear?.equipment, gearData?.equipment, gearData?.equipmentList ? gearData : null, gear?.equipmentList ? gear : null);
   const skill = firstObject(gear?.skill, gearData?.skill, gearData?.skillList ? gearData : null, gear?.skillList ? gear : null);
-  const arcana = asArray(gearData?.arcanaList).length ? asArray(gearData.arcanaList)
-    : asArray(gearData?.arcana).length ? asArray(gearData.arcana)
-    : asArray(gear?.arcanaList).length ? asArray(gear.arcanaList)
-    : asArray(gear?.arcana).length ? asArray(gear.arcana)
-    : asArray(equipment?.arcanaList);
+  const arcanaSources = [
+    gearData?.arcanaList,
+    gearData?.arcana,
+    gear?.arcanaList,
+    gear?.arcana,
+    equipment?.arcanaList
+  ].filter(Array.isArray);
+  // The live profile endpoint can expose equipped Arcana only as rows inside
+  // equipmentList. Include only explicitly named Arcana slots; ordinary gear
+  // must never be reclassified as Arcana.
+  const equippedArcana = asArray(equipment?.equipmentList).filter(item => {
+    const slot = item?.slotPosName ?? item?.slot_pos_name ?? item?.slotName ?? item?.slot;
+    return typeof slot === "string" && /^(?:arcana|аркана)\s*\d+$/i.test(slot.trim());
+  });
+  const arcana = [];
+  const seenArcanaSlots = new Set();
+  const seenArcanaIds = new Set();
+  for (const item of [...arcanaSources.flat(), ...equippedArcana]) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const slot = item.slotPosName ?? item.slot_pos_name ?? item.slotName ?? item.slot;
+    const id = item.id ?? item.arcanaId ?? item.arcana_id ?? item.itemId ?? item.item_id;
+    const slotKey = typeof slot === "string" && slot.trim() ? slot.trim().toLowerCase() : null;
+    const idKey = id == null || id === "" ? null : String(id);
+    if ((slotKey && seenArcanaSlots.has(slotKey)) || (idKey && seenArcanaIds.has(idKey))) continue;
+    arcana.push(item);
+    if (slotKey) seenArcanaSlots.add(slotKey);
+    if (idKey) seenArcanaIds.add(idKey);
+  }
   const daevanion = firstObject(info?.daevanion, infoData?.daevanion, character?.daevanion, profile?.daevanion);
   const petwing = firstObject(gear?.petwing, gearData?.petwing);
 
