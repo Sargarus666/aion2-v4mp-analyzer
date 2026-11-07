@@ -53,3 +53,11 @@ test("recognises a same-level guard as a sidegrade, not a guaranteed upgrade", (
   assert.equal(rows[0].status, "same");
   assert.match(rows[0].statusText, /только если Soul Binding/);
 });
+test("does not rank an item with exceed until its item-level contribution is modelled", () => {
+  const rows = assessFarmTargetCandidate({ baseLevel: 86, maxEnhance: 15, slots: ["MainHand"] }, [
+    { name: "Spiritforged Bow", slotPosName: "MainHand", enchantLevel: 11, exceedLevel: 1 }
+  ]);
+  assert.equal(rows[0].status, "unknown");
+  assert.equal(rows[0].currentLevel, null);
+  assert.match(rows[0].statusText, /превышение \+1 не включено в модель iLvl/);
+});

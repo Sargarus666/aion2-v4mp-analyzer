@@ -43,6 +43,11 @@ function currentItemLevel(item) {
   const baseLevel = apiLevel ?? CURRENT_ITEM_BASE_LEVELS[name];
   if (baseLevel == null) return null;
   const enchant = parseOptionalNumber(readField(item, "enchantLevel")) ?? 0;
+  const exceed = parseOptionalNumber(readField(item, "exceedLevel")) ?? 0;
+  // The observed public equipment payload exposes exceedLevel, but the
+  // current item-level comparison model does not include its contribution.
+  // Refuse to rank this item rather than silently undercounting it.
+  if (exceed > 0) return null;
   return { level: baseLevel + enchant, baseLevel, enchant, name: String(name || "Предмет") };
 }
 
@@ -73,6 +78,7 @@ export function assessFarmTargetCandidate(candidate, equipment = []) {
       const current = currentItemLevel(item);
       let status = "unknown";
       let statusText = "Базовый iLvl текущего предмета не подтверждён — сравни вручную.";
+      const exceed = parseOptionalNumber(readField(item, "exceedLevel")) ?? 0;
       if (current) {
         if (current.level > targetMax) {
           status = "skip";
@@ -87,6 +93,8 @@ export function assessFarmTargetCandidate(candidate, equipment = []) {
             ? `Кандидат: базовый iLvl цели ${targetBase} выше текущего ${current.level}.`
             : `Кандидат после +${neededEnhance}: цель может сравняться с текущим iLvl ${current.level} (максимум ${targetMax}).`;
         }
+      } else if (exceed > 0) {
+        statusText = `Не сравнивать автоматически: превышение +${exceed} не включено в модель iLvl; проверь предмет вручную.`;
       }
       rows.push({
         slot,
