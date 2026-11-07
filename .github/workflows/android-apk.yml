@@ -1,0 +1,56 @@
+name: Android APK
+
+on:
+  pull_request:
+    paths:
+      - "android/**"
+      - ".github/workflows/android-apk.yml"
+  push:
+    branches: [main]
+    tags: ["android-v*"]
+    paths:
+      - "android/**"
+      - ".github/workflows/android-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+      - name: Build APKs
+        run: gradle --no-daemon -p android :app:assembleDebug :app:assembleRelease
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AION2-BuildLab-debug
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload release APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AION2-BuildLab-release-unsigned
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/android-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: AION 2 Build Lab ${{ github.ref_name }}
+          generate_release_notes: true
+          files: android/app/build/outputs/apk/debug/*.apk
+          body: |
+            Android Material You build. The attached debug-signed APK is suitable for initial installation and testing.
+            For seamless in-place native APK updates, future releases must use one stable private signing key configured as repository Actions secrets. The live analyzer content itself updates from the website automatically.
