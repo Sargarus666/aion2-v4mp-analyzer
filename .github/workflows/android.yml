@@ -8,7 +8,7 @@ on:
     paths: ["android/**", ".github/workflows/android.yml"]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -42,3 +42,16 @@ jobs:
             android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 14
+      - name: Publish direct APK download
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-latest
+          name: AION 2 Build Lab — latest Android APK
+          body: |
+            Installable debug-signed APK for testing. The optimized release build is currently unsigned.
+            Build commit: ${{ github.sha }}
+          prerelease: true
+          make_latest: false
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+          fail_on_unmatched_files: true
