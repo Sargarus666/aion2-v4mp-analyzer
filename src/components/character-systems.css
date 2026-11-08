@@ -130,3 +130,16 @@
 .daevanion-node-summary-row span{font-size:10px;font-weight:650}
 .daevanion-node-summary-row strong{max-width:54%;font-size:9px;text-align:right;color:var(--md-sys-color-on-surface-variant);font-weight:500}
 @media(max-width:680px){.daevanion-node-summaries{grid-template-columns:1fr}}
+
+/* Shugo-inspired Daevanion board selector: progress is visible before opening a board */
+.daevanion-board-tabs button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;min-width:112px;text-align:left;border-radius:13px;padding:10px 12px}
+.daevanion-board-tabs button b{font-size:10px;font-weight:700;white-space:nowrap}
+.daevanion-board-tabs button small{font-size:9px;color:var(--md-sys-color-on-surface-variant);font-variant-numeric:tabular-nums}
+.daevanion-board-tabs button>i{grid-column:1/-1;height:3px;overflow:hidden;border-radius:99px;background:var(--md-sys-color-surface-container-highest)}
+.daevanion-board-tabs button>i>span{display:block;height:100%;border-radius:inherit;background:var(--md-sys-color-primary)}
+.daevanion-board-tabs button.active small{color:var(--md-sys-color-on-primary-container)}
+.daevanion-grid-node.grade-common{border-color:color-mix(in srgb,var(--md-sys-color-outline) 72%,transparent)}
+.daevanion-grid-node.grade-rare{border-color:#5799d6}
+.daevanion-grid-node.grade-unique{border-color:#b78be8;box-shadow:inset 0 0 0 1px #b78be8}
+.daevanion-grid-node.grade-legend,.daevanion-grid-node.grade-legendary{border-color:#d5a94b;box-shadow:inset 0 0 0 1px #d5a94b}
+@media(max-width:680px){.daevanion-board-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}.daevanion-board-tabs button{min-width:0}}
