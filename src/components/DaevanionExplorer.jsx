@@ -13,7 +13,7 @@ const boardName = board => localizeGameText(board?.name || board?.boardName || "
 const nodeKey = node => String(node?.nodeId ?? node?.id ?? (node?.row + ":" + node?.col));
 const gradeClass = node => String(node?.gradeName ?? node?.grade ?? "").toLowerCase().replace(/[^a-zа-я0-9]+/gi, "-");
 
-function NodeButton({ node, index, selected, inPath, onSelect }) {
+function NodeButton({ node, index, selected, inPath, onSelect, minRow, minCol }) {
   const open = isOpen(node);
   const skill = isSkill(node);
   const start = typeOf(node) === "start";
@@ -21,7 +21,7 @@ function NodeButton({ node, index, selected, inPath, onSelect }) {
   const cost = daevanionNodeCost(node);
   return <button type="button"
     className={"daevanion-grid-node " + (open ? "is-open " : "is-locked ") + (skill ? "is-skill " : "is-stat ") + (start ? "is-start " : "") + (inPath ? "is-route " : "") + (selected ? "is-selected " : "") + "grade-" + gradeClass(node)}
-    style={{ gridRow: Number(node.row) + 1, gridColumn: Number(node.col) + 1 }}
+    style={{ gridRow: Number(node.row) - minRow + 1, gridColumn: Number(node.col) - minCol + 1 }}
     onClick={() => onSelect(node)}
     aria-label={localizeGameText(label) + (open ? ", открыт" : ", закрыт") + (cost ? ", стоимость " + cost : "")}
     title={localizeGameText(label) + (cost ? " · " + cost + " крист." : "")}>
@@ -46,6 +46,8 @@ export default function DaevanionExplorer({ boards = [], error = "" }) {
   const normalized = useMemo(() => normalizeDaevanionBoard(detail || {}), [detail]);
   const nodes = normalized.nodeList;
   const positionedNodes = nodes.filter(node => Number.isFinite(Number(node.row)) && Number.isFinite(Number(node.col)));
+  const minRow = positionedNodes.length ? Math.min(...positionedNodes.map(node => Number(node.row))) : 0;
+  const minCol = positionedNodes.length ? Math.min(...positionedNodes.map(node => Number(node.col))) : 0;
   const maxRow = positionedNodes.length ? Math.max(...positionedNodes.map(node => Number(node.row))) : 14;
   const maxCol = positionedNodes.length ? Math.max(...positionedNodes.map(node => Number(node.col))) : 14;
   const selectedPath = useMemo(() => selectedNode ? findDaevanionPath(nodes, selectedNode) : null, [nodes, selectedNode]);
@@ -123,8 +125,8 @@ export default function DaevanionExplorer({ boards = [], error = "" }) {
             </div>
             <div className="daevanion-map-legend"><span><i className="open"/>Открыт</span><span><i className="locked"/>Закрыт</span><span><i className="skill"/>Навык</span><span><i className="route"/>Маршрут</span></div>
             <div className="daevanion-map-viewport" ref={viewportRef} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={stopDragging} onPointerCancel={stopDragging}>
-              <div className="daevanion-node-grid" style={{ "--node-scale": zoom, "--grid-cols": maxCol + 1, "--grid-rows": maxRow + 1 }}>
-                {visibleNodes.map((node, index) => <NodeButton key={nodeKey(node) || index} node={node} index={index} selected={nodeKey(selectedNode) === nodeKey(node)} inPath={pathKeys.has(nodeKey(node))} onSelect={value => { setSelectedNode(value); setShowRoute(false); }}/>)}
+              <div className="daevanion-node-grid" style={{ "--node-scale": zoom, "--grid-cols": maxCol - minCol + 1, "--grid-rows": maxRow - minRow + 1 }}>
+                {visibleNodes.map((node, index) => <NodeButton key={nodeKey(node) || index} node={node} index={index} selected={nodeKey(selectedNode) === nodeKey(node)} inPath={pathKeys.has(nodeKey(node))} minRow={minRow} minCol={minCol} onSelect={value => { setSelectedNode(value); setShowRoute(false); }}/>)}
               </div>
             </div>
             <div className="daevanion-map-filters">
