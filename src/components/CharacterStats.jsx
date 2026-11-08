@@ -92,8 +92,9 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
 
   const profileRows = useMemo(() => asArray(stats).flatMap((entry,index) => {
     if (!entry || typeof entry !== "object") return [];
-    const name = entry.name || entry.statName || entry.type || "Параметр "+(index+1);
-    return [{ key:"profile-"+index, name, value:text(entry.value), category:classify(name), source:entry.parentStat ? "Атрибут · "+entry.parentStat : "Профиль NCSOFT", kind:entry.parentStat ? "Вложенный бонус" : "Значение персонажа", raw:entry }];
+    const nested = Boolean(entry.parentStat);
+    const name = nested ? (entry.value || entry.name) : (entry.name || entry.statName || entry.type || "Параметр "+(index+1));
+    return [{ key:"profile-"+index, name, value:nested ? "Бонус" : text(entry.value), category:classify(name), source:nested ? "Атрибут · "+entry.parentStat : "Профиль NCSOFT", kind:nested ? "Вложенный бонус" : "Значение персонажа", raw:entry }];
   }),[stats]);
 
   const aggregate = useMemo(() => {
