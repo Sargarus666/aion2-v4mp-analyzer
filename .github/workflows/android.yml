@@ -21,6 +21,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
+      - name: Read app version
+        id: version
+        shell: bash
+        run: |
+          VERSION="$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' android/app/build.gradle.kts | head -n 1)"
+          test -n "$VERSION"
+          echo "name=$VERSION" >> "$GITHUB_OUTPUT"
       - name: Unit tests
         run: gradle :app:testDebugUnitTest
         working-directory: android
@@ -30,9 +37,37 @@ jobs:
       - name: Build debug APK
         run: gradle :app:assembleDebug
         working-directory: android
-      - name: Build optimized release APK
+      - name: Prepare release signing key
+        id: signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        shell: bash
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Release signing is not configured; only the debug test APK will be built."
+            exit 0
+          fi
+          mkdir -p "$RUNNER_TEMP/aion2-signing"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/aion2-signing/release-keystore.p12"
+          test -s "$RUNNER_TEMP/aion2-signing/release-keystore.p12"
+          echo "available=true" >> "$GITHUB_OUTPUT"
+      - name: Build signed release APK
+        if: steps.signing.outputs.available == 'true'
+        env:
+          ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/aion2-signing/release-keystore.p12
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: gradle :app:assembleRelease
         working-directory: android
+      - name: Verify release APK signature
+        if: steps.signing.outputs.available == 'true'
+        run: |
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)"
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
       - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
@@ -42,17 +77,20 @@ jobs:
             android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 14
-      - name: Publish direct APK download
-        if: github.event_name != 'pull_request'
+      - name: Publish signed APK
+        if: github.event_name != 'pull_request' && steps.signing.outputs.available == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: android-v0.2.0
-          name: AION 2 Build Lab — latest Android APK
+          tag_name: android-v${{ steps.version.outputs.name }}
+          name: AION 2 Build Lab v${{ steps.version.outputs.name }}
           body: |
-            Version: 0.2.0
-            Installable debug-signed APK for testing. The optimized release build is currently unsigned.
+            Version: ${{ steps.version.outputs.name }}
+            Signed release APK. Future updates are signed with the same persistent app-signing key.
             Build commit: ${{ github.sha }}
           prerelease: true
           make_latest: false
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+          files: android/app/build/outputs/apk/release/app-release.apk
           fail_on_unmatched_files: true
+      - name: Remove temporary signing key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/aion2-signing"
