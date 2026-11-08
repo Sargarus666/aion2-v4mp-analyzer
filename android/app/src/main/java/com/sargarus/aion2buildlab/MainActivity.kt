@@ -50,7 +50,7 @@ private val ComponentActivity.dataStore by preferencesDataStore(name = "build_la
 private val THEME_KEY = stringPreferencesKey("theme")
 private const val APP_URL = "https://aion2-v4mp-analyzer.pages.dev/"
 private const val BUILD_SCREENSHOT_URL = "https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg"
-private const val VERSION_NAME = "0.2.0"
+private const val VERSION_NAME = "0.3.0"
 
 private enum class AppTab(val label: String) {
     HOME("Главная"), BUILD("Билд"), DATABASE("База"), SETTINGS("Настройки")
