@@ -1,4 +1,5 @@
 package com.sargarus.aion2buildlab
+
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -7,31 +8,54 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private val ComponentActivity.dataStore by preferencesDataStore(name="build_lab_settings")
+private val ComponentActivity.dataStore by preferencesDataStore(name = "build_lab_settings")
 private val THEME_KEY = stringPreferencesKey("theme")
 private const val APP_URL = "https://aion2-v4mp-analyzer.pages.dev/"
+private const val BUILD_SCREENSHOT_URL = "https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg"
 private const val VERSION_NAME = "0.1.0"
+
+private enum class AppTab(val label: String) {
+    HOME("Главная"), BUILD("Билд"), DATABASE("База"), SETTINGS("Настройки")
+}
+
+private data class ResourceLink(val title: String, val subtitle: String, val url: String)
+
+private val resourceLinks = listOf(
+    ResourceLink("Официальный профиль NCSOFT", "Поиск персонажей · Европа", "https://aion2.plaync.com/en-us/characters/index?region=eu"),
+    ResourceLink("Shugo.GG", "Профиль персонажа v4mp", "https://shugo.gg/character/global/eu-kromede/v4mp"),
+    ResourceLink("NotMeter", "Статистика персонажа v4mp", "https://notmeter.com/?view=character&serverId=2316&characterId=6Q-UpcYBkUxRaoy_p3rjpM_kwjwWlBxUxx2BTNdYXHY%3D&name=v4mp&region=ww&globalRegion=eu"),
+    ResourceLink("AION 2 Guides", "Гайды по классам и контенту", "https://aion2-guides.info/ru/ranger/"),
+    ResourceLink("Mobalytics", "PvE-сборка Стрелка", "https://mobalytics.gg/gamebase/guides/aion-2-ranger-pve-build"),
+    ResourceLink("AION2 Companion", "Билды и справочник Стрелка", "https://aion2companion.com/builds/ranger/"),
+    ResourceLink("AION 2 META", "Гайды по Стрелку", "https://aion2-meta.com/guides/ranger/"),
+    ResourceLink("DBAION2", "Русская база игровых названий", "https://dbaion2.ru/classes/ranger/"),
+    ResourceLink("AION 2 Gaming Tools", "Игровые инструменты и база", "https://aion2.gaming.tools/ru/classes/ranger"),
+    ResourceLink("AION2Quest", "База умений и заданий", "https://aion2quest.pro/ru/skills/ranger")
+)
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -39,88 +63,237 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             var selectedTheme by remember { mutableStateOf(AppTheme.MONET) }
-            var settingsOpen by remember { mutableStateOf(false) }
+            var selectedTab by remember { mutableStateOf(AppTab.HOME) }
             var updateMessage by remember { mutableStateOf<String?>(null) }
             var releaseUrl by remember { mutableStateOf(UpdateChecker.RELEASES_PAGE) }
             var checking by remember { mutableStateOf(false) }
             val scope = rememberCoroutineScope()
             val context = LocalContext.current
+
             LaunchedEffect(Unit) {
                 val stored = dataStore.data.first()[THEME_KEY]
                 selectedTheme = AppTheme.entries.firstOrNull { it.name == stored } ?: AppTheme.MONET
             }
+
             BuildLabTheme(selectedTheme) {
-                Scaffold(topBar = {
-                    TopAppBar(title={ Text("AION 2 Build Lab") }, actions={
-                        IconButton(onClick={ settingsOpen=true }) { Icon(Icons.Default.Settings, contentDescription="Настройки") }
-                    })
-                }) { padding ->
-                    Column(Modifier.fillMaxSize().padding(padding)) {
-                        AndroidView(modifier=Modifier.weight(1f).fillMaxWidth(), factory={ ctx ->
-                            WebView(ctx).apply {
-                                settings.javaScriptEnabled=true
-                                settings.domStorageEnabled=true
-                                settings.loadsImagesAutomatically=true
-                                settings.allowFileAccess=false
-                                settings.allowContentAccess=false
-                                webViewClient=object: WebViewClient() {
-                                    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                                        val uri=request.url
-                                        return if (uri.scheme=="https" && uri.host=="aion2-v4mp-analyzer.pages.dev") false
-                                        else { runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, uri)) }; true }
-                                    }
-                                }
-                                loadUrl(APP_URL)
-                            }
-                        })
-                        Row(Modifier.fillMaxWidth().padding(horizontal=16.dp, vertical=8.dp), verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.SpaceBetween) {
-                            Text("Ranger · v4mp", style=MaterialTheme.typography.labelMedium)
-                            TextButton(onClick={
-                                checking=true
-                                scope.launch {
-                                    val info=withContext(Dispatchers.IO) { runCatching { UpdateChecker.fetchLatest() }.getOrNull() }
-                                    checking=false
-                                    if (info==null) updateMessage="Пока нет опубликованного релиза APK. Проверить GitHub Releases?"
-                                    else {
-                                        releaseUrl=info.pageUrl
-                                        updateMessage=if (UpdateChecker.isNewer(info.tag, VERSION_NAME)) "Доступна версия ${info.tag}. Открой страницу релиза для загрузки." else "Установлена актуальная версия ($VERSION_NAME)."
-                                    }
-                                }
-                            }, enabled=!checking) {
-                                Icon(Icons.Default.Refresh, contentDescription=null); Spacer(Modifier.width(6.dp))
-                                Text(if (checking) "Проверка…" else "Обновления")
+                Scaffold(
+                    bottomBar = {
+                        NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
+                            AppTab.entries.forEach { tab ->
+                                NavigationBarItem(
+                                    selected = selectedTab == tab,
+                                    onClick = { selectedTab = tab },
+                                    icon = {
+                                        if (tab == AppTab.BUILD) {
+                                            AsyncImage(
+                                                model = BUILD_SCREENSHOT_URL,
+                                                contentDescription = "Миниатюра билда v4mp",
+                                                modifier = Modifier.size(28.dp).clip(RoundedCornerShape(9.dp))
+                                            )
+                                        } else {
+                                            Icon(
+                                                imageVector = when (tab) {
+                                                    AppTab.HOME -> Icons.Filled.Home
+                                                    AppTab.DATABASE -> Icons.Filled.Storage
+                                                    AppTab.SETTINGS -> Icons.Filled.Settings
+                                                    AppTab.BUILD -> Icons.Filled.Person
+                                                },
+                                                contentDescription = null
+                                            )
+                                        }
+                                    },
+                                    label = { Text(tab.label, maxLines = 1) },
+                                    alwaysShowLabel = true
+                                )
                             }
                         }
                     }
-                }
-                if (settingsOpen) AlertDialog(
-                    onDismissRequest={ settingsOpen=false }, title={ Text("Оформление") },
-                    text={
-                        Column(Modifier.verticalScroll(rememberScrollState())) {
-                            Text("Выбери тему приложения", style=MaterialTheme.typography.bodyMedium)
-                            Spacer(Modifier.height(8.dp))
-                            AppTheme.entries.forEach { theme ->
-                                Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.CenterVertically) {
-                                    RadioButton(selected=selectedTheme==theme, onClick={
-                                        selectedTheme=theme
-                                        scope.launch { dataStore.edit { it[THEME_KEY]=theme.name } }
-                                    })
-                                    Text(theme.title)
+                ) { padding ->
+                    Box(Modifier.fillMaxSize().padding(padding)) {
+                        when (selectedTab) {
+                            AppTab.HOME -> HomeScreen()
+                            AppTab.BUILD -> BuildScreen(onOpenBuild = { selectedTab = AppTab.HOME })
+                            AppTab.DATABASE -> DatabaseScreen(onOpenLink = { url ->
+                                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                            })
+                            AppTab.SETTINGS -> SettingsScreen(
+                                selectedTheme = selectedTheme,
+                                onThemeSelected = { theme ->
+                                    selectedTheme = theme
+                                    scope.launch { dataStore.edit { it[THEME_KEY] = theme.name } }
+                                },
+                                checking = checking,
+                                onCheckUpdates = {
+                                    checking = true
+                                    scope.launch {
+                                        val info = withContext(Dispatchers.IO) {
+                                            runCatching { UpdateChecker.fetchLatest() }.getOrNull()
+                                        }
+                                        checking = false
+                                        if (info == null) {
+                                            updateMessage = "Не удалось получить информацию о релизе. Проверь подключение и попробуй ещё раз."
+                                        } else {
+                                            releaseUrl = info.pageUrl
+                                            updateMessage = if (UpdateChecker.isNewer(info.tag, VERSION_NAME)) {
+                                                "Доступна версия ${info.tag}. Открой страницу релиза, чтобы скачать APK."
+                                            } else {
+                                                "Установлена актуальная версия ($VERSION_NAME)."
+                                            }
+                                        }
+                                    }
                                 }
-                            }
-                            Spacer(Modifier.height(8.dp))
-                            Text("Monet использует динамические цвета Android 12+. Темы меняют оболочку приложения.", style=MaterialTheme.typography.bodySmall)
+                            )
                         }
-                    },
-                    confirmButton={ TextButton(onClick={ settingsOpen=false }) { Text("Готово") } }
+                    }
+                }
+
+                if (updateMessage != null) {
+                    AlertDialog(
+                        onDismissRequest = { updateMessage = null },
+                        title = { Text("Обновление приложения") },
+                        text = { Text(updateMessage!!) },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(releaseUrl)))
+                                updateMessage = null
+                            }) { Text("Открыть релиз") }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { updateMessage = null }) { Text("Закрыть") }
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeScreen() {
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { ctx ->
+            WebView(ctx).apply {
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+                settings.loadsImagesAutomatically = true
+                settings.allowFileAccess = false
+                settings.allowContentAccess = false
+                webViewClient = object : WebViewClient() {
+                    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                        val uri = request.url
+                        return if (uri.scheme == "https" && uri.host == "aion2-v4mp-analyzer.pages.dev") {
+                            false
+                        } else {
+                            runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+                            true
+                        }
+                    }
+                }
+                loadUrl(APP_URL)
+            }
+        }
+    )
+}
+
+@Composable
+private fun BuildScreen(onOpenBuild: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text("Мой билд", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+        Text("Ranger · v4mp · EU Kromede", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+        ) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                AsyncImage(
+                    model = BUILD_SCREENSHOT_URL,
+                    contentDescription = "Сохранённый скриншот билда персонажа v4mp",
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 180.dp, max = 360.dp).clip(RoundedCornerShape(20.dp))
                 )
-                if (updateMessage!=null) AlertDialog(
-                    onDismissRequest={ updateMessage=null }, title={ Text("Обновления") }, text={ Text(updateMessage!!) },
-                    confirmButton={ TextButton(onClick={
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(releaseUrl))); updateMessage=null
-                    }) { Text("GitHub Releases") } },
-                    dismissButton={ TextButton(onClick={ updateMessage=null }) { Text("Закрыть") } }
-                )
+                Text("Твой персонаж", style = MaterialTheme.typography.titleLarge)
+                Text("Открой актуальный профиль в анализаторе: характеристики, экипировка, умения и план улучшений.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Button(onClick = onOpenBuild, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Filled.OpenInNew, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Открыть мой билд")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DatabaseScreen(onOpenLink: (String) -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text("База данных", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+        Text("Полезные сайты, профили и гайды по AION 2.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        resourceLinks.forEach { item ->
+            Card(
+                modifier = Modifier.fillMaxWidth().clickable { onOpenLink(item.url) },
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text(item.title, style = MaterialTheme.typography.titleMedium)
+                        Text(item.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Icon(Icons.Filled.OpenInNew, contentDescription = "Открыть ссылку", tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsScreen(
+    selectedTheme: AppTheme,
+    onThemeSelected: (AppTheme) -> Unit,
+    checking: Boolean,
+    onCheckUpdates: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text("Настройки", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+        Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer) ) {
+            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Оформление", style = MaterialTheme.typography.titleLarge)
+                Text("Выбери цветовую тему приложения", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                AppTheme.entries.forEach { theme ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).clickable { onThemeSelected(theme) }.padding(vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = selectedTheme == theme, onClick = { onThemeSelected(theme) })
+                        Spacer(Modifier.width(8.dp))
+                        Text(theme.title, style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+        }
+        Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer) ) {
+            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Обновление приложения", style = MaterialTheme.typography.titleLarge)
+                Text("Проверить новую версию в GitHub Releases.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Button(onClick = onCheckUpdates, enabled = !checking, modifier = Modifier.fillMaxWidth()) {
+                    if (checking) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                    else Icon(Icons.Filled.SystemUpdate, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(if (checking) "Проверяем…" else "Проверить обновления")
+                }
             }
         }
     }
