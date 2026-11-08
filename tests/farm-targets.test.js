@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { assessFarmTargetCandidate } from "../src/lib/farm-targets.js";
+import { assessFarmTargetCandidate, rankFarmUpgradeCandidates } from "../src/lib/farm-targets.js";
 
 const equipment = [
   { name: "Spiritforged Bow", slotPosName: "MainHand", enchantLevel: 11 },
@@ -104,4 +104,60 @@ test("recognizes every accessory slot exposed by the live NCSOFT payload", () =>
   ]);
   assert.deepEqual(rows.map(row => row.status), Array(6).fill("unknown"));
   assert.deepEqual(rows.map(row => row.currentLevel), Array(6).fill(null));
+});
+
+
+test("ranks source-backed upgrades by current slot item-level gap and access gate", () => {
+  const gear = [
+    { name: "Spiritforged Bow", slotPosName: "MainHand", enchantLevel: 15 },
+    { name: "Spiritforged Guard", slotPosName: "SubHand", enchantLevel: 14 },
+    { name: "Vakron Breastplate", slotPosName: "Torso", enchantLevel: 10 },
+    { name: "Nuakum Pauldrons", slotPosName: "Shoulder", enchantLevel: 12 },
+    { name: "Aulamus Earrings", slotPosName: "Earring1", enchantLevel: 10 },
+    { name: "Aulamus Earrings", slotPosName: "Earring2", enchantLevel: 10 },
+    { name: "Ascension Bracelet", slotPosName: "Bracelet1", enchantLevel: 11 },
+    { name: "Liberator Bracelet", slotPosName: "Bracelet2", enchantLevel: 10 }
+  ];
+  const targets = [
+    { slot: "MainHand", name: "Enraged Kromede Longbow", itemLevel: 86, maxEnhance: 15, requiredItemLevel: 2100 },
+    { slot: "SubHand", name: "Nuakum Guard", itemLevel: 86, maxEnhance: 15, requiredItemLevel: 2100 },
+    { slot: "Torso", name: "Nuakum Breastplate", itemLevel: 86, maxEnhance: 15, requiredItemLevel: 2100 },
+    { slot: "Earring", name: "Enraged Kromede Earrings", itemLevel: 86, maxEnhance: 15, requiredItemLevel: 2100 },
+    { slot: "Bracelet", name: "Ludra's Bracelet", itemLevel: 86, maxEnhance: 15, requiredItemLevel: 2800 }
+  ];
+  const rows = rankFarmUpgradeCandidates(gear, targets, 2249);
+  assert.equal(rows[0].slot, "SubHand");
+  assert.equal(rows[0].currentLevel, 59);
+  assert.equal(rows[0].baseGain, 27);
+  assert.equal(rows[0].maxGain, 42);
+  assert.equal(rows[1].slot, "MainHand");
+  assert.equal(rows[1].currentLevel, 60);
+  assert.equal(rows.find(row => row.slotLabel === "Серьги 2").currentLevel, 80);
+  const bracelet = rows.find(row => row.slot === "Bracelet");
+  assert.equal(bracelet.currentLevel, 62);
+  assert.equal(bracelet.baseGain, 24);
+  assert.equal(bracelet.availableNow, false);
+  assert.equal(rows.some(row => row.slotLabel === "Браслет 2"), false);
+});
+
+test("ranks an already equipped target only as an enhancement, not a new drop", () => {
+  const rows = rankFarmUpgradeCandidates(
+    [{ name: "Nuakum Pauldrons", slotPosName: "Shoulder", enchantLevel: 12 }],
+    [{ slot: "Shoulders", name: "Nuakum Pauldrons", itemLevel: 86, maxEnhance: 15, requiredItemLevel: 2100 }],
+    2249
+  );
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].kind, "enhance");
+  assert.equal(rows[0].currentLevel, 98);
+  assert.equal(rows[0].baseGain, -12);
+  assert.equal(rows[0].maxGain, 3);
+});
+
+test("does not invent a rank when the current item level is unknown", () => {
+  const rows = rankFarmUpgradeCandidates(
+    [{ name: "Liberator Bracelet", slotPosName: "Bracelet2", enchantLevel: 10 }],
+    [{ slot: "Bracelet", name: "Ludra's Bracelet", itemLevel: 86, maxEnhance: 15, requiredItemLevel: 2800 }],
+    2249
+  );
+  assert.deepEqual(rows, []);
 });

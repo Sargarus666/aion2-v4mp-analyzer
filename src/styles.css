@@ -1127,3 +1127,30 @@ footer { color:#72909d; }
  .equipment-compare-meta{grid-template-columns:repeat(3,minmax(0,1fr))}
  .equipment-compare-stat{grid-template-columns:minmax(0,1.2fr) minmax(42px,.7fr) minmax(42px,.7fr) minmax(40px,.55fr);gap:4px;font-size:9px}
 }
+
+
+/* Per-character upgrade shortlist: transparent item-level deltas, not a DPS score. */
+.farm-upgrade-queue{margin:22px 0;padding:20px;border:1px solid var(--md-sys-color-outline-variant);border-radius:22px;background:var(--md-sys-color-surface-container-low)}
+.farm-upgrade-queue .farm-library-head{align-items:flex-start}
+.farm-upgrade-queue .farm-library-head h3{margin:0 0 7px;font-size:18px;letter-spacing:-.03em}
+.farm-upgrade-queue .farm-library-head .muted{margin:0;max-width:680px}
+.farm-upgrade-list{display:grid;gap:9px;margin-top:15px}
+.farm-upgrade-row{min-width:0;padding:13px;border:1px solid var(--md-sys-color-outline-variant);border-radius:15px;background:var(--md-sys-color-surface-container)}
+.farm-upgrade-row-head{display:flex;align-items:center;gap:10px}
+.farm-upgrade-copy{display:grid;gap:4px;min-width:0;flex:1}
+.farm-upgrade-copy b{font-size:12px;overflow-wrap:anywhere}
+.farm-upgrade-copy small{font-size:10px;color:var(--md-sys-color-on-surface-variant);line-height:1.4}
+.farm-upgrade-state{flex:0 0 auto;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:700;background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container)}
+.farm-upgrade-state.is-locked{background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface-variant)}
+.farm-upgrade-levels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:11px}
+.farm-upgrade-levels span{display:flex;justify-content:space-between;gap:7px;padding:8px;border-radius:10px;background:var(--md-sys-color-surface-container-high);font-size:9px;color:var(--md-sys-color-on-surface-variant)}
+.farm-upgrade-levels b{color:var(--md-sys-color-on-surface);font-size:10px;white-space:nowrap}
+.farm-upgrade-row p{margin:9px 0 5px;color:var(--md-sys-color-on-surface-variant);font-size:10px;line-height:1.55}
+.farm-upgrade-row>a{font-size:10px;color:var(--md-sys-color-primary);font-weight:650;text-decoration:none}
+.farm-upgrade-row>a:hover{text-decoration:underline}
+.farm-upgrade-queue>.farm-library-foot{margin:12px 0 0}
+@media(max-width:520px){
+ .farm-upgrade-queue{padding:14px}
+ .farm-upgrade-queue .farm-library-head{gap:8px;flex-direction:column}
+ .farm-upgrade-levels{grid-template-columns:1fr}
+}

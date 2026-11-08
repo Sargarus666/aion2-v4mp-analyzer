@@ -4,6 +4,12 @@ const CURRENT_ITEM_BASE_LEVELS = {
   "Spiritforged Bow": 45,
   "Spiritforged Guard": 45,
   "Vakron Breastplate": 70,
+  "Vakron Greaves": 70,
+  "Nuakum Pauldrons": 86,
+  "Noble Belt": 65,
+  "Revelation Amulet": 65,
+  "Ascension Bracelet": 51,
+  "Clash Rune": 40,
   "Spectral Greaves": 41,
   "Vakron Helm": 70,
   "Vakron Pauldrons": 70,
@@ -128,4 +134,69 @@ export function assessFarmTargetCandidate(candidate, equipment = []) {
     });
   }
   return rows;
+}
+
+
+/**
+ * Ranks only candidates with a known current item level and a source-backed
+ * base/max item level. This is an item-level shortlist, never a DPS score.
+ */
+export function rankFarmUpgradeCandidates(equipment = [], candidates = [], characterItemLevel = null) {
+  if (!Array.isArray(equipment) || !Array.isArray(candidates)) return [];
+  const characterLevel = parseOptionalNumber(characterItemLevel);
+  const rows = [];
+
+  for (const candidate of candidates) {
+    const baseLevel = parseOptionalNumber(candidate?.itemLevel);
+    const maxEnhance = parseOptionalNumber(candidate?.maxEnhance);
+    const slot = candidate?.slot;
+    if (!slot || baseLevel == null || maxEnhance == null || maxEnhance < 0) continue;
+    const maxLevel = baseLevel + maxEnhance;
+    const matches = equipment.filter(item => matchesSlot(item, slot));
+
+    matches.forEach((item, index) => {
+      const current = currentItemLevel(item);
+      if (!current) return;
+      const maxGain = maxLevel - current.level;
+      if (maxGain <= 0) return;
+
+      const currentName = String(readField(item, "name") || "Предмет");
+      const sameItem = currentName.trim().toLowerCase() === String(candidate.name || "").trim().toLowerCase();
+      const rawSlot = String(readField(item, "slotPosName") || slot);
+      const position = rawSlot.match(/(\\d+)$/)?.[1];
+      const baseLabel = SLOT_LABELS[slot] || slot;
+      const slotLabel = matches.length > 1 ? baseLabel + " " + (position || (index + 1)) : baseLabel;
+      const requiredItemLevel = parseOptionalNumber(candidate.requiredItemLevel);
+      const availableNow = requiredItemLevel == null || requiredItemLevel <= 0 ||
+        (characterLevel != null && characterLevel >= requiredItemLevel);
+
+      rows.push({
+        slot,
+        slotLabel,
+        currentName,
+        currentLevel: current.level,
+        enchantLevel: current.enchant,
+        targetName: String(candidate.name || "Кандидат"),
+        targetBaseLevel: baseLevel,
+        targetMaxLevel: maxLevel,
+        maxEnhance,
+        baseGain: baseLevel - current.level,
+        maxGain,
+        requiredItemLevel,
+        availableNow,
+        kind: sameItem ? "enhance" : "replace",
+        sortPriority: Number.isFinite(Number(candidate.sortPriority)) ? Number(candidate.sortPriority) : 9,
+        sourceLabel: String(candidate.sourceLabel || ""),
+        sourceUrl: typeof candidate.sourceUrl === "string" ? candidate.sourceUrl : (typeof candidate.url === "string" ? candidate.url : "")
+      });
+    });
+  }
+
+  return rows.sort((a, b) =>
+    Number(b.availableNow) - Number(a.availableNow) ||
+    b.baseGain - a.baseGain ||
+    a.sortPriority - b.sortPriority ||
+    b.maxGain - a.maxGain ||
+    a.slotLabel.localeCompare(b.slotLabel)
+  );
 }
