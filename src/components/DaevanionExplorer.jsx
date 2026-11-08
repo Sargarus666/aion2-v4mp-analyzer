@@ -86,6 +86,8 @@ export default function DaevanionExplorer({ boards = [], error = "" }) {
   });
   const openedEffects = effects(normalized.openStatEffectList);
   const skillEffects = effects(normalized.openSkillEffectList);
+  const openedSkillNodes = nodes.filter(node=>isOpen(node) && isSkill(node));
+  const openedStatNodes = nodes.filter(node=>isOpen(node) && typeOf(node)==="stat");
   const selectedEffects = effects(selectedNode?.effectList);
   const icon = safeImageSource(activeBoard?.icon);
 
@@ -165,6 +167,10 @@ export default function DaevanionExplorer({ boards = [], error = "" }) {
         <div className="daevanion-effects-overview">
           <section><small>АКТИВНЫЕ ЭФФЕКТЫ ХАРАКТЕРИСТИК</small>{openedEffects.length?openedEffects.map((effect,index)=><p key={index}>{localizeGameText(effect)}</p>):<p className="muted">NCSOFT не вернул эффекты характеристик</p>}</section>
           <section><small>АКТИВНЫЕ ЭФФЕКТЫ НАВЫКОВ</small>{skillEffects.length?skillEffects.map((effect,index)=><p key={index}>{localizeGameText(effect)}</p>):<p className="muted">NCSOFT не вернул эффекты навыков</p>}</section>
+        </div>
+        <div className="daevanion-node-summaries">
+          <section><div className="daevanion-node-summary-head"><small>УЛУЧШЕНИЯ УМЕНИЙ</small><b>{openedSkillNodes.length}</b></div>{openedSkillNodes.length?openedSkillNodes.map(node=><div className="daevanion-node-summary-row" key={nodeKey(node)}><span>{localizeGameText(node.name || "Улучшение навыка")}</span><strong>{effects(node.effectList).join(" · ") || "Открыто"}</strong></div>):<p className="muted">Открытых улучшений навыков нет</p>}</section>
+          <section><div className="daevanion-node-summary-head"><small>УСИЛЕНИЯ ХАРАКТЕРИСТИК</small><b>{openedStatNodes.length}</b></div>{openedStatNodes.length?openedStatNodes.map(node=><div className="daevanion-node-summary-row" key={nodeKey(node)}><span>{localizeGameText(node.name || "Усиление характеристики")}</span><strong>{effects(node.effectList).join(" · ") || "Открыто"}</strong></div>):<p className="muted">Открытых усилений характеристик нет</p>}</section>
         </div>
         <p className="stats-note">Карта строится по координатам row/col из NCSOFT. Пустые записи типа None не рисуются; тип, редкость, открытие и эффекты каждого узла берутся из его реальной записи.</p>
       </>}
