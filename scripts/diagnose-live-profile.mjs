@@ -95,10 +95,23 @@ async function readDetail(label, path, extra) {
       console.log("NCSOFT_DAEVANION_NODE_COUNT", Array.isArray(data?.nodeList) ? data.nodeList.length : null);
       console.log("NCSOFT_DAEVANION_NODE_SAMPLE", JSON.stringify(data?.nodeList?.slice(0, 3) ?? null));
     } else {
-      console.log("NCSOFT_ITEM_DETAIL_NAME", data?.name ?? null);
-      console.log("NCSOFT_ITEM_DETAIL_MAIN_STATS", JSON.stringify(data?.mainStats?.slice(0, 5) ?? null));
-      console.log("NCSOFT_ITEM_DETAIL_SUB_STATS", JSON.stringify(data?.subStats?.slice(0, 5) ?? null));
-      console.log("NCSOFT_ITEM_DETAIL_STONES", JSON.stringify(data?.magicStoneStat?.slice(0, 5) ?? null));
+      console.log("NCSOFT_" + label + "_NAME", data?.name ?? null);
+      console.log("NCSOFT_" + label + "_GRADE", data?.gradeName ?? data?.grade ?? null);
+      console.log("NCSOFT_" + label + "_ENCHANT_EXCEED", JSON.stringify({
+        enchantLevel: data?.enchantLevel ?? null,
+        exceedLevel: data?.exceedLevel ?? null,
+        levelValue: data?.levelValue ?? null
+      }));
+      console.log("NCSOFT_" + label + "_SOUL_BIND_RATE", data?.soulBindRate ?? null);
+      console.log("NCSOFT_" + label + "_STONE_SLOT_COUNTS", JSON.stringify({
+        magicStoneSlotCount: data?.magicStoneSlotCount ?? null,
+        godStoneSlotCount: data?.godStoneSlotCount ?? null
+      }));
+      console.log("NCSOFT_" + label + "_MAIN_STATS", JSON.stringify(data?.mainStats ?? null));
+      console.log("NCSOFT_" + label + "_SUB_STATS", JSON.stringify(data?.subStats ?? null));
+      console.log("NCSOFT_" + label + "_MAGIC_STONES", JSON.stringify(data?.magicStoneStat ?? null));
+      console.log("NCSOFT_" + label + "_GOD_STONES", JSON.stringify(data?.godStoneStat ?? null));
+      console.log("NCSOFT_" + label + "_SOURCES", JSON.stringify(data?.sources ?? null));
     }
   } catch (error) {
     console.log("NCSOFT_" + label + "_ERROR", error?.name + ": " + (error?.message || "unknown"));
@@ -111,5 +124,11 @@ await Promise.all([
   readDetail("ITEM_DETAIL", "equipment/item", firstItem ? {
     id: firstItem.id, slotPos: firstItem.slotPos,
     enchantLevel: firstItem.enchantLevel ?? 0, exceedLevel: firstItem.exceedLevel ?? 0
-  } : null)
+  } : null),
+  ...arcanaRows.map((item, index) => readDetail("ARCANA_" + (index + 1), "equipment/item", {
+    id: item.id,
+    slotPos: item.slotPos,
+    enchantLevel: item.enchantLevel ?? 0,
+    exceedLevel: item.exceedLevel ?? 0
+  }))
 ]);
