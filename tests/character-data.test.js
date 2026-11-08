@@ -213,6 +213,59 @@ test("supports arcana arrays at the top level of the equipment response", () => 
 });
 
 
+test("normalizes all five equipped Arcana rows from equipmentList and ignores ordinary gear", () => {
+  const equipmentList = [
+    { id: 101, slotPosName: "Arcana1", name: "Chalice of Vigor" },
+    { id: 102, slotPosName: "Arcana2", name: "Parchment of Vigor" },
+    { id: 103, slotPosName: "Arcana3", name: "Compass of Vigor" },
+    { id: 104, slotPosName: "Arcana4", name: "Bell of Vigor" },
+    { id: 105, slotPosName: "Arcana5", name: "Mirror of Magic" },
+    { id: 201, slotPosName: "MainHand", name: "Bow" },
+    { id: 202, slotPosName: "Ring1", name: "Ring" }
+  ];
+  const data = normalizeProfileResponse(
+    { profile: { name: "v4mp" } },
+    { equipment: { equipmentList } }
+  );
+
+  assert.equal(data.arcana.length, 5);
+  assert.deepEqual(data.arcana.map(item => item.slotPosName), [
+    "Arcana1", "Arcana2", "Arcana3", "Arcana4", "Arcana5"
+  ]);
+  assert.equal(data.arcana.some(item => item.slotPosName === "MainHand"), false);
+  assert.equal(data.arcana.some(item => item.slotPosName === "Ring1"), false);
+});
+
+test("merges Arcana sources by slot and preserves the same item ID in distinct slots", () => {
+  const data = normalizeProfileResponse(
+    { profile: { name: "v4mp" } },
+    {
+      arcanaList: [{ id: 101, name: "Chalice of Vigor" }],
+      equipment: {
+        equipmentList: [
+          { id: 101, slotPosName: "Arcana 1", name: "Chalice of Vigor", enchantLevel: 3 },
+          { id: 101, slotPosName: "Arcana2", name: "Chalice of Vigor" },
+          { id: 201, slotPosName: "MainHand", name: "Bow" }
+        ]
+      }
+    }
+  );
+
+  assert.equal(data.arcana.length, 2);
+  assert.deepEqual(data.arcana.map(item => item.slotPosName), ["Arcana 1", "Arcana2"]);
+  assert.equal(data.arcana[0].enchantLevel, 3);
+  assert.equal(data.arcana[1].id, 101);
+});
+
+test("does not infer equipped Arcana from an item name when slot identity is missing", () => {
+  const data = normalizeProfileResponse(
+    { profile: { name: "v4mp" } },
+    { equipment: { equipmentList: [{ id: 101, name: "Chalice of Vigor" }] } }
+  );
+
+  assert.deepEqual(data.arcana, []);
+});
+
 test("allows only HTTPS NCSOFT image hosts", () => {
   assert.equal(safeImageSource("https://assets.playnccdn.com/aion2/icon.png"), "https://assets.playnccdn.com/aion2/icon.png");
   assert.equal(safeImageSource("/static-aion2-gamedata/icon.png"), "https://aion2.plaync.com/static-aion2-gamedata/icon.png");

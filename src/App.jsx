@@ -376,8 +376,8 @@ export default function App() {
   });
   const stats=statEntries(profile?.stat);
   const skills=arr(profile?.skill?.skillList);
-  const arcanaCandidates=[...arr(profile?.arcana),...arr(profile?.equipment?.arcanaList),...equipment.filter(x=>/arcana|аркана/i.test([x.slotPosName,x.slotPos,x.slot,x.category].join(" ")))];
-  const arcana=arcanaCandidates.filter((item,index,list)=>list.findIndex(other=>(item.id&&other.id===item.id)||(item.slotPosName&&other.slotPosName===item.slotPosName))===index);
+  // The API normalizer is the single source of truth for Arcana slot identity and deduplication.
+  const arcana=arr(profile?.arcana);
   const boards=arr(profile?.daevanion?.boardList);
   const cp=get(character,"combatPower","combat_power") ?? statValue(stats,["CombatPower","Combat Power","CP"]);
   const itemLevel=statValue(stats,["ItemLevel","Уровень экипировки"]) ?? get(character,"itemLevel","item_level");

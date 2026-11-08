@@ -87,11 +87,53 @@ export function normalizeProfileResponse(info = {}, gear = {}) {
   const stat = firstObject(info?.stat, infoData?.stat, character?.stat, profile?.stat);
   const equipment = firstObject(gear?.equipment, gearData?.equipment, gearData?.equipmentList ? gearData : null, gear?.equipmentList ? gear : null);
   const skill = firstObject(gear?.skill, gearData?.skill, gearData?.skillList ? gearData : null, gear?.skillList ? gear : null);
-  const arcana = asArray(gearData?.arcanaList).length ? asArray(gearData.arcanaList)
-    : asArray(gearData?.arcana).length ? asArray(gearData.arcana)
-    : asArray(gear?.arcanaList).length ? asArray(gear.arcanaList)
-    : asArray(gear?.arcana).length ? asArray(gear.arcana)
-    : asArray(equipment?.arcanaList);
+  const arcanaSources = [
+    gearData?.arcanaList,
+    gearData?.arcana,
+    gear?.arcanaList,
+    gear?.arcana,
+    equipment?.arcanaList,
+    equipment?.arcana
+  ].filter(Array.isArray);
+  // NCSOFT may expose equipped Arcana as rows in equipment.equipmentList.
+  // Only an explicit Arcana slot name is sufficient; never infer it from item names.
+  const isArcanaSlot = slot => typeof slot === "string" && /^(?:arcana|аркана)\\s*\\d+$/i.test(slot.trim());
+  const equippedArcana = asArray(equipment?.equipmentList).filter(item => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return false;
+    const slot = item.slotPosName ?? item.slot_pos_name ?? item.slotName ?? item.slot;
+    return isArcanaSlot(slot);
+  });
+  const arcana = [];
+  const seenArcanaSlots = new Set();
+  const seenUnslottedArcanaIds = new Map();
+  const seenSlottedArcanaIds = new Set();
+  for (const item of [...arcanaSources.flat(), ...equippedArcana]) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const slot = item.slotPosName ?? item.slot_pos_name ?? item.slotName ?? item.slot;
+    const id = item.id ?? item.arcanaId ?? item.arcana_id ?? item.itemId ?? item.item_id;
+    const slotKey = typeof slot === "string" && slot.trim()
+      ? slot.trim().toLowerCase().replace(/\\s+/g, "")
+      : null;
+    const idKey = id == null || id === "" ? null : String(id);
+    if (slotKey) {
+      if (seenArcanaSlots.has(slotKey)) continue;
+      // Prefer a slot-aware equipment row over an earlier unslotted copy of the same item.
+      if (idKey && seenUnslottedArcanaIds.has(idKey)) {
+        const existingIndex = seenUnslottedArcanaIds.get(idKey);
+        arcana[existingIndex] = { ...arcana[existingIndex], ...item };
+        seenUnslottedArcanaIds.delete(idKey);
+        seenArcanaSlots.add(slotKey);
+        seenSlottedArcanaIds.add(idKey);
+        continue;
+      }
+      seenArcanaSlots.add(slotKey);
+      if (idKey) seenSlottedArcanaIds.add(idKey);
+    } else {
+      if (idKey && (seenUnslottedArcanaIds.has(idKey) || seenSlottedArcanaIds.has(idKey))) continue;
+      if (idKey) seenUnslottedArcanaIds.set(idKey, arcana.length);
+    }
+    arcana.push(item);
+  }
   const daevanion = firstObject(info?.daevanion, infoData?.daevanion, character?.daevanion, profile?.daevanion);
   const petwing = firstObject(gear?.petwing, gearData?.petwing);
 
