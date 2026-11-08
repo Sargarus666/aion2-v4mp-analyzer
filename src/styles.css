@@ -1087,6 +1087,8 @@ footer { color:#72909d; }
 .equipment-detail-data{margin-top:9px;padding:10px;border:1px solid var(--md-sys-color-outline-variant);border-radius:10px;background:var(--md-sys-color-surface-container-low)}
 .equipment-detail-heading{display:flex;justify-content:space-between;gap:8px;font-size:12px}
 .equipment-detail-heading span{color:var(--md-sys-color-primary)}
+.equipment-detail-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.equipment-detail-meta span{padding:3px 7px;border:1px solid var(--md-sys-color-outline-variant);border-radius:999px;background:var(--md-sys-color-surface-container);color:var(--md-sys-color-on-surface-variant);font-size:9px;line-height:1.35}
 .equipment-detail-data section{margin-top:9px}
 .equipment-detail-data section>small{color:var(--md-sys-color-primary);font-size:9px;font-weight:800;text-transform:uppercase}
 .equipment-detail-data p{margin:4px 0 0;color:var(--md-sys-color-on-surface-variant);font-size:11px;line-height:1.4}
