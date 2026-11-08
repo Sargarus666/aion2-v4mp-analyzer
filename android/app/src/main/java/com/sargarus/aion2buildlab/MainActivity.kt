@@ -30,6 +30,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 private val ComponentActivity.dataStore by preferencesDataStore(name = "build_lab_settings")
