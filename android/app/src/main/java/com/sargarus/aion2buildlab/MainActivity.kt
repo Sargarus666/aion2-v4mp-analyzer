@@ -1,5 +1,14 @@
 package com.sargarus.aion2buildlab
 
+import android.app.DownloadManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
+import android.os.Build
+import android.os.Environment
+import android.provider.Settings
+import android.widget.Toast
+
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -63,14 +72,78 @@ private val resourceLinks = listOf(
 )
 
 class MainActivity : ComponentActivity() {
+    private var activeDownloadId: Long = -1L
+
+    private val downloadReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val completedId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
+            if (completedId != activeDownloadId) return
+            val manager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+            val cursor = manager.query(DownloadManager.Query().setFilterById(completedId))
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val status = it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+                    if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                        val apkUri = manager.getUriForDownloadedFile(completedId)
+                        if (apkUri != null) {
+                            val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                                setDataAndType(apkUri, "application/vnd.android.package-archive")
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            runCatching { startActivity(installIntent) }
+                                .onFailure { Toast.makeText(this@MainActivity, "Не удалось открыть установщик APK", Toast.LENGTH_LONG).show() }
+                        }
+                    } else {
+                        Toast.makeText(this@MainActivity, "Не удалось скачать обновление", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun registerDownloadReceiver() {
+        val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+        if (Build.VERSION.SDK_INT >= 33) {
+            registerReceiver(downloadReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION")
+            registerReceiver(downloadReceiver, filter)
+        }
+    }
+
+    private fun startApkDownload(url: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
+            Toast.makeText(this, "Разреши установку неизвестных приложений для AION 2 Build Lab и нажми обновление ещё раз", Toast.LENGTH_LONG).show()
+            startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
+            return
+        }
+        val request = DownloadManager.Request(Uri.parse(url))
+            .setTitle("AION 2 Build Lab")
+            .setDescription("Скачивание обновления приложения")
+            .setMimeType("application/vnd.android.package-archive")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setAllowedOverMetered(true)
+            .setAllowedOverRoaming(false)
+            .setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "aion2-build-lab-update.apk")
+        activeDownloadId = (getSystemService(DOWNLOAD_SERVICE) as DownloadManager).enqueue(request)
+        Toast.makeText(this, "Обновление скачивается. После загрузки откроется установщик Android.", Toast.LENGTH_LONG).show()
+    }
+
+    override fun onDestroy() {
+        runCatching { unregisterReceiver(downloadReceiver) }
+        super.onDestroy()
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        registerDownloadReceiver()
         setContent {
             var selectedTheme by remember { mutableStateOf(AppTheme.MONET) }
             var selectedTab by remember { mutableStateOf(AppTab.HOME) }
             var updateMessage by remember { mutableStateOf<String?>(null) }
             var releaseUrl by remember { mutableStateOf(UpdateChecker.RELEASES_PAGE) }
+            var apkDownloadUrl by remember { mutableStateOf("") }
             var checking by remember { mutableStateOf(false) }
             val scope = rememberCoroutineScope()
             val context = LocalContext.current
@@ -139,8 +212,13 @@ class MainActivity : ComponentActivity() {
                                             updateMessage = "Не удалось получить информацию о релизе. Проверь подключение и попробуй ещё раз."
                                         } else {
                                             releaseUrl = info.pageUrl
+                                            apkDownloadUrl = info.apkUrl
                                             updateMessage = if (UpdateChecker.isNewer(info.tag, VERSION_NAME)) {
-                                                "Доступна версия ${info.tag}. Открой страницу релиза, чтобы скачать APK."
+                                                if (info.apkUrl.isNotBlank()) {
+                                                    "Доступна версия ${info.tag}. APK скачается прямо в приложении, затем Android предложит установить обновление."
+                                                } else {
+                                                    "Доступна версия ${info.tag}, но APK не найден. Открой страницу релиза."
+                                                }
                                             } else {
                                                 "Установлена актуальная версия ($VERSION_NAME)."
                                             }
@@ -159,9 +237,15 @@ class MainActivity : ComponentActivity() {
                         text = { Text(updateMessage!!) },
                         confirmButton = {
                             TextButton(onClick = {
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(releaseUrl)))
+                                if (apkDownloadUrl.isNotBlank() && updateMessage?.contains("Доступна версия") == true) {
+                                    startApkDownload(apkDownloadUrl)
+                                } else {
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(releaseUrl)))
+                                }
                                 updateMessage = null
-                            }) { Text("Открыть релиз") }
+                            }) {
+                                Text(if (apkDownloadUrl.isNotBlank() && updateMessage?.contains("Доступна версия") == true) "Скачать и установить" else "Открыть релиз")
+                            }
                         },
                         dismissButton = {
                             TextButton(onClick = { updateMessage = null }) { Text("Закрыть") }
