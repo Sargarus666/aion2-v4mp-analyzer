@@ -18,7 +18,9 @@ const CURRENT_ITEM_BASE_LEVELS = {
 const SLOT_ALIASES = {
   Shoulders: ["Shoulder"],
   Earring: ["Earring1", "Earring2"],
-  Ring: ["Ring1", "Ring2"]
+  Ring: ["Ring1", "Ring2"],
+  Bracelet: ["Bracelet1", "Bracelet2"],
+  Rune: ["Rune1", "Rune2"]
 };
 
 const SLOT_LABELS = {
@@ -33,7 +35,11 @@ const SLOT_LABELS = {
   Cape: "Плащ",
   Necklace: "Ожерелье",
   Earring: "Серьги",
-  Ring: "Кольцо"
+  Ring: "Кольцо",
+  Belt: "Пояс",
+  Bracelet: "Браслет",
+  Rune: "Руна",
+  Amulet: "Амулет"
 };
 
 function readField(value, key) {
