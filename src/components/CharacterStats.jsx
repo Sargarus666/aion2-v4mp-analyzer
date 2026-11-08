@@ -113,11 +113,12 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
     gearRows.forEach(({item,detail}) => {
       Object.entries(sourceLabels).forEach(([key,label]) => asArray(detail[key]).forEach((stat,index) => add({
         ...stat,
+        value:stat.value ?? (key==="godStoneStat" ? stat.desc : undefined),
         source:(item.name || "Предмет")+" · "+(item.slotPosName || "слот"),
         kind:label,
         grade:item.grade,
         enchant:item.enchantLevel,
-        valueLabel:formatItemStat(stat),
+        valueLabel:formatItemStat(stat) || (key==="godStoneStat" ? stat.desc : ""),
         key:String(item.id)+":"+key+":"+index
       })));
     });
@@ -135,7 +136,7 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
   const cards = useMemo(() => {
     const all = [...aggregate.map(item => ({
       ...item,
-      totalLabel:item.numericCount ? item.sum.toLocaleString("ru-RU")+(item.extraCount && item.extra ? " (+"+item.extra.toLocaleString("ru-RU")+")" : "") : "—"
+      totalLabel:item.numericCount ? item.sum.toLocaleString("ru-RU")+(item.extraCount && item.extra ? " (+"+item.extra.toLocaleString("ru-RU")+")" : "") : item.sources.some(row=>row.kind==="Божественный камень") ? "Эффект" : "—"
     }))];
     return all;
   },[aggregate]);
