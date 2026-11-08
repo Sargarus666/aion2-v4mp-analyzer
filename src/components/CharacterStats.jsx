@@ -60,6 +60,7 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
   const [failures,setFailures] = useState(0);
   const [expanded,setExpanded] = useState("");
   const [filter,setFilter] = useState("all");
+  const [view,setView] = useState("divine");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -96,7 +97,7 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
     if (!entry || typeof entry !== "object") return [];
     const nested = Boolean(entry.parentStat);
     const name = nested ? (entry.value || entry.name) : (entry.name || entry.statName || entry.type || "Параметр "+(index+1));
-    return [{ key:"profile-"+index, name, value:nested ? "Бонус" : text(entry.value), category:classify(name), source:nested ? "Атрибут · "+entry.parentStat : "Профиль NCSOFT", kind:nested ? "Вложенный бонус" : "Значение персонажа", raw:entry }];
+    return [{ key:"profile-"+index, name, value:text(entry.value), category:classify(name), source:nested ? "Бонус к · "+entry.parentStat : "Профиль NCSOFT", kind:nested ? "Вложенный бонус" : "Значение персонажа", raw:entry }];
   }),[stats]);
 
   const aggregate = useMemo(() => {
