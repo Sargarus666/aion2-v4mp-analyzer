@@ -3,7 +3,7 @@ import { normalizeStatEntries, normalizeDaevanionProgress, parseOptionalNumber, 
 import { assessFarmTargetCandidate } from "./lib/farm-targets.js";
 import { mergeProfileSnapshot } from "./lib/profile-state.js";
 import { localizeGameText } from "./lib/game-localization.js";
-import { formatItemStat, getItemDetailSummary } from "./lib/item-detail.js";
+import { compareItemDetails, formatItemStat, getItemDetailSummary } from "./lib/item-detail.js";
 
 const CHARACTER = {
   name: "v4mp", className: "Стрелок", server: "Европа · Кромеде",
@@ -412,7 +412,7 @@ export default function App() {
     </section>
     <nav className="tabs" aria-label="Разделы анализатора">{tabs.map(t=><button key={t} className={tab===t?"active":""} aria-pressed={tab===t} onClick={()=>setTab(t)}>{t}</button>)}</nav>
     {tab==="Обзор" && <><section className="content-grid"><article className="panel"><div className="panel-head"><div><p className="eyebrow">ДАННЫЕ ПЕРСОНАЖА</p><h2>Профиль персонажа</h2></div><span className="tag">{profile?"Данные получены":"Нет данных"}</span></div><Status label="Персонаж" value={title}/><Status label="Класс" value={localizeGameText(get(character,"className","class")) || CHARACTER.className}/><Status label="Сервер" value={(get(character,"serverName","server")==="Kromede" ? "Кромеде" : get(character,"serverName","server")) || CHARACTER.server}/><Status label="Уровень" value={get(character,"level","characterLevel") ?? "—"}/><Status label="Навыки" value={skills.length}/><p className="disclaimer">NCSOFT API отдаёт ItemLevel и Combat Power, но не отдельное поле Gear Score. Shugo.GG показывает собственный GS отдельно; эти метрики не смешиваются и не подменяют друг друга.</p></article><aside className="panel"><p className="eyebrow">СОСТОЯНИЕ ДАННЫХ</p><h2>Состав профиля</h2><Status label="Экипировка" value={equipment.length}/><Status label="Характеристики" value={stats.length}/><Status label="Навыки" value={skills.length}/><Status label="Арканы" value={arcana.length}/><Status label="Даэванион" value={boards.length}/><Status label="Облики" value={skins.length}/><Status label="Питомец и крылья" value={petwingItems.length}/><div className="callout">{updated?"Ответ NCSOFT: "+updated:"Автоматическая загрузка профиля v4mp."}{profile?._partial&&profile?._lastCompleteAt&&<small>Полный снимок: {new Date(profile._lastCompleteAt).toLocaleString("ru-RU")}</small>}</div></aside></section><section className="panel build-image-panel"><div className="panel-head"><div><p className="eyebrow">ТЕКУЩАЯ СБОРКА</p><h2>Текущая сборка персонажа</h2></div><span className="tag">Скриншот</span></div><a className="build-image-link" href="https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg" target="_blank" rel="noreferrer"><img className="build-image" src="https://raw.githubusercontent.com/Sargarus666/aion2-v4mp-analyzer/main/IMG_20261104_190217_860.jpg" alt="Скриншот билда персонажа v4mp" loading="lazy"/></a><p className="muted">Скриншот сборки из GitHub проекта. Нажми на изображение, чтобы открыть его в полном размере.</p></section><section className="panel profile-resources" aria-labelledby="profile-resources-title"><div className="panel-head"><div><p className="eyebrow">RANGER COMMAND CENTER</p><h2 id="profile-resources-title">Профиль и инструменты</h2><p className="muted">Быстрый доступ к проверке персонажа, сборок, предметов и маршрутов фарма.</p></div><span className="tag">EU · Kromede</span></div><div className="profile-resource-grid"><a className="profile-resource is-official" href="https://aion2.plaync.com/en-us/characters/index?region=eu" target="_blank" rel="noreferrer"><small>ОФИЦИАЛЬНЫЙ ПРОФИЛЬ</small><b>NCSOFT · Европа</b><span>Официальный поиск персонажей и исходные данные</span><em>Открыть профиль ↗</em></a><a className="profile-resource" href={CHARACTER.sourceUrl} target="_blank" rel="noreferrer"><small>БОЕВАЯ СТАТИСТИКА</small><b>NotMeter</b><span>Показатели персонажа и инструменты сравнения</span><em>Открыть v4mp ↗</em></a><a className="profile-resource" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer"><small>ЭКИПИРОВКА И АРКАНЫ</small><b>Shugo.GG</b><span>Публичный профиль, Gear Score и экипировка</span><em>Открыть v4mp ↗</em></a><a className="profile-resource" href="https://aion2-meta.com/guides/ranger/" target="_blank" rel="noreferrer"><small>МЕТА · GLOBAL / KR</small><b>AION2 META</b><span>Выборки сильных Ranger, навыки и Daevanion</span><em>Сверить мету ↗</em></a><a className="profile-resource" href="https://mobalytics.gg/gamebase/guides/aion-2-ranger-pve-build" target="_blank" rel="noreferrer"><small>PVE · BOSS DPS</small><b>Mobalytics</b><span>Ротация, специализации, стигмы и билд Ranger</span><em>Открыть гайд ↗</em></a><a className="profile-resource" href="https://aion2.gg/database" target="_blank" rel="noreferrer"><small>БАЗА ДАННЫХ · EU</small><b>AION2.GG</b><span>Предметы, характеристики, источники дропа и кубы</span><em>Проверить предмет ↗</em></a><a className="profile-resource" href="https://aion2-guides.info/ru/ranger/" target="_blank" rel="noreferrer"><small>РУССКИЙ ГАЙД</small><b>AION2 Guides</b><span>Навыки, стигмы, экипировка и развитие Стрелка</span><em>Открыть гайд ↗</em></a><a className="profile-resource" href="https://aion2companion.com/builds/ranger/" target="_blank" rel="noreferrer"><small>СРАВНЕНИЕ СБОРКИ</small><b>AION2 Companion</b><span>Сборки и рекомендации для PvE Стрелка</span><em>Сравнить билд ↗</em></a></div><p className="profile-resource-note">Внешние базы — независимые community-источники. Проверяй регион и дату обновления; их рейтинги и популярность предметов не являются измерением DPS твоего персонажа.</p></section></>}
-    {tab==="Экипировка" && <section className="panel"><h2>Экипировка</h2>{equipment.length?<div className="visual-list">{equipment.map((x,i)=><VisualRow key={i} item={x} kind="item"/> )}</div>:<Empty error={error}/ >}<p className="stats-note">Текущий публичный equipment-ответ NCSOFT содержит название, ID, слот, грейд, заточку, exceed и иконку. Строки Soul Binding и установленные камни в этом ответе отсутствуют — не подставляю их из названия предмета.</p>{skins.length>0&&<><h2 className="section-subtitle">Облики</h2><div className="visual-list">{skins.map((x,i)=><VisualRow key={i} item={x} kind="item"/>)}</div></>}{petwingItems.length>0&&<><h2 className="section-subtitle">Питомец и крылья</h2><div className="visual-list">{petwingItems.map((x,i)=><VisualRow key={x.id||x.name||i} item={x} kind="item"/>)}</div></>}</section>}
+    {tab==="Экипировка" && <section className="panel"><h2>Экипировка</h2><EquipmentComparison items={equipment}/>{equipment.length?<div className="visual-list">{equipment.map((x,i)=><VisualRow key={i} item={x} kind="item"/> )}</div>:<Empty error={error}/ >}<p className="stats-note">Текущий публичный equipment-ответ NCSOFT содержит название, ID, слот, грейд, заточку, exceed и иконку. Строки Soul Binding и установленные камни в этом ответе отсутствуют — не подставляю их из названия предмета.</p>{skins.length>0&&<><h2 className="section-subtitle">Облики</h2><div className="visual-list">{skins.map((x,i)=><VisualRow key={i} item={x} kind="item"/>)}</div></>}{petwingItems.length>0&&<><h2 className="section-subtitle">Питомец и крылья</h2><div className="visual-list">{petwingItems.map((x,i)=><VisualRow key={x.id||x.name||i} item={x} kind="item"/>)}</div></>}</section>}
     {tab==="Характеристики" && <section className="panel stats-panel"><div className="panel-head"><div><p className="eyebrow">ХАРАКТЕРИСТИКИ ПЕРСОНАЖА</p><h2>Характеристики</h2></div><span className="tag">{stats.length} параметров</span></div>{stats.length?<><div className="stats-overview"><div><b>Боевые характеристики Стрелка</b><p>Здесь собраны важные для Стрелка параметры: урон по боссам, скорость атак, критические попадания и выживаемость.</p></div><span>{stats.length} параметров из профиля</span></div><div className="stats-sections">{buildRelevantStatSections(stats).filter(group=>group.stats.length>0).map(group=><section className="stats-group" key={group.id}><div className="stats-group-head"><div><h3>{group.title}</h3><p>{group.description}</p></div><span>{group.stats.length}</span></div><div className="stats-grid">{group.stats.map(item=><StatCard key={item.id} item={{name:item.label,value:item.value,group:item.hint,icon:item.icon,available:true}}/>)}</div></section>)}</div><p className="stats-note">Значения берутся из публичного профиля без расчётных подстановок. Для PvE-Стрелка особенно важны точность, скорость боя, критический урон и бонусы урона; защитные показатели помогают оценивать запас выживаемости.</p></>:<Empty error={error}/>}</section>}
     {tab==="Навыки" && <section className="panel"><h2>Навыки</h2>{skills.length?<div className="visual-list">{skills.map((x,i)=><VisualRow key={i} item={x} kind="skill"/>)}</div>:<Empty error={error}/>}</section>}
     {tab==="Арканы" && <section className="panel"><div className="panel-head"><div><p className="eyebrow">ЭКИПИРОВАННЫЕ АРКАНЫ</p><h2>Арканы персонажа</h2></div><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Профиль Shugo.GG ↗</a></div>{arcana.length?<div className="visual-list">{arcana.map((x,i)=><VisualRow key={x.id||x.slotPosName||i} item={x} kind="item"/>)}</div>:<div className="empty-state"><span>◇</span><b>Арканы не распознаны в ответе NCSOFT</b><small>Не подставляю старые или предполагаемые карты. Shugo.GG публикует экипированные арканы в открытом профиле персонажа.</small><a className="profile-link" href="https://shugo.gg/character/global/eu-kromede/v4mp" target="_blank" rel="noreferrer">Открыть арканы v4mp ↗</a></div>}<div className="meta-section-head"><h3>Выборка сильнейших Стрелков на мировом сервере</h3><span>136 персонажей · 03.11.2026</span></div><p className="muted">Доли карт в открытых профилях сильнейших игроков. Это частота использования, а не прямое измерение урона; для трёх слотов источник пока не подтвердил популярные карты.</p><div className="arcana-meta-grid">{ARCANA_META.map((item,i)=><ArcanaMetaCard key={item.slot} item={item} index={i}/>)}</div></section>}
@@ -550,5 +550,98 @@ function EquipmentDetail({item}) {
       {Array.isArray(detail.sources)&&detail.sources.length>0&&<section><small>ИСТОЧНИКИ ПРЕДМЕТА В ОТВЕТЕ NCSOFT</small>{detail.sources.map((value,i)=><p key={i}>{localizeGameText(value)}</p>)}</section>}
     </div>}
   </div>;
+}
+function equipmentCompareGroup(item) {
+  const slot=norm(get(item,"slotPosName","slot"));
+  if (/^earring[12]$/.test(slot)) return "Earring";
+  if (/^ring[12]$/.test(slot)) return "Ring";
+  if (/^bracelet[12]$/.test(slot)) return "Bracelet";
+  if (/^rune[12]$/.test(slot)) return "Rune";
+  return null;
+}
+function EquipmentComparison({items=[]}) {
+  const pairs=useMemo(()=>{
+    const groups=new Map();
+    for(const item of items){
+      const group=equipmentCompareGroup(item);
+      if(!group||!get(item,"id","itemId")||!get(item,"slotPos"))continue;
+      if(!groups.has(group))groups.set(group,[]);
+      groups.get(group).push(item);
+    }
+    return [...groups.entries()].filter(([,values])=>values.length>1);
+  },[items]);
+  const choices=pairs.flatMap(([group,values])=>values.map(item=>({
+    key:String(get(item,"id","itemId"))+"-"+String(get(item,"slotPos")),
+    group,item
+  })));
+  const [currentKey,setCurrentKey]=useState("");
+  const [candidateKey,setCandidateKey]=useState("");
+  const [busy,setBusy]=useState(false);
+  const [error,setError]=useState("");
+  const [result,setResult]=useState(null);
+  const currentChoice=choices.find(x=>x.key===currentKey);
+  const candidates=currentChoice?choices.filter(x=>x.group===currentChoice.group&&x.key!==currentChoice.key):[];
+  const candidateChoice=candidates.find(x=>x.key===candidateKey);
+  useEffect(()=>{
+    if(!choices.some(x=>x.key===currentKey)){
+      const first=choices[0];
+      setCurrentKey(first?.key||"");
+      setCandidateKey(first?choices.find(x=>x.group===first.group&&x.key!==first.key)?.key||"":"");
+      setResult(null);
+    }
+  },[choices,currentKey]);
+  useEffect(()=>{
+    if(!candidates.some(x=>x.key===candidateKey)){
+      setCandidateKey(candidates[0]?.key||"");
+      setResult(null);
+    }
+  },[currentKey,candidateKey,candidates]);
+  async function loadComparison(){
+    if(!currentChoice||!candidateChoice||busy)return;
+    setBusy(true);setError("");setResult(null);
+    const fetchDetail=async item=>{
+      const params=new URLSearchParams({
+        id:String(get(item,"id","itemId")),
+        slotPos:String(get(item,"slotPos")),
+        enchantLevel:String(get(item,"enchantLevel")??0),
+        exceedLevel:String(get(item,"exceedLevel")??0)
+      });
+      const response=await fetch("/api/equipment-item?"+params.toString(),{cache:"no-store",signal:AbortSignal.timeout(12000)});
+      const body=await response.json();
+      if(!response.ok||!body.ok)throw new Error(body.error||"Не удалось загрузить предмет");
+      return body.data;
+    };
+    try{
+      const [currentDetail,candidateDetail]=await Promise.all([fetchDetail(currentChoice.item),fetchDetail(candidateChoice.item)]);
+      setResult({currentDetail,candidateDetail,groups:compareItemDetails(currentDetail,candidateDetail)});
+    }catch(e){setError(e.name==="TimeoutError"?"NCSOFT не ответил за 12 секунд.":e.message||"Не удалось сравнить предметы.");}
+    finally{setBusy(false);}
+  }
+  const currentSummary=result?getItemDetailSummary(result.currentDetail,currentChoice?.item):null;
+  const candidateSummary=result?getItemDetailSummary(result.candidateDetail,candidateChoice?.item):null;
+  const metaRows=currentSummary&&candidateSummary?[
+    ["Редкость",currentSummary.grade,candidateSummary.grade],
+    ["Заточка",currentSummary.enchantLevel,candidateSummary.enchantLevel],
+    ["Exceed",currentSummary.exceedLevel,candidateSummary.exceedLevel],
+    ["Soul Binding",currentSummary.soulBindRate==null?null:currentSummary.soulBindRate+"%",candidateSummary.soulBindRate==null?null:candidateSummary.soulBindRate+"%"],
+    ["Слоты камней",currentSummary.magicStoneSlotCount,candidateSummary.magicStoneSlotCount],
+    ["Слоты божественных камней",currentSummary.godStoneSlotCount,candidateSummary.godStoneSlotCount]
+  ]:[];
+  return <section className="equipment-compare" aria-labelledby="equipment-compare-title">
+    <div className="equipment-compare-head"><div><p className="eyebrow">СРАВНЕНИЕ ПО ДАННЫМ NCSOFT</p><h3 id="equipment-compare-title">Сравнить однотипные предметы</h3></div><span className="tag">Без DPS-выдумок</span></div>
+    <p className="muted">Сейчас доступны сравнения надетых пар: серьги, кольца, браслеты и руны. Выбирай два предмета одного типа; значения берутся из подробного ответа NCSOFT.</p>
+    {choices.length>1?<div className="equipment-compare-controls">
+      <label>Текущий предмет<select value={currentKey} onChange={e=>{setCurrentKey(e.target.value);setResult(null);}}>{choices.map(x=><option key={x.key} value={x.key}>{localizeGameText(get(x.item,"name"))} · {localizeGameText(get(x.item,"slotPosName"))}</option>)}</select></label>
+      <label>С чем сравнить<select value={candidateKey} onChange={e=>{setCandidateKey(e.target.value);setResult(null);}} disabled={!candidates.length}>{candidates.map(x=><option key={x.key} value={x.key}>{localizeGameText(get(x.item,"name"))} · {localizeGameText(get(x.item,"slotPosName"))}</option>)}</select></label>
+      <button type="button" className="primary equipment-compare-action" onClick={loadComparison} disabled={busy||!candidateChoice}>{busy?"Сравниваю…":"Сравнить предметы"}</button>
+    </div>:<div className="equipment-compare-empty">В профиле пока нет двух предметов одного типа для прямого сравнения. Когда появятся парные кольца, серьги, браслеты или руны, они появятся здесь автоматически.</div>}
+    {error&&<p className="equipment-detail-error" role="alert">{error}</p>}
+    {result&&<div className="equipment-compare-result" aria-live="polite">
+      <div className="equipment-compare-names"><b>{localizeGameText(result.currentDetail.name||get(currentChoice?.item,"name"))}</b><span>→</span><b>{localizeGameText(result.candidateDetail.name||get(candidateChoice?.item,"name"))}</b></div>
+      {metaRows.length>0&&<div className="equipment-compare-meta">{metaRows.map(([label,a,b])=><div key={label}><small>{label}</small><span>{a==null?"—":localizeGameText(a)}</span><span>{b==null?"—":localizeGameText(b)}</span></div>)}</div>}
+      {result.groups.length?result.groups.map(group=><section className="equipment-compare-group" key={group.key}><h4>{group.label}</h4>{group.stats.map(stat=><div className="equipment-compare-stat" key={stat.id}><b>{localizeGameText(stat.name)}</b><span>{stat.currentValue??"—"}{stat.currentExtra!=null&&stat.currentExtra!==0?" ("+(stat.currentExtra>0?"+":"")+stat.currentExtra+")":""}</span><span>{stat.candidateValue??"—"}{stat.candidateExtra!=null&&stat.candidateExtra!==0?" ("+(stat.candidateExtra>0?"+":"")+stat.candidateExtra+")":""}</span><strong>{stat.valueDelta==null?"н/д":(stat.valueDelta>0?"+":"")+fmt(stat.valueDelta)}</strong></div>)}</section>):<p className="muted">NCSOFT не вернул сопоставимых числовых характеристик для этих предметов.</p>}
+      <p className="equipment-compare-note">Δ — разница значения второго предмета относительно первого. Это арифметическое сравнение строк, а не оценка DPS: разные характеристики нельзя складывать в единый рейтинг без проверенной модели урона.</p>
+    </div>}
+  </section>;
 }
 function Empty({error}){return <div className="empty-state"><span>＋</span><b>{error?"Не удалось получить данные из источника":"В этом разделе пока нет данных"}</b><small>{error||"Попробуй обновить профиль позже."}</small></div>}
