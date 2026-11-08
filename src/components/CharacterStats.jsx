@@ -58,7 +58,7 @@ async function fetchWithLimit(items, worker, limit = 4) {
   return results;
 }
 
-function StatSources({ item, equipment, boards }) {
+function StatSources({ item, equipment, boards, stats, title }) {
   const [result, setResult] = useState({ status: "idle", items: [], daevanion: [], failures: 0 });
   const aliases = useMemo(() => aliasesFor(item), [item]);
   useEffect(() => {
@@ -108,8 +108,16 @@ function StatSources({ item, equipment, boards }) {
 
   if (result.status === "loading") return <div className="character-stat-source-loading">Сверяем предметы, камни и доски NCSOFT…</div>;
   if (result.status === "error") return <p className="character-stat-source-empty">Не удалось получить детализацию источников. Попробуй раскрыть характеристику ещё раз.</p>;
-  const hasSources = result.items.length || result.daevanion.length;
+  const profileRows = asArray(stats).filter(entry => entry?.sourceGroup !== "statList" && matchesStat(entry, aliases));
+  const titleRows = ["statList", "statAdditionalList", "statEffectList", "effectList"].flatMap(key =>
+    asArray(title?.[key]).filter(entry => matchesStat(entry, aliases)).map(entry => ({ ...entry, sourceGroup: "Бонус титула" }))
+  );
+  const hasSources = result.items.length || result.daevanion.length || profileRows.length || titleRows.length;
   return <div className="character-stat-source-breakdown">
+    {(profileRows.length > 0 || titleRows.length > 0) && <section className="character-stat-source-item">
+      <div><b>Параметры профиля и титула</b><small>Дополнительные поля, явно возвращённые NCSOFT</small></div>
+      {[...profileRows, ...titleRows].map((stat, index) => <p key={stat.id || stat.name + index}><span>{stat.group || stat.sourceGroup || "Дополнительный источник"} · {localizeGameText(stat.name || stat.desc || "Бонус")}</span><strong>{formatItemStat(stat) || valueText(stat.value)}</strong></p>)}
+    </section>}
     {result.items.map(({ item: gear, rows, detail }, index) => <section className="character-stat-source-item" key={gear.id + ":" + (gear.slotPos || index)}>
       <div><b>{localizeGameText(gear.name || "Предмет")}</b><small>{localizeGameText(gear.slotPosName || "Экипировка")} · {localizeGameText(gear.grade || "")}{gear.enchantLevel != null ? " · +" + gear.enchantLevel : ""}</small></div>
       {rows.map((stat, i) => <p key={stat.id || stat.name + i}><span>{stat.sourceGroup}{stat.name ? " · " + localizeGameText(stat.name) : ""}</span><strong>{formatItemStat(stat) || valueText(stat.value)}</strong></p>)}
@@ -123,10 +131,12 @@ function StatSources({ item, equipment, boards }) {
   </div>;
 }
 
-function StatDetail({ item, entries, equipment, boards }) {
+function StatDetail({ item, entries, equipment, boards, title }) {
+  const aliases = aliasesFor(item);
   const related = entries.filter(entry =>
     entry === item.raw || entry.parentStat === item.sourceName ||
-    entry.parentStat === item.label || entry.name === item.sourceName
+    entry.parentStat === item.label || entry.name === item.sourceName ||
+    (entry?.sourceGroup !== "statList" && matchesStat(entry, aliases))
   );
   return <div className="character-stat-detail">
     <div className="character-stat-detail-head"><span>СОСТАВ ХАРАКТЕРИСТИКИ</span><b>{item.sourceName || item.label}</b></div>
@@ -136,12 +146,12 @@ function StatDetail({ item, entries, equipment, boards }) {
         <span>{localizeGameText(entry.name)}</span><b>{valueText(entry.value)}</b>
       </div>
     )}
-    <StatSources item={item} equipment={equipment} boards={boards}/>
+    <StatSources item={item} equipment={equipment} boards={boards} stats={entries} title={title}/>
     <p>Источники запрашиваются отдельно. Вклад отображается только при наличии соответствующего поля в ответе NCSOFT; недоступные значения не заменяются нулями или догадками.</p>
   </div>;
 }
 
-export default function CharacterStats({ stats = [], equipment = [], boards = [], error = "" }) {
+export default function CharacterStats({ stats = [], equipment = [], boards = [], title = {}, error = "" }) {
   const [expanded, setExpanded] = useState("");
   const sections = useMemo(() => buildRelevantStatSections(stats).map(section => ({
     ...section,
@@ -171,7 +181,7 @@ export default function CharacterStats({ stats = [], equipment = [], boards = []
                   <span className="character-stat-copy"><small>{item.hint}</small><b>{localizeGameText(item.label)}</b></span>
                   <strong>{valueText(item.value)}</strong><span className="character-stat-chevron">{isOpen ? "−" : "+"}</span>
                 </button>
-                {isOpen && <StatDetail item={item} entries={stats} equipment={equipment} boards={boards}/>}
+                {isOpen && <StatDetail item={item} entries={stats} equipment={equipment} boards={boards} title={title}/>}
               </article>;
             })}
           </div>
