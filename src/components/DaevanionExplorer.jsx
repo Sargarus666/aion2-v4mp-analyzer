@@ -22,7 +22,7 @@ function NodeButton({ node, index, selected, inPath, onSelect, minRow, minCol })
   const label = node.name || node.type || "Узел " + (index + 1);
   const icon = safeImageSource(node.icon);
   const cost = daevanionNodeCost(node);
-  return <button type="button"
+  return <button type="button" id={"daevanion-node-"+nodeKey(node)}
     className={"daevanion-grid-node " + (open ? "is-open " : "is-locked ") + (skill ? "is-skill " : "is-stat ") + (start ? "is-start " : "") + (inPath ? "is-route " : "") + (selected ? "is-selected " : "") + "grade-" + gradeClass(node)}
     style={{ gridRow:Number(node.row)-minRow+1, gridColumn:Number(node.col)-minCol+1 }}
     onClick={() => onSelect(node)}
