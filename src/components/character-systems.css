@@ -25,3 +25,41 @@
 .daevanion-node-inspector{background:var(--md-sys-color-surface-container)}.daevanion-node-inspector .eyebrow{margin:2px 0 14px}.daevanion-node-inspector h3{margin:0 0 10px;font-size:15px;line-height:1.4}.daevanion-inspector-status{font-size:9px;color:var(--md-sys-color-primary);font-weight:800;letter-spacing:.08em}.daevanion-inspector-coord{margin:10px 0;padding-bottom:10px;border-bottom:1px solid var(--md-sys-color-outline-variant);font-size:10px;color:var(--md-sys-color-on-surface-variant)}.daevanion-inspector-effect{padding:9px 10px;margin:7px 0;border-radius:10px;background:var(--md-sys-color-surface-container-high);font-size:10px;line-height:1.5}.daevanion-inspector-empty{min-height:170px;display:grid;place-items:center;text-align:center;color:var(--md-sys-color-on-surface-variant);font-size:11px;line-height:1.6}
 .daevanion-effects-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:13px}.daevanion-effects-overview section{padding:14px;border:1px solid var(--md-sys-color-outline-variant);border-radius:15px;background:var(--md-sys-color-surface-container-low)}.daevanion-effects-overview small{font-size:9px;letter-spacing:.07em;color:var(--md-sys-color-primary)}.daevanion-effects-overview p{margin:8px 0 0;font-size:10px;line-height:1.55;color:var(--md-sys-color-on-surface-variant)}
 @media(max-width:680px){.character-stats-grid{grid-template-columns:1fr}.character-stats-intro{align-items:flex-start;flex-direction:column}.daevanion-workspace{grid-template-columns:1fr}.daevanion-board-summary{gap:10px;padding:12px}.daevanion-board-count strong,.daevanion-board-percent strong{font-size:16px}.daevanion-map-viewport{min-height:250px;padding:12px}.daevanion-node-grid{grid-template-columns:repeat(var(--grid-cols),minmax(13px,22px));grid-template-rows:repeat(var(--grid-rows),minmax(13px,22px));gap:3px}.daevanion-grid-node{font-size:8px}.daevanion-effects-overview{grid-template-columns:1fr}}
+
+
+/* Shugo-style board navigation and route planning */
+.daevanion-map-viewport{cursor:grab;touch-action:pan-x pan-y;user-select:none}
+.daevanion-map-viewport:active{cursor:grabbing}
+.daevanion-map-viewport:fullscreen{width:100vw;height:100vh;max-height:none;min-height:100vh;border-radius:0;padding:7vh 8vw;background:var(--md-sys-color-surface);display:grid;place-items:center}
+.daevanion-map-viewport:fullscreen .daevanion-node-grid{--node-size:clamp(24px,3.1vw,46px)}
+.daevanion-node-grid{--node-size:clamp(17px,2.1vw,29px);grid-template-columns:repeat(var(--grid-cols),var(--node-size));grid-template-rows:repeat(var(--grid-rows),var(--node-size));gap:clamp(3px,.45vw,6px);width:max-content;height:max-content;transform:scale(var(--node-scale));transform-origin:center;will-change:transform}
+.daevanion-grid-node{position:relative;border-radius:8px;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
+.daevanion-grid-node.is-skill{border-radius:50%}
+.daevanion-grid-node.is-start{background:var(--md-sys-color-tertiary-container);border-color:var(--md-sys-color-tertiary);color:var(--md-sys-color-on-tertiary-container)}
+.daevanion-grid-node.is-route{outline:2px solid var(--md-sys-color-tertiary);outline-offset:2px;z-index:2;box-shadow:0 0 12px color-mix(in srgb,var(--md-sys-color-tertiary) 38%,transparent)}
+.daevanion-grid-node.is-selected{outline:2px solid var(--md-sys-color-secondary);outline-offset:3px;z-index:3}
+.daevanion-grid-node.grade-unique{border-width:2px;border-color:var(--md-sys-color-tertiary)}
+.daevanion-grid-node.grade-epic{border-color:var(--md-sys-color-primary)}
+.daevanion-grid-node.grade-rare{border-color:var(--md-sys-color-secondary)}
+.daevanion-grid-node span{pointer-events:none}
+.daevanion-map-legend i.skill{border-radius:50%;background:var(--md-sys-color-secondary)}
+.daevanion-map-legend i.route{background:var(--md-sys-color-tertiary);outline:2px solid var(--md-sys-color-tertiary-container)}
+.daevanion-route-card{margin-top:14px;padding:13px;border:1px solid var(--md-sys-color-tertiary);border-radius:14px;background:var(--md-sys-color-surface-container-high)}
+.daevanion-route-card>b{font-size:11px}
+.daevanion-route-card>div{display:flex;align-items:baseline;gap:8px;margin:10px 0}
+.daevanion-route-card>div strong{font-size:24px;color:var(--md-sys-color-tertiary)}
+.daevanion-route-card>div span{font-size:10px;color:var(--md-sys-color-on-surface-variant)}
+.daevanion-route-card button{width:100%;padding:9px 12px;border:0;border-radius:999px;background:var(--md-sys-color-tertiary-container);color:var(--md-sys-color-on-tertiary-container);font-size:10px;font-weight:700}
+.daevanion-route-card small{display:block;margin-top:9px;font-size:9px;line-height:1.5;color:var(--md-sys-color-on-surface-variant)}
+/* Per-stat source breakdown */
+.character-stat-source-loading,.character-stat-source-empty,.character-stat-source-warning{margin:12px 0;padding:11px 12px;border-radius:11px;background:var(--md-sys-color-surface-container-high);font-size:10px;line-height:1.55;color:var(--md-sys-color-on-surface-variant)}
+.character-stat-source-warning{border:1px solid var(--md-sys-color-outline-variant)}
+.character-stat-source-breakdown{display:grid;gap:9px;margin-top:12px}
+.character-stat-source-item{padding:11px 12px;border:1px solid var(--md-sys-color-outline-variant);border-radius:12px;background:var(--md-sys-color-surface-container-low)}
+.character-stat-source-item>div:first-child{display:grid;gap:4px;margin-bottom:8px}
+.character-stat-source-item>div:first-child b{font-size:11px}
+.character-stat-source-item>div:first-child small{font-size:9px;color:var(--md-sys-color-on-surface-variant)}
+.character-stat-source-item>p{display:flex;justify-content:space-between;gap:12px;margin:0;padding:6px 0;border-top:1px solid var(--md-sys-color-outline-variant)}
+.character-stat-source-item>p span{font-size:9px;color:var(--md-sys-color-on-surface-variant)}
+.character-stat-source-item>p strong{font-size:10px;text-align:right}
+@media(max-width:680px){.daevanion-map-viewport{touch-action:pan-x pan-y}.daevanion-node-grid{--node-size:19px}.daevanion-map-viewport:fullscreen .daevanion-node-grid{--node-size:clamp(19px,4vw,34px)}}
