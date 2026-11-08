@@ -39,7 +39,7 @@ function numericStatValue(value) {
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
   if (typeof value !== "string") return null;
   const normalized = value.trim().replace(/,/g, "");
-  if (!/^[+-]?(?:\\d+\\.?\\d*|\\.\\d+)$/.test(normalized)) return null;
+  if (!/^[+-]?(?:\d+\\.?\d*|\\.\d+)$/.test(normalized)) return null;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
 }
