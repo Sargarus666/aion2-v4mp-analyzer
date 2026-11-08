@@ -64,7 +64,7 @@ console.log("NCSOFT_INFO_STAT_SAMPLE", JSON.stringify(statList.map(x => ({
 
 const boards = Array.isArray(info?.daevanion?.boardList) ? info.daevanion.boardList : [];
 const items = Array.isArray(gear?.equipment?.equipmentList) ? gear.equipment.equipmentList : [];
-const arcanaRows = items.filter(item => /^(?:arcana|аркана)\\s*\\d+$/i.test(String(item?.slotPosName ?? "").trim()));
+const arcanaRows = items.filter(item => /^(?:arcana|аркана)\s*\d+$/i.test(String(item?.slotPosName ?? "").trim()));
 const skills = Array.isArray(gear?.skill?.skillList) ? gear.skill.skillList : [];
 console.log("NCSOFT_EQUIPMENT_SLOT_NAMES", JSON.stringify([...new Set(items.map(item => item?.slotPosName).filter(Boolean))]));
 console.log("NCSOFT_EQUIPMENT_ARCANA_SLOT_COUNT", arcanaRows.length);
