@@ -28,6 +28,7 @@ export default function DaevanionExplorer({ boards = [], error = "" }) {
   const [loadError, setLoadError] = useState("");
   const [filter, setFilter] = useState("all");
   const [zoom, setZoom] = useState(1);
+  const [reloadToken, setReloadToken] = useState(0);
   const [selectedNode, setSelectedNode] = useState(null);
   const activeBoard = boards.find(board => String(board.id) === activeId) || boards[0] || null;
   const progress = normalizeDaevanionProgress(activeBoard || {});
@@ -57,7 +58,7 @@ export default function DaevanionExplorer({ boards = [], error = "" }) {
       if (!cancelled && err.name !== "AbortError") setLoadError(err.message || "Ошибка загрузки доски");
     }).finally(() => { if (!cancelled) setBusy(false); });
     return () => { cancelled = true; controller.abort(); };
-  }, [activeBoard?.id]);
+  }, [activeBoard?.id, reloadToken]);
 
   const openedEffects = effects(normalized.openStatEffectList);
   const skillEffects = effects(normalized.openSkillEffectList);
@@ -80,7 +81,7 @@ export default function DaevanionExplorer({ boards = [], error = "" }) {
       </div>
       {progress.percent != null && <div className="daevanion-progress-track" role="progressbar" aria-label={"Прогресс " + boardName(activeBoard)} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.percent}><i style={{ width: progress.percent + "%" }}/></div>}
       {busy && <div className="daevanion-loading">Загружаем структуру доски и эффекты…</div>}
-      {loadError && <div className="daevanion-error" role="alert"><span>{loadError}</span><button type="button" onClick={() => setActiveId("") || setTimeout(() => setActiveId(String(activeBoard?.id || "")), 0)}>Повторить</button></div>}
+      {loadError && <div className="daevanion-error" role="alert"><span>{loadError}</span><button type="button" onClick={() => setReloadToken(value => value + 1)}>Повторить</button></div>}
       {!busy && detail && <>
         <div className="daevanion-workspace">
           <div className="daevanion-map-panel">
