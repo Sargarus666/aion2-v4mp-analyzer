@@ -4,7 +4,6 @@ import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
-import android.os.Build
 import android.os.Environment
 import android.provider.Settings
 import android.widget.Toast
@@ -16,6 +15,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
+import androidx.core.content.ContextCompat
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.graphics.Color
@@ -103,12 +103,12 @@ class MainActivity : ComponentActivity() {
 
     private fun registerDownloadReceiver() {
         val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-        if (Build.VERSION.SDK_INT >= 33) {
-            registerReceiver(downloadReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            @Suppress("DEPRECATION")
-            registerReceiver(downloadReceiver, filter)
-        }
+        ContextCompat.registerReceiver(
+            this,
+            downloadReceiver,
+            filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
     }
 
     private fun startApkDownload(url: String) {
