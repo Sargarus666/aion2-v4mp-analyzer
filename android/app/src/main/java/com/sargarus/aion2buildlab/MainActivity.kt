@@ -9,6 +9,10 @@ import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -199,6 +203,8 @@ private fun HomeScreen() {
 
 @Composable
 private fun BuildScreen(onOpenBuild: () -> Unit) {
+    var showScreenshot by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -211,17 +217,57 @@ private fun BuildScreen(onOpenBuild: () -> Unit) {
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
         ) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                AsyncImage(
-                    model = BUILD_SCREENSHOT_URL,
-                    contentDescription = "Сохранённый скриншот билда персонажа v4mp",
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 180.dp, max = 360.dp).clip(RoundedCornerShape(20.dp))
-                )
+                Box {
+                    AsyncImage(
+                        model = BUILD_SCREENSHOT_URL,
+                        contentDescription = "Открыть скриншот билда на весь экран",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 180.dp, max = 360.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable { showScreenshot = true }
+                    )
+                    Surface(
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp),
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+                    ) {
+                        Row(Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Filled.ZoomIn, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(5.dp))
+                            Text("Увеличить", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                }
                 Text("Твой персонаж", style = MaterialTheme.typography.titleLarge)
-                Text("Открой актуальный профиль в анализаторе: характеристики, экипировка, умения и план улучшений.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Нажми на скриншот, чтобы открыть его поверх приложения и рассмотреть детали. Новые скриншоты не создаются.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Button(onClick = onOpenBuild, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Filled.OpenInNew, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text("Открыть мой билд")
+                }
+            }
+        }
+    }
+
+    if (showScreenshot) {
+        Dialog(
+            onDismissRequest = { showScreenshot = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+        ) {
+            Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
+                Box(Modifier.fillMaxSize()) {
+                    AsyncImage(
+                        model = BUILD_SCREENSHOT_URL,
+                        contentDescription = "Увеличенный скриншот билда v4mp",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxSize().clickable { showScreenshot = false }
+                    )
+                    IconButton(
+                        onClick = { showScreenshot = false },
+                        modifier = Modifier.align(Alignment.TopEnd).padding(12.dp)
+                    ) {
+                        Icon(Icons.Filled.Close, contentDescription = "Закрыть просмотр", tint = Color.White)
+                    }
                 }
             }
         }
