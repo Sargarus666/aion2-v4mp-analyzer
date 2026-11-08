@@ -123,9 +123,11 @@ export default function DaevanionExplorer({ boards = [], error = "" }) {
     <div className="panel-head"><div><p className="eyebrow">ИНТЕРАКТИВНАЯ КАРТА · NCSOFT</p><h2>Даэванион</h2></div><span className="tag">{boards.length} досок</span></div>
     {boards.length ? <>
       <div className="daevanion-board-tabs" role="tablist" aria-label="Доски Даэваниона">
-        {boards.map((board,index)=><button type="button" role="tab" aria-selected={String(board.id)===String(activeBoard?.id)} className={String(board.id)===String(activeBoard?.id)?"active":""} key={board.id || board.name || index} onClick={()=>{setActiveId(String(board.id));setZoom(1);setFilter("all");}}>
-          {localizeGameText(board.name || "Доска "+(index+1))}
-        </button>)}
+        {boards.map((board,index)=>{const boardProgress=normalizeDaevanionProgress(board);return <button type="button" role="tab" aria-selected={String(board.id)===String(activeBoard?.id)} className={String(board.id)===String(activeBoard?.id)?"active":""} key={board.id || board.name || index} onClick={()=>{setActiveId(String(board.id));setZoom(1);setFilter("all");}}>
+          <b>{localizeGameText(board.name || "Доска "+(index+1))}</b>
+          <small>{boardProgress.opened==null?"—":boardProgress.opened} / {boardProgress.total??"—"}</small>
+          <i><span style={{width:(boardProgress.percent??0)+"%"}}/></i>
+        </button>;})}
       </div>
       <div className="daevanion-board-summary">
         <div className="daevanion-board-identity">{icon && <img src={icon} alt="" loading="lazy"/>}<div><b>{boardName(activeBoard)}</b><small>{activeBoard?.open==null?"Статус не указан":Number(activeBoard.open)===1?"Доска активна":"Доска закрыта"}</small></div></div>
