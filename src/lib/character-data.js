@@ -97,7 +97,7 @@ export function normalizeProfileResponse(info = {}, gear = {}) {
   ].filter(Array.isArray);
   // NCSOFT may expose equipped Arcana as rows in equipment.equipmentList.
   // Only an explicit Arcana slot name is sufficient; never infer it from item names.
-  const isArcanaSlot = slot => typeof slot === "string" && /^(?:arcana|аркана)\\s*\\d+$/i.test(slot.trim());
+  const isArcanaSlot = slot => typeof slot === "string" && /^(?:arcana|аркана)\s*\d+$/i.test(slot.trim());
   const equippedArcana = asArray(equipment?.equipmentList).filter(item => {
     if (!item || typeof item !== "object" || Array.isArray(item)) return false;
     const slot = item.slotPosName ?? item.slot_pos_name ?? item.slotName ?? item.slot;
@@ -112,7 +112,7 @@ export function normalizeProfileResponse(info = {}, gear = {}) {
     const slot = item.slotPosName ?? item.slot_pos_name ?? item.slotName ?? item.slot;
     const id = item.id ?? item.arcanaId ?? item.arcana_id ?? item.itemId ?? item.item_id;
     const slotKey = typeof slot === "string" && slot.trim()
-      ? slot.trim().toLowerCase().replace(/\\s+/g, "")
+      ? slot.trim().toLowerCase().replace(/\s+/g, "")
       : null;
     const idKey = id == null || id === "" ? null : String(id);
     if (slotKey) {
