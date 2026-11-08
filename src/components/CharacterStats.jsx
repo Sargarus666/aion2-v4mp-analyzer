@@ -60,7 +60,6 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
   const [failures,setFailures] = useState(0);
   const [expanded,setExpanded] = useState("");
   const [filter,setFilter] = useState("all");
-  const [view,setView] = useState("divine");
 
   useEffect(() => {
     const controller = new AbortController();
