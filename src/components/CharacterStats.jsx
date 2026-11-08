@@ -8,8 +8,8 @@ const normalize = value => String(value ?? "").toLowerCase().normalize("NFKC").r
 const numberOf = value => {
   if (value == null || value === "") return null;
   const raw = String(value).trim().replace(/,/g, "");
-  if (!/^[+-]?(?:\\d+\\.?\\d*|\\.\\d+)\\s*%?$/.test(raw)) return null;
-  const n = Number(raw.replace(/[+%\\s]/g, ""));
+  if (!/^[+-]?(?:\d+\.?\d*|\.\d+)\s*%?$/.test(raw)) return null;
+  const n = Number(raw.replace(/[+%\s]/g, ""));
   return Number.isFinite(n) ? n : null;
 };
 const groups = [
