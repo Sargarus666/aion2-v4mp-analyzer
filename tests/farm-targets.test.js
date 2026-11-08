@@ -84,3 +84,24 @@ test("matches the live NCSOFT slot names for shoulders and paired accessories", 
   ]);
   assert.deepEqual(rows.map(row => row.currentLevel), [80, 80, 80, 80, 80]);
 });
+
+
+test("recognizes every accessory slot exposed by the live NCSOFT payload", () => {
+  const rows = assessFarmTargetCandidate({
+    baseLevel: 86,
+    maxEnhance: 15,
+    slots: ["Belt", "Bracelet", "Rune", "Amulet"]
+  }, [
+    { name: "Unknown Belt", slotPosName: "Belt", enchantLevel: 0 },
+    { name: "Unknown Bracelet", slotPosName: "Bracelet1", enchantLevel: 0 },
+    { name: "Unknown Bracelet", slotPosName: "Bracelet2", enchantLevel: 0 },
+    { name: "Unknown Rune", slotPosName: "Rune1", enchantLevel: 0 },
+    { name: "Unknown Rune", slotPosName: "Rune2", enchantLevel: 0 },
+    { name: "Unknown Amulet", slotPosName: "Amulet", enchantLevel: 0 }
+  ]);
+  assert.deepEqual(rows.map(row => row.slotLabel), [
+    "Пояс", "Браслет 1", "Браслет 2", "Руна 1", "Руна 2", "Амулет"
+  ]);
+  assert.deepEqual(rows.map(row => row.status), Array(6).fill("unknown"));
+  assert.deepEqual(rows.map(row => row.currentLevel), Array(6).fill(null));
+});
