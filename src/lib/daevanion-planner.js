@@ -10,7 +10,7 @@ const isUsable = node => !["none", "empty", "null"].includes(typeName(node));
 export function daevanionNodeCost(node = {}) {
   const grade = gradeName(node);
   if (/unique|уник/.test(grade)) return 4;
-  if (/epic|эпич/.test(grade)) return 3;
+  if (/epic|эпич|legend|легенд/.test(grade)) return 3;
   if (/rare|редк/.test(grade)) return 2;
   if (/common|обыч/.test(grade)) return 1;
   return 0;
