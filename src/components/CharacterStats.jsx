@@ -7,7 +7,9 @@ const text = value => value == null || value === "" ? "—" : String(value);
 const normalize = value => String(value ?? "").toLowerCase().normalize("NFKC").replace(/[^a-zа-яё0-9]+/gi, "");
 const numberOf = value => {
   if (value == null || value === "") return null;
-  const n = Number(String(value).replace(/[+, ]/g, ""));
+  const raw = String(value).trim().replace(/,/g, "");
+  if (!/^[+-]?(?:\\d+\\.?\\d*|\\.\\d+)\\s*%?$/.test(raw)) return null;
+  const n = Number(raw.replace(/[+%\\s]/g, ""));
   return Number.isFinite(n) ? n : null;
 };
 const groups = [
@@ -136,7 +138,7 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
   const cards = useMemo(() => {
     const all = [...aggregate.map(item => ({
       ...item,
-      totalLabel:item.numericCount ? item.sum.toLocaleString("ru-RU")+(item.extraCount && item.extra ? " (+"+item.extra.toLocaleString("ru-RU")+")" : "") : item.sources.some(row=>row.kind==="Божественный камень") ? "Эффект" : "—"
+      totalLabel:item.numericCount ? item.sum.toLocaleString("ru-RU")+(item.sources.some(row=>String(row.value).includes("%"))?"%":"")+(item.extraCount && item.extra ? " (+"+item.extra.toLocaleString("ru-RU")+(item.sources.some(row=>String(row.extra).includes("%"))?"%":"")+")" : "") : item.sources.some(row=>row.kind==="Божественный камень") ? "Эффект" : "—"
     }))];
     return all;
   },[aggregate]);
