@@ -15,3 +15,30 @@ test("returns empty text for missing or non-object stats", () => {
   assert.equal(formatItemStat(null), "");
   assert.equal(formatItemStat("80"), "");
 });
+
+
+test("prefers item-detail grade over the compact equipment grade", async () => {
+  const { getItemDetailSummary } = await import("../src/lib/item-detail.js");
+  const summary = getItemDetailSummary({
+    grade: "Epic",
+    enchantLevel: 0,
+    soulBindRate: 100,
+    magicStoneSlotCount: null,
+    godStoneSlotCount: null
+  }, { grade: "Legend", enchantLevel: 3, exceedLevel: 2 });
+  assert.equal(summary.grade, "Epic");
+  assert.equal(summary.enchantLevel, 0);
+  assert.equal(summary.exceedLevel, 2);
+  assert.equal(summary.soulBindRate, 100);
+});
+
+test("keeps zero socket counts and does not invent missing binding data", async () => {
+  const { getItemDetailSummary } = await import("../src/lib/item-detail.js");
+  const summary = getItemDetailSummary({
+    magicStoneSlotCount: 0,
+    godStoneSlotCount: 0
+  });
+  assert.equal(summary.magicStoneSlotCount, 0);
+  assert.equal(summary.godStoneSlotCount, 0);
+  assert.equal(summary.soulBindRate, null);
+});
