@@ -95,7 +95,13 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
   const profileRows = useMemo(() => asArray(stats).flatMap((entry,index) => {
     if (!entry || typeof entry !== "object") return [];
     const nested = Boolean(entry.parentStat);
-    const name = nested ? (entry.value || entry.name) : (entry.name || entry.statName || entry.type || "Параметр "+(index+1));
+    // Object bonuses have their own stat name (e.g. "Double Resist") and
+    // must not be replaced by the numeric value. String bonuses have only a
+    // generated placeholder name, so keep the original effect text visible.
+    const generatedBonusName = nested && / · бонус \\d+$/.test(String(entry.name || ""));
+    const name = generatedBonusName
+      ? String(entry.value || entry.name)
+      : (entry.name || entry.statName || entry.type || "Параметр "+(index+1));
     return [{ key:"profile-"+index, name, value:text(entry.value), category:classify(name), source:nested ? "Бонус к · "+entry.parentStat : "Профиль NCSOFT", kind:nested ? "Вложенный бонус" : "Значение персонажа", raw:entry }];
   }),[stats]);
 
