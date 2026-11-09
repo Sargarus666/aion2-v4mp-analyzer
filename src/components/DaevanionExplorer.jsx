@@ -20,15 +20,21 @@ function NodeButton({ node, index, selected, inPath, onSelect, minRow, minCol })
   const skill = isSkill(node);
   const start = isStart(node);
   const label = node.name || node.type || "Узел " + (index + 1);
-  const icon = safeImageSource(node.icon);
+  const icon = safeImageSource(node.icon || node.iconUrl || node.skillIcon || node.skillIconUrl);
   const cost = daevanionNodeCost(node);
+  const rarity = gradeClass(node) || "unknown";
   return <button type="button" id={"daevanion-node-"+nodeKey(node)}
-    className={"daevanion-grid-node " + (open ? "is-open " : "is-locked ") + (skill ? "is-skill " : "is-stat ") + (start ? "is-start " : "") + (inPath ? "is-route " : "") + (selected ? "is-selected " : "") + "grade-" + gradeClass(node)}
+    className={"daevanion-grid-node " + (open ? "is-open " : "is-locked ") + (skill ? "is-skill " : "is-stat ") + (start ? "is-start " : "") + (inPath ? "is-route " : "") + (selected ? "is-selected " : "") + "grade-" + rarity}
+    data-rarity={rarity} data-node-type={skill?"skill":start?"start":"stat"} data-open={open?"true":"false"}
     style={{ gridRow:Number(node.row)-minRow+1, gridColumn:Number(node.col)-minCol+1 }}
     onClick={() => onSelect(node)}
     aria-label={localizeGameText(label)+(open?", открыт":", закрыт")+(cost?", стоимость "+cost:"")}
+    aria-pressed={selected}
     title={localizeGameText(label)+(cost?" · "+cost+" крист.":"")}>
-    {icon ? <img src={icon} alt="" loading="lazy" decoding="async"/> : <span>{start?"✦":skill?"✚":open?"◆":"◇"}</span>}
+    <span className="daevanion-node-face">
+      {icon ? <img src={icon} alt="" loading="lazy" decoding="async"/> : <span className="daevanion-node-glyph">{start?"✦":skill?"✚":open?"◆":"◇"}</span>}
+    </span>
+    {cost!=null && !start && <span className="daevanion-node-cost">{cost}</span>}
   </button>;
 }
 
