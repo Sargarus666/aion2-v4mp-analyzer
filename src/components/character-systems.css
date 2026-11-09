@@ -177,3 +177,28 @@
 
 .daevanion-active-effects-title{grid-column:1/-1;display:flex;align-items:center;gap:7px;margin:2px 0 -5px;font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--md-sys-color-primary)}
 .daevanion-active-effects-title b{font-size:10px;font-variant-numeric:tabular-nums}
+
+
+/* Daevanion nodes: original CSS/SVG treatment inspired by open MIT planner patterns.
+   Game-owned textures are intentionally not copied from third-party repositories. */
+.daevanion-grid-node{isolation:isolate;overflow:visible;border:0;background:transparent;padding:2px;min-width:0;min-height:0;filter:drop-shadow(0 2px 3px #0008)}
+.daevanion-node-face{position:relative;display:grid;place-items:center;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;border:2px solid var(--node-rarity,#8993a7);border-radius:10px;background:linear-gradient(145deg,color-mix(in srgb,var(--node-rarity,#8993a7) 25%,#17202c),#0c111b 72%);box-shadow:inset 0 0 0 1px #ffffff12,inset 0 2px 8px #ffffff12;transition:filter .15s ease,transform .15s ease}
+.daevanion-grid-node.is-skill .daevanion-node-face{border-radius:50%}
+.daevanion-grid-node.is-locked .daevanion-node-face{filter:saturate(.55) brightness(.66)}
+.daevanion-grid-node.is-open .daevanion-node-face{background:linear-gradient(145deg,color-mix(in srgb,var(--node-rarity,#8993a7) 42%,#263344),#111925 76%);box-shadow:inset 0 0 0 1px #ffffff24,0 0 9px color-mix(in srgb,var(--node-rarity,#8993a7) 22%,transparent)}
+.daevanion-grid-node.is-selected .daevanion-node-face{border-color:#f6d58b;box-shadow:inset 0 0 0 2px #f6d58b55,0 0 13px #e8b85c99}
+.daevanion-grid-node.is-route .daevanion-node-face{outline:2px solid #70d8ee;outline-offset:2px}
+.daevanion-node-face img{display:block;width:72%;height:72%;object-fit:contain;filter:drop-shadow(0 1px 2px #0009)}
+.daevanion-node-glyph{font-size:clamp(9px,1vw,17px);font-weight:800;color:var(--node-rarity,#c4cad4);line-height:1}
+.daevanion-node-cost{position:absolute;right:-1px;bottom:-2px;z-index:2;min-width:11px;padding:1px 3px;border:1px solid color-mix(in srgb,var(--node-rarity,#8993a7) 70%,#fff);border-radius:5px;background:#090e17;color:#f4f0e6;font-size:7px;line-height:1.1;font-variant-numeric:tabular-nums;text-align:center}
+.daevanion-grid-node.grade-common{--node-rarity:#a9b1c0}
+.daevanion-grid-node.grade-rare{--node-rarity:#64b9ef}
+.daevanion-grid-node.grade-epic{--node-rarity:#8b9cff}
+.daevanion-grid-node.grade-unique{--node-rarity:#e8b65b}
+.daevanion-grid-node.grade-legend,.daevanion-grid-node.grade-legendary{--node-rarity:#e98758}
+.daevanion-grid-node.grade-heroic{--node-rarity:#d88af2}
+.daevanion-grid-node.is-start .daevanion-node-face{border-radius:50%;border-color:#f2d18b;background:radial-gradient(circle,#f2d18b55,#18202c 68%);box-shadow:0 0 16px #e8b85c77}
+.daevanion-grid-node.is-start .daevanion-node-glyph{color:#ffe2a1;font-size:16px}
+.daevanion-grid-node:hover:not(:disabled) .daevanion-node-face{transform:scale(1.08);filter:brightness(1.18)}
+.daevanion-grid-node:focus-visible{outline:2px solid var(--md-sys-color-primary);outline-offset:3px;z-index:4}
+@media(max-width:680px){.daevanion-node-cost{font-size:6px;min-width:9px;padding:1px 2px}.daevanion-node-face{border-width:1.5px;border-radius:7px}}
