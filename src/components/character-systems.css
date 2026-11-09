@@ -143,3 +143,34 @@
 .daevanion-grid-node.grade-unique{border-color:#b78be8;box-shadow:inset 0 0 0 1px #b78be8}
 .daevanion-grid-node.grade-legend,.daevanion-grid-node.grade-legendary{border-color:#d5a94b;box-shadow:inset 0 0 0 1px #d5a94b}
 @media(max-width:680px){.daevanion-board-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}.daevanion-board-tabs button{min-width:0}}
+
+
+/* Shugo-style character stats: ten divine attributes in a ring and six base attributes in a hex */
+.shugo-stats-view{margin:22px 0 26px;padding:16px;border:1px solid var(--md-sys-color-outline-variant);border-radius:20px;background:var(--md-sys-color-surface-container-low)}
+.shugo-stats-view .character-profile-attributes-head{margin-bottom:14px}
+.shugo-stats-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:14px}
+.shugo-stats-tabs button{flex:1 0 auto;min-height:38px;padding:9px 13px;border:1px solid var(--md-sys-color-outline-variant);border-radius:999px;background:var(--md-sys-color-surface-container);color:var(--md-sys-color-on-surface-variant);font-size:10px;font-weight:650}
+.shugo-stats-tabs button.active{background:var(--md-sys-color-primary-container);border-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary-container)}
+.shugo-divine-ring{position:relative;width:min(100%,430px);aspect-ratio:1;margin:4px auto 10px;border:1px solid var(--md-sys-color-outline-variant);border-radius:50%;background:radial-gradient(circle,var(--md-sys-color-surface-container) 0 28%,transparent 28.5%),radial-gradient(circle,transparent 0 56%,var(--md-sys-color-outline-variant) 56.3%,transparent 56.8%)}
+.shugo-divine-stat{position:absolute;display:grid;place-items:center;gap:4px;width:88px;min-height:58px;padding:7px 5px;transform:translate(-50%,-50%);border:1px solid var(--md-sys-color-outline-variant);border-radius:13px;background:var(--md-sys-color-surface-container-high);text-align:center;box-shadow:0 2px 8px #00000012}
+.shugo-divine-stat small,.shugo-base-stat small{font-size:9px;line-height:1.25;color:var(--md-sys-color-on-surface-variant)}
+.shugo-divine-stat strong,.shugo-base-stat strong{font-size:16px;font-variant-numeric:tabular-nums}
+.shugo-divine-stat.is-missing,.shugo-base-stat.is-missing{opacity:.58}
+.shugo-divine-center{position:absolute;left:50%;top:50%;display:grid;gap:4px;place-items:center;transform:translate(-50%,-50%);text-align:center}
+.shugo-divine-center b{font-size:10px;letter-spacing:.08em;color:var(--md-sys-color-primary)}
+.shugo-divine-center small{font-size:9px;color:var(--md-sys-color-on-surface-variant)}
+.shugo-base-hex{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(4,minmax(72px,auto));gap:8px;max-width:430px;margin:8px auto 12px}
+.shugo-base-stat{display:grid;align-content:center;justify-items:center;gap:6px;min-width:0;padding:10px 5px;border:1px solid var(--md-sys-color-outline-variant);border-radius:16px;background:var(--md-sys-color-surface-container-high);text-align:center}
+.shugo-base-stat:nth-child(1){grid-column:2;grid-row:1}
+.shugo-base-stat:nth-child(2){grid-column:1;grid-row:2}
+.shugo-base-stat:nth-child(3){grid-column:3;grid-row:2}
+.shugo-base-stat:nth-child(4){grid-column:1;grid-row:3}
+.shugo-base-stat:nth-child(5){grid-column:3;grid-row:3}
+.shugo-base-stat:nth-child(6){grid-column:2;grid-row:4}
+@media(max-width:420px){
+  .shugo-stats-view{padding:12px}
+  .shugo-divine-stat{width:76px;min-height:54px}
+  .shugo-divine-stat small,.shugo-base-stat small{font-size:8px}
+  .shugo-divine-stat strong,.shugo-base-stat strong{font-size:14px}
+  .shugo-base-hex{gap:6px;grid-template-rows:repeat(4,minmax(66px,auto))}
+}
