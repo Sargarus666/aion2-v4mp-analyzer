@@ -167,8 +167,9 @@ export default function DaevanionExplorer({ boards = [], error = "" }) {
           </aside>
         </div>
         <div className="daevanion-effects-overview">
-          <section><small>АКТИВНЫЕ ЭФФЕКТЫ ХАРАКТЕРИСТИК</small>{openedEffects.length?openedEffects.map((effect,index)=><p key={index}>{localizeGameText(effect)}</p>):<p className="muted">NCSOFT не вернул эффекты характеристик</p>}</section>
-          <section><small>АКТИВНЫЕ ЭФФЕКТЫ НАВЫКОВ</small>{skillEffects.length?skillEffects.map((effect,index)=><p key={index}>{localizeGameText(effect)}</p>):<p className="muted">NCSOFT не вернул эффекты навыков</p>}</section>
+          <div className="daevanion-active-effects-title">АКТИВНЫЕ ЭФФЕКТЫ <b>({openedEffects.length+skillEffects.length})</b></div>
+          <section><small>ХАРАКТЕРИСТИКИ · {openedEffects.length}</small>{openedEffects.length?openedEffects.map((effect,index)=><p key={index}>{localizeGameText(effect)}</p>):<p className="muted">NCSOFT не вернул эффекты характеристик</p>}</section>
+          <section><small>УЛУЧШЕНИЯ УМЕНИЙ · {skillEffects.length}</small>{skillEffects.length?skillEffects.map((effect,index)=><p key={index}>{localizeGameText(effect)}</p>):<p className="muted">NCSOFT не вернул эффекты навыков</p>}</section>
         </div>
         <div className="daevanion-node-summaries">
           <section><div className="daevanion-node-summary-head"><small>УЛУЧШЕНИЯ УМЕНИЙ</small><b>{openedSkillNodes.length}</b></div>{openedSkillNodes.length?openedSkillNodes.map(node=><div className="daevanion-node-summary-row" key={nodeKey(node)}><span>{localizeGameText(node.name || "Улучшение навыка")}</span><strong>{effects(node.effectList).join(" · ") || "Открыто"}</strong></div>):<p className="muted">Открытых улучшений навыков нет</p>}</section>
