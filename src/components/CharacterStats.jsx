@@ -20,6 +20,36 @@ const groups = [
 ];
 const sourceLabels = { mainStats:"Основные параметры", subStats:"Дополнительные параметры", magicStoneStat:"Магические камни", godStoneStat:"Божественный камень" };
 
+const DIVINE_STAT_DEFS = [
+  { id:"destruction", label:"Разрушение", aliases:["Destruction","Разрушение"] },
+  { id:"death", label:"Смерть", aliases:["Death","Смерть"] },
+  { id:"wisdom", label:"Мудрость", aliases:["Wisdom","Мудрость"] },
+  { id:"destiny", label:"Судьба", aliases:["Destiny","Судьба"] },
+  { id:"space", label:"Пространство", aliases:["Space","Пространство"] },
+  { id:"time", label:"Время", aliases:["Time","Время"] },
+  { id:"life", label:"Жизнь", aliases:["Life","Жизнь"] },
+  { id:"illusion", label:"Иллюзия", aliases:["Illusion","Иллюзия"] },
+  { id:"freedom", label:"Свобода", aliases:["Freedom","Свобода"] },
+  { id:"justice", label:"Справедливость", aliases:["Justice","Справедливость"] }
+];
+const BASE_STAT_DEFS = [
+  { id:"might", label:"Мощь", aliases:["Might","Мощь"] },
+  { id:"dexterity", label:"Ловкость", aliases:["Dexterity","Ловкость"] },
+  { id:"precision", label:"Точность", aliases:["Precision","Точность"] },
+  { id:"willpower", label:"Воля", aliases:["Willpower","Воля"] },
+  { id:"intelligence", label:"Интеллект", aliases:["Intelligence","Интеллект"] },
+  { id:"health", label:"Здоровье", aliases:["Health","Здоровье"] }
+];
+function findProfileStat(entries, aliases) {
+  const wanted = aliases.map(normalize);
+  return asArray(entries).find(entry => {
+    if (!entry || typeof entry !== "object" || entry.parentStat) return false;
+    const names = [entry.name,entry.statName,entry.displayName,entry.statTypeName,entry.typeName,entry.statType,entry.type,entry.key]
+      .filter(Boolean).map(normalize);
+    return names.some(name => wanted.some(alias => name === alias || name.startsWith(alias)));
+  }) || null;
+}
+
 async function fetchPool(items, worker, limit=4) {
   const out = new Array(items.length);
   let cursor = 0;
@@ -60,6 +90,7 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
   const [failures,setFailures] = useState(0);
   const [expanded,setExpanded] = useState("");
   const [filter,setFilter] = useState("all");
+  const [profileStatView,setProfileStatView] = useState("divine");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -91,6 +122,13 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
     load().catch(error => { if (!cancelled && error?.name !== "AbortError") { setLoading(false); setFailures(1); } });
     return () => { cancelled=true; controller.abort(); };
   },[equipment,boards]);
+
+  const divineStats = useMemo(() => DIVINE_STAT_DEFS.map(def => ({
+    ...def, entry:findProfileStat(stats,def.aliases)
+  })),[stats]);
+  const baseStats = useMemo(() => BASE_STAT_DEFS.map(def => ({
+    ...def, entry:findProfileStat(stats,def.aliases)
+  })),[stats]);
 
   const profileRows = useMemo(() => asArray(stats).flatMap((entry,index) => {
     if (!entry || typeof entry !== "object") return [];
@@ -157,6 +195,32 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
   return <section className="panel character-stats-panel">
     <div className="panel-head"><div><p className="eyebrow">СВОДКА ИСТОЧНИКОВ · NCSOFT</p><h2>Характеристики</h2></div><span className="tag">{aggregate.length} параметров</span></div>
     <div className="character-stats-intro"><div><b>Суммарные параметры экипировки</b><p>Собраны из подробных ответов NCSOFT: оружие, броня, аксессуары, магические камни и божественный камень. Нажми на параметр, чтобы увидеть каждый предмет-источник.</p></div><span>{gearRows.length}/{asArray(equipment).length} предметов</span></div>
+    <section className="shugo-stats-view">
+      <div className="character-profile-attributes-head">
+        <div><p className="eyebrow">ПРЯМОЙ СРЕЗ ПРОФИЛЯ · NCSOFT</p><h3>Статистика персонажа</h3></div>
+        <span>{asArray(stats).length} строк источника</span>
+      </div>
+      <div className="shugo-stats-tabs" role="tablist" aria-label="Группы характеристик">
+        <button type="button" role="tab" aria-selected={profileStatView==="divine"} className={profileStatView==="divine"?"active":""} onClick={()=>setProfileStatView("divine")}>Божественные характеристики</button>
+        <button type="button" role="tab" aria-selected={profileStatView==="base"} className={profileStatView==="base"?"active":""} onClick={()=>setProfileStatView("base")}>Статистика БЕТА</button>
+      </div>
+      {profileStatView==="divine" ? <div className="shugo-divine-ring" aria-label="Десять божественных характеристик">
+        {divineStats.map((stat,index)=>{
+          const angle=(-90+index*36)*Math.PI/180;
+          const left=50+39*Math.cos(angle);
+          const top=50+39*Math.sin(angle);
+          return <div className={"shugo-divine-stat"+(stat.entry?"":" is-missing")} key={stat.id} style={{left:left+"%",top:top+"%"}}>
+            <small>{stat.label}</small><strong>{stat.entry?text(stat.entry.value):"—"}</strong>
+          </div>;
+        })}
+        <div className="shugo-divine-center"><b>ДАЭВАНИОН</b><small>10 параметров</small></div>
+      </div> : <div className="shugo-base-hex" aria-label="Шесть базовых характеристик">
+        {baseStats.map(stat=><div className={"shugo-base-stat"+(stat.entry?"":" is-missing")} key={stat.id}>
+          <small>{stat.label}</small><strong>{stat.entry?text(stat.entry.value):"—"}</strong>
+        </div>)}
+      </div>}
+      <p className="stats-note">Значения берутся из ответа профиля. Если источник не прислал параметр, показывается «—», а не выдуманный ноль.</p>
+    </section>
     <div className="character-stats-filter">
       {[["all","Все"],["offense","Атака"],["defense","Защита"],["utility","Ресурсы"],["attributes","Атрибуты"],["other","Прочее"]].map(([id,label])=><button type="button" key={id} className={filter===id?"active":""} onClick={()=>setFilter(id)}>{label}</button>)}
     </div>
