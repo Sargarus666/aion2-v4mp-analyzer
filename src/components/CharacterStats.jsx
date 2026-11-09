@@ -98,7 +98,7 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
     // Object bonuses have their own stat name (e.g. "Double Resist") and
     // must not be replaced by the numeric value. String bonuses have only a
     // generated placeholder name, so keep the original effect text visible.
-    const generatedBonusName = nested && / · бонус \\d+$/.test(String(entry.name || ""));
+    const generatedBonusName = nested && / · бонус [0-9]+$/.test(String(entry.name || ""));
     const name = generatedBonusName
       ? String(entry.value || entry.name)
       : (entry.name || entry.statName || entry.type || "Параметр "+(index+1));
