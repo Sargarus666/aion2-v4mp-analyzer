@@ -230,7 +230,7 @@ export default function CharacterStats({ stats=[], equipment=[], boards=[], titl
     {expanded && cards.some(item=>item.key===expanded) && <section className="character-stat-detail">
       <div className="character-stat-detail-head"><span>РАЗБИВКА ИСТОЧНИКОВ</span><b>{localizeGameText(cards.find(item=>item.key===expanded).name)}</b></div>
       <SourceRows rows={cards.find(item=>item.key===expanded).sources.map(row=>({key:row.key,source:row.source,kind:row.kind,grade:row.grade,enchant:row.enchant,value:row.valueLabel || formatItemStat(row) || text(row.value)}))}/>
-      {boardEffects.filter(effect=>normalize(effect.name).includes(normalize(cards.find(item=>item.key===expanded).name)) || normalize(cards.find(item=>item.key===expanded).name).includes(normalize(effect.name))).length>0 && <SourceRows rows={boardEffects.filter(effect=>normalize(effect.name).includes(normalize(cards.find(item=>item.key===expanded).name))).map(effect=>({...effect,value:effect.value}))}/>}
+      {boardEffects.filter(effect=>normalize(effect.name).includes(normalize(cards.find(item=>item.key===expanded).name)) || normalize(cards.find(item=>item.key===expanded).name).includes(normalize(effect.name))).length>0 && <SourceRows rows={boardEffects.filter(effect=>normalize(effect.name).includes(normalize(cards.find(item=>item.key===expanded).name)) || normalize(cards.find(item=>item.key===expanded).name).includes(normalize(effect.name))).map(effect=>({...effect,value:effect.value}))}/>}
     </section>}
     <div className="character-profile-attributes">
       <div className="character-profile-attributes-head"><div><p className="eyebrow">БАЗОВЫЕ АТРИБУТЫ И БОНУСЫ</p><h3>Параметры персонажа</h3></div><span>{profileRows.length} строк NCSOFT</span></div>
