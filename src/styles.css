@@ -326,9 +326,6 @@ body {
   .top-actions { gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
   .top-actions .profile-link { padding: 8px 10px; font-size: 10px; }
 }
-@media (max-width: 380px) {
-  .top-actions .profile-link:nth-of-type(2) { display: none; }
-}
 
 .meta-section-head {
   display:flex;
