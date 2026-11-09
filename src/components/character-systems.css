@@ -174,3 +174,6 @@
   .shugo-divine-stat strong,.shugo-base-stat strong{font-size:14px}
   .shugo-base-hex{gap:6px;grid-template-rows:repeat(4,minmax(66px,auto))}
 }
+
+.daevanion-active-effects-title{grid-column:1/-1;display:flex;align-items:center;gap:7px;margin:2px 0 -5px;font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--md-sys-color-primary)}
+.daevanion-active-effects-title b{font-size:10px;font-variant-numeric:tabular-nums}
