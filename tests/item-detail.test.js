@@ -26,6 +26,30 @@ test("prefers item-detail grade over the compact equipment grade", async () => {
   assert.equal(summary.exceedLevel, 2);
   assert.equal(summary.soulBindRate, 100);
 });
+test("prefers the rarity grade field and exposes conflicting gradeName metadata", async () => {
+  const { getItemDetailSummary } = await import("../src/lib/item-detail.js");
+  const summary = getItemDetailSummary(
+    { grade: "Legend", gradeName: "Epic", enchantLevel: 0 },
+    { grade: "Legend", exceedLevel: 0 }
+  );
+  assert.equal(summary.grade, "Legend");
+  assert.equal(summary.gradeName, "Epic");
+  assert.equal(summary.gradeConflict, true);
+  assert.deepEqual(summary.gradeConflictValues, [
+    { source: "detail.grade", value: "Legend" },
+    { source: "equipment.grade", value: "Legend" },
+    { source: "detail.gradeName", value: "Epic" }
+  ]);
+});
+
+test("uses gradeName only as a fallback when no rarity grade is available", async () => {
+  const { getItemDetailSummary } = await import("../src/lib/item-detail.js");
+  const summary = getItemDetailSummary({ gradeName: "Epic" });
+  assert.equal(summary.grade, "Epic");
+  assert.equal(summary.gradeConflict, false);
+  assert.deepEqual(summary.gradeConflictValues, []);
+});
+
 test("keeps zero socket counts and does not invent missing binding data", async () => {
   const { getItemDetailSummary } = await import("../src/lib/item-detail.js");
   const summary = getItemDetailSummary({ magicStoneSlotCount: 0, godStoneSlotCount: 0 });

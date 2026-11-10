@@ -583,6 +583,7 @@ function EquipmentDetail({item}) {
   const summary=detail?getItemDetailSummary(detail,item):null;
   const summaryLabels=summary?[
     summary.grade!=null?localizeGameText(summary.grade):null,
+    summary.gradeConflict?"Конфликт полей NCSOFT: "+summary.gradeConflictValues.map(({source,value})=>source+"="+localizeGameText(value)).join(" / "):null,
     summary.enchantLevel!=null?"Заточка +"+summary.enchantLevel:null,
     summary.exceedLevel!=null?"Exceed +"+summary.exceedLevel:null,
     summary.soulBindRate!=null?"Soul Binding "+summary.soulBindRate+"%":null,
@@ -607,6 +608,14 @@ function equipmentCompareGroup(item) {
   if (/^bracelet[12]$/.test(slot)) return "Bracelet";
   if (/^rune[12]$/.test(slot)) return "Rune";
   return null;
+}
+function formatGradeSummary(summary) {
+  if (summary?.grade == null) return null;
+  if (!summary.gradeConflict) return summary.grade;
+  const fields = summary.gradeConflictValues
+    .map(({source,value}) => source+"="+localizeGameText(value))
+    .join(" / ");
+  return localizeGameText(summary.grade)+" · конфликт NCSOFT: "+fields;
 }
 function EquipmentComparison({items=[]}) {
   const pairs=useMemo(()=>{
@@ -669,7 +678,7 @@ function EquipmentComparison({items=[]}) {
   const currentSummary=result?getItemDetailSummary(result.currentDetail,currentChoice?.item):null;
   const candidateSummary=result?getItemDetailSummary(result.candidateDetail,candidateChoice?.item):null;
   const metaRows=currentSummary&&candidateSummary?[
-    ["Редкость",currentSummary.grade,candidateSummary.grade],
+    ["Редкость",formatGradeSummary(currentSummary),formatGradeSummary(candidateSummary)],
     ["Заточка",currentSummary.enchantLevel,candidateSummary.enchantLevel],
     ["Exceed",currentSummary.exceedLevel,candidateSummary.exceedLevel],
     ["Soul Binding",currentSummary.soulBindRate==null?null:currentSummary.soulBindRate+"%",candidateSummary.soulBindRate==null?null:candidateSummary.soulBindRate+"%"],

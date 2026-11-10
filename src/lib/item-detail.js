@@ -17,8 +17,21 @@ export function formatItemStat(stat) {
 
 export function getItemDetailSummary(detail, item = {}) {
   const first = (...values) => values.find(value => value !== undefined && value !== null && value !== "");
+  const gradeValues = [
+    { source: "detail.grade", value: detail?.grade },
+    { source: "equipment.grade", value: item?.grade },
+    { source: "detail.gradeName", value: detail?.gradeName }
+  ].filter(entry => entry.value != null && entry.value !== "");
+  const distinctGrades = new Set(gradeValues.map(entry => String(entry.value).trim().toLowerCase()));
+  const gradeConflict = distinctGrades.size > 1;
   return {
-    grade: first(detail?.gradeName, detail?.grade, item?.grade) ?? null,
+    // The compact profile and the detail response both identify rarity as
+    // "grade". Keep gradeName as a separate field and flag disagreements
+    // rather than silently allowing it to override the equipped item's grade.
+    grade: first(detail?.grade, item?.grade, detail?.gradeName) ?? null,
+    gradeName: first(detail?.gradeName) ?? null,
+    gradeConflict,
+    gradeConflictValues: gradeConflict ? gradeValues : [],
     enchantLevel: first(detail?.enchantLevel, item?.enchantLevel) ?? null,
     exceedLevel: first(detail?.exceedLevel, item?.exceedLevel) ?? null,
     soulBindRate: first(detail?.soulBindRate, item?.soulBindRate) ?? null,
