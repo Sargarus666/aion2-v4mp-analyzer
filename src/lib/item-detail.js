@@ -24,6 +24,25 @@ export function getItemDetailSummary(detail, item = {}) {
   ].filter(entry => entry.value != null && entry.value !== "");
   const distinctGrades = new Set(gradeValues.map(entry => String(entry.value).trim().toLowerCase()));
   const gradeConflict = distinctGrades.size > 1;
+  const hasOwn = (object, key) => object != null && Object.prototype.hasOwnProperty.call(object, key);
+  // An explicit null from item detail means "not supplied", not zero and not
+  // permission to silently fall back to the compact profile value.
+  const resolveDetailField = key => {
+    if (hasOwn(detail, key)) return detail[key] === "" ? null : detail[key];
+    const fallback = first(item?.[key]);
+    return fallback ?? null;
+  };
+  const detailHasExceed = hasOwn(detail, "exceedLevel");
+  const equipmentHasExceed = hasOwn(item, "exceedLevel") && item.exceedLevel !== undefined;
+  const detailExceed = detailHasExceed ? (detail.exceedLevel === "" ? null : detail.exceedLevel) : undefined;
+  const equipmentExceed = equipmentHasExceed ? (item.exceedLevel === "" ? null : item.exceedLevel) : undefined;
+  const exceedLevel = resolveDetailField("exceedLevel");
+  const exceedConflict = detailHasExceed && equipmentHasExceed &&
+    String(detailExceed) !== String(equipmentExceed);
+  const exceedEvidence = [
+    ...(detailHasExceed ? [{ source: "detail", value: detailExceed }] : []),
+    ...(equipmentHasExceed ? [{ source: "equipment", value: equipmentExceed }] : [])
+  ];
   return {
     // The compact profile and the detail response both identify rarity as
     // "grade". Keep gradeName as a separate field and flag disagreements
@@ -32,11 +51,14 @@ export function getItemDetailSummary(detail, item = {}) {
     gradeName: first(detail?.gradeName) ?? null,
     gradeConflict,
     gradeConflictValues: gradeConflict ? gradeValues : [],
-    enchantLevel: first(detail?.enchantLevel, item?.enchantLevel) ?? null,
-    exceedLevel: first(detail?.exceedLevel, item?.exceedLevel) ?? null,
-    soulBindRate: first(detail?.soulBindRate, item?.soulBindRate) ?? null,
-    magicStoneSlotCount: first(detail?.magicStoneSlotCount) ?? null,
-    godStoneSlotCount: first(detail?.godStoneSlotCount) ?? null
+    enchantLevel: resolveDetailField("enchantLevel"),
+    exceedLevel,
+    exceedKnown: exceedLevel != null,
+    exceedConflict,
+    exceedEvidence,
+    soulBindRate: resolveDetailField("soulBindRate"),
+    magicStoneSlotCount: resolveDetailField("magicStoneSlotCount"),
+    godStoneSlotCount: resolveDetailField("godStoneSlotCount")
   };
 }
 

@@ -90,3 +90,23 @@ test("compares stones and skill bonuses as separate categories", () => {
   assert.equal(groups[0].stats[0].valueDelta, 3);
   assert.equal(groups[1].stats[0].status, "unknown");
 });
+
+test("keeps explicit null exceed unknown instead of replacing it with compact zero", async () => {
+  const { getItemDetailSummary } = await import("../src/lib/item-detail.js");
+  const summary = getItemDetailSummary({ exceedLevel: null }, { exceedLevel: 0 });
+  assert.equal(summary.exceedLevel, null);
+  assert.equal(summary.exceedKnown, false);
+  assert.equal(summary.exceedConflict, true);
+  assert.deepEqual(summary.exceedEvidence, [
+    { source: "detail", value: null },
+    { source: "equipment", value: 0 }
+  ]);
+});
+
+test("uses compact exceed zero only when item detail omits the field", async () => {
+  const { getItemDetailSummary } = await import("../src/lib/item-detail.js");
+  const summary = getItemDetailSummary({}, { exceedLevel: 0 });
+  assert.equal(summary.exceedLevel, 0);
+  assert.equal(summary.exceedKnown, true);
+  assert.equal(summary.exceedConflict, false);
+});

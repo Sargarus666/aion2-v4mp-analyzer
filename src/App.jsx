@@ -581,11 +581,13 @@ function EquipmentDetail({item}) {
   }
   const rows=[["Основные характеристики",detail?.mainStats],["Дополнительные характеристики",detail?.subStats],["Камни",detail?.magicStoneStat],["Божественные камни",detail?.godStoneStat],["Доп. навыки",detail?.subSkills]];
   const summary=detail?getItemDetailSummary(detail,item):null;
+  const exceedEvidenceLabel=summary?.exceedEvidence?.map(({source,value})=>(source==="detail"?"детализация":"профиль")+": "+(value==null?"нет значения":"+"+value)).join(" / ");
+  const exceedLabel=summary?(summary.exceedKnown?"Exceed +"+summary.exceedLevel:"Exceed неизвестно")+(summary.exceedConflict?" · конфликт полей: "+exceedEvidenceLabel:(!summary.exceedKnown&&exceedEvidenceLabel?" · "+exceedEvidenceLabel:"")):null;
   const summaryLabels=summary?[
     summary.grade!=null?localizeGameText(summary.grade):null,
     summary.gradeConflict?"Конфликт полей NCSOFT: "+summary.gradeConflictValues.map(({source,value})=>source+"="+localizeGameText(value)).join(" / "):null,
     summary.enchantLevel!=null?"Заточка +"+summary.enchantLevel:null,
-    summary.exceedLevel!=null?"Exceed +"+summary.exceedLevel:null,
+    exceedLabel,
     summary.soulBindRate!=null?"Soul Binding "+summary.soulBindRate+"%":null,
     summary.magicStoneSlotCount!=null?"Слоты камней "+summary.magicStoneSlotCount:null,
     summary.godStoneSlotCount!=null?"Слоты божественных камней "+summary.godStoneSlotCount:null
