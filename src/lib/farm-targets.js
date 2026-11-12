@@ -65,15 +65,16 @@ function matchesSlot(item, slot) {
 
 function currentItemLevel(item) {
   const name = readField(item, "name");
+  const enchant = parseOptionalNumber(readField(item, "enchantLevel"));
+  const exceed = parseOptionalNumber(readField(item, "exceedLevel"));
+  // This shortlist models base item level + enchant only. Require explicit
+  // numeric values: absent/null enchant or exceed is unknown, not zero.
+  // Positive exceed is also unsupported until its item-level contribution
+  // is modelled from a verified source.
+  if (enchant == null || exceed == null || exceed > 0) return null;
   const apiLevel = parseOptionalNumber(readField(item, "itemLevel"));
   const baseLevel = apiLevel ?? CURRENT_ITEM_BASE_LEVELS[name];
   if (baseLevel == null) return null;
-  const enchant = parseOptionalNumber(readField(item, "enchantLevel")) ?? 0;
-  const exceed = parseOptionalNumber(readField(item, "exceedLevel")) ?? 0;
-  // The observed public equipment payload exposes exceedLevel, but the
-  // current item-level comparison model does not include its contribution.
-  // Refuse to rank this item rather than silently undercounting it.
-  if (exceed > 0) return null;
   return { level: baseLevel + enchant, baseLevel, enchant, name: String(name || "Предмет") };
 }
 
@@ -104,7 +105,8 @@ export function assessFarmTargetCandidate(candidate, equipment = []) {
       const current = currentItemLevel(item);
       let status = "unknown";
       let statusText = "Базовый iLvl текущего предмета не подтверждён — сравни вручную.";
-      const exceed = parseOptionalNumber(readField(item, "exceedLevel")) ?? 0;
+      const exceed = parseOptionalNumber(readField(item, "exceedLevel"));
+      const enchant = parseOptionalNumber(readField(item, "enchantLevel"));
       if (current) {
         if (current.level > targetMax) {
           status = "skip";
@@ -119,8 +121,12 @@ export function assessFarmTargetCandidate(candidate, equipment = []) {
             ? `Кандидат: базовый iLvl цели ${targetBase} выше текущего ${current.level}.`
             : `Кандидат после +${neededEnhance}: цель может сравняться с текущим iLvl ${current.level} (максимум ${targetMax}).`;
         }
+      } else if (exceed == null) {
+        statusText = "Exceed неизвестен — автоматическое сравнение не выполнялось.";
       } else if (exceed > 0) {
         statusText = `Не сравнивать автоматически: превышение +${exceed} не включено в модель iLvl; проверь предмет вручную.`;
+      } else if (enchant == null) {
+        statusText = "Заточка неизвестна — автоматическое сравнение не выполнялось.";
       }
       rows.push({
         slot,
@@ -163,7 +169,7 @@ export function rankFarmUpgradeCandidates(equipment = [], candidates = [], chara
       const currentName = String(readField(item, "name") || "Предмет");
       const sameItem = currentName.trim().toLowerCase() === String(candidate.name || "").trim().toLowerCase();
       const rawSlot = String(readField(item, "slotPosName") || slot);
-      const position = rawSlot.match(/(\\d+)$/)?.[1];
+      const position = rawSlot.match(/(\d+)$/)?.[1];
       const baseLabel = SLOT_LABELS[slot] || slot;
       const slotLabel = matches.length > 1 ? baseLabel + " " + (position || (index + 1)) : baseLabel;
       const requiredItemLevel = parseOptionalNumber(candidate.requiredItemLevel);
