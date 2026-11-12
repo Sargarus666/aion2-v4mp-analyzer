@@ -205,3 +205,14 @@ test("labels a lone second earring by its actual NCSOFT slot suffix", () => {
   assert.equal(rows[0].slotLabel, "Серьги 2");
   assert.equal(rows[0].status, "candidate");
 });
+
+
+test("keeps the actual paired-slot suffix in ranked upgrade rows", () => {
+  const rows = rankFarmUpgradeCandidates(
+    [{ name: "Aulamus Earrings", slotPosName: "Earring2", enchantLevel: 10, exceedLevel: 0 }],
+    [{ slot: "Earring", name: "Enraged Kromede Earrings", itemLevel: 86, maxEnhance: 15 }],
+    2249
+  );
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].slotLabel, "Серьги 2");
+});

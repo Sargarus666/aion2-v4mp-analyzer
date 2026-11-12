@@ -567,11 +567,17 @@ function VisualRow({item,kind}) {
 function EquipmentDetail({item}) {
   const [detail,setDetail]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState("");
   const id=get(item,"id","itemId"),slotPos=get(item,"slotPos");
+  const enchantLevel=parseOptionalNumber(get(item,"enchantLevel"));
+  const exceedLevel=parseOptionalNumber(get(item,"exceedLevel"));
   async function load() {
     if(detail||busy||!id||!slotPos)return;
+    if(enchantLevel==null||exceedLevel==null) {
+      setError("Заточка или Exceed неизвестны в профиле NCSOFT — запрос подробностей не выполнен.");
+      return;
+    }
     setBusy(true);setError("");
     try {
-      const params=new URLSearchParams({id:String(id),slotPos:String(slotPos),enchantLevel:String(get(item,"enchantLevel")??0),exceedLevel:String(get(item,"exceedLevel")??0)});
+      const params=new URLSearchParams({id:String(id),slotPos:String(slotPos),enchantLevel:String(enchantLevel),exceedLevel:String(exceedLevel)});
       const response=await fetch("/api/equipment-item?"+params.toString(),{cache:"no-store",signal:AbortSignal.timeout(12000)});
       const result=await response.json();
       if(!response.ok||!result.ok)throw new Error(result.error||"Не удалось получить характеристики предмета");

@@ -63,6 +63,11 @@ function matchesSlot(item, slot) {
     .some(candidate => normalize(candidate) === normalize(current));
 }
 
+function slotPosition(item) {
+  const value = readField(item, "slotPosName");
+  return String(value ?? "").match(/([0-9]+)$/)?.[1] ?? null;
+}
+
 function currentItemLevel(item) {
   const name = readField(item, "name");
   const enchant = parseOptionalNumber(readField(item, "enchantLevel"));
@@ -128,9 +133,11 @@ export function assessFarmTargetCandidate(candidate, equipment = []) {
       } else if (enchant == null) {
         statusText = "Заточка неизвестна — автоматическое сравнение не выполнялось.";
       }
+      const position = slotPosition(item);
+      const baseLabel = SLOT_LABELS[slot] || slot;
       rows.push({
         slot,
-        slotLabel: matches.length > 1 ? `${SLOT_LABELS[slot] || slot} ${index + 1}` : (SLOT_LABELS[slot] || slot),
+        slotLabel: matches.length > 1 || position ? baseLabel + " " + (position || (index + 1)) : baseLabel,
         currentName: current?.name || String(readField(item, "name") || "Предмет"),
         currentLevel: current?.level ?? null,
         enchantLevel: current?.enchant ?? parseOptionalNumber(readField(item, "enchantLevel")),
@@ -168,10 +175,11 @@ export function rankFarmUpgradeCandidates(equipment = [], candidates = [], chara
 
       const currentName = String(readField(item, "name") || "Предмет");
       const sameItem = currentName.trim().toLowerCase() === String(candidate.name || "").trim().toLowerCase();
-      const rawSlot = String(readField(item, "slotPosName") || slot);
-      const position = rawSlot.match(/(\d+)$/)?.[1];
+      const position = slotPosition(item);
       const baseLabel = SLOT_LABELS[slot] || slot;
-      const slotLabel = matches.length > 1 ? baseLabel + " " + (position || (index + 1)) : baseLabel;
+      const slotLabel = matches.length > 1 || position
+        ? baseLabel + " " + (position || (index + 1))
+        : baseLabel;
       const requiredItemLevel = parseOptionalNumber(candidate.requiredItemLevel);
       const availableNow = requiredItemLevel == null || requiredItemLevel <= 0 ||
         (characterLevel != null && characterLevel >= requiredItemLevel);

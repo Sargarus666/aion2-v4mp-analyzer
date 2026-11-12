@@ -2,12 +2,23 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { onRequestGet } from "../functions/api/equipment-item.js";
 
-test("rejects incomplete item identifiers without upstream requests",async()=>{
+test("rejects missing or empty enhancement parameters without upstream requests",async()=>{
  const originalFetch=globalThis.fetch;let calls=0;
  globalThis.fetch=async()=>{calls+=1;throw new Error("must not fetch");};
+ const queries=[
+  "id=901&slotPos=11",
+  "id=901&slotPos=11&enchantLevel=12",
+  "id=901&slotPos=11&exceedLevel=0",
+  "id=901&slotPos=11&enchantLevel=&exceedLevel=0",
+  "id=901&slotPos=11&enchantLevel=12&exceedLevel="
+ ];
  try{
-  const response=await onRequestGet({request:new Request("https://example.test/api/equipment-item?id=0&slotPos=1")});
-  assert.equal(response.status,400);assert.equal((await response.json()).ok,false);assert.equal(calls,0);
+  for(const query of queries){
+   const response=await onRequestGet({request:new Request("https://example.test/api/equipment-item?"+query)});
+   assert.equal(response.status,400);
+   assert.equal((await response.json()).ok,false);
+  }
+  assert.equal(calls,0);
  }finally{globalThis.fetch=originalFetch;}
 });
 

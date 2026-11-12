@@ -3,10 +3,12 @@ export async function onRequestGet({request}={}) {
   try {
     const query=new URL(request.url).searchParams;
     const id=Number(query.get("id")),slotPos=Number(query.get("slotPos"));
-    const enchantLevel=Number(query.get("enchantLevel")??0),exceedLevel=Number(query.get("exceedLevel")??0);
+    const enchantRaw=query.get("enchantLevel"),exceedRaw=query.get("exceedLevel");
+    const enchantLevel=enchantRaw==null||enchantRaw.trim()===""?NaN:Number(enchantRaw);
+    const exceedLevel=exceedRaw==null||exceedRaw.trim()===""?NaN:Number(exceedRaw);
     if(!Number.isSafeInteger(id)||id<=0||!Number.isSafeInteger(slotPos)||slotPos<=0||
        !Number.isSafeInteger(enchantLevel)||enchantLevel<0||!Number.isSafeInteger(exceedLevel)||exceedLevel<0) {
-      return Response.json({ok:false,error:"Нужны корректные id и slotPos предмета из профиля NCSOFT."},{status:400,headers:{"Cache-Control":"no-store","X-Content-Type-Options":"nosniff"}});
+      return Response.json({ok:false,error:"Нужны корректные id, slotPos, enchantLevel и exceedLevel из профиля NCSOFT."},{status:400,headers:{"Cache-Control":"no-store","X-Content-Type-Options":"nosniff"}});
     }
     const params=new URLSearchParams({region:CHARACTER.region,lang:"en-US",characterId:CHARACTER.characterId,serverId:CHARACTER.serverId,id:String(id),slotPos:String(slotPos),enchantLevel:String(enchantLevel),exceedLevel:String(exceedLevel)});
     const upstream=await fetch("https://aion2.plaync.com/api/character/equipment/item?"+params.toString(),{headers:{Accept:"application/json, text/plain, */*","User-Agent":"Mozilla/5.0 (compatible; AION2BuildLab/1.0)",Referer:"https://aion2.plaync.com/"},signal:AbortSignal.timeout(10000),cf:{cacheTtl:45,cacheEverything:true}});
