@@ -1,6 +1,8 @@
 name: Daily site monitor
 
 on:
+  push:
+    branches: [main]
   schedule:
     # Daily at 09:00 Moscow time (UTC+3).
     - cron: "0 6 * * *"
