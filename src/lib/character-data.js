@@ -173,9 +173,9 @@ export function parseOptionalNumber(value) {
   const text = value.trim();
   if (!text) return null;
   const numericText = text.endsWith("%") ? text.slice(0, -1).trim() : text;
-  const validNumber = /^[+-]?(?:\\d+|\\d{1,3}(?:,\\d{3})+|\\d{1,3}(?:[ \\u00a0\\u202f]\\d{3})+)(?:\\.\\d+)?$/;
+  const validNumber = /^[+-]?(?:\d+|\d{1,3}(?:,\d{3})+|\d{1,3}(?:[ \u00a0\u202f]\d{3})+)(?:\.\d+)?$/;
   if (!validNumber.test(numericText)) return null;
-  const normalized = numericText.replace(/[,\\s\\u00a0\\u202f]/g, "");
+  const normalized = numericText.replace(/[, \u00a0\u202f]/g, "");
   const number = Number(normalized);
   return Number.isFinite(number) ? number : null;
 }
