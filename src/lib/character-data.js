@@ -168,9 +168,14 @@ export function hasUsefulProfileData(data = {}) {
 }
 
 export function parseOptionalNumber(value) {
-  if (value == null || value === "") return null;
-  const normalized = String(value).replace(/[^0-9.-]/g, "");
-  if (!normalized) return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value !== "string") return null;
+  const text = value.trim();
+  if (!text) return null;
+  const numericText = text.endsWith("%") ? text.slice(0, -1).trim() : text;
+  const validNumber = /^[+-]?(?:\\d+|\\d{1,3}(?:,\\d{3})+|\\d{1,3}(?:[ \\u00a0\\u202f]\\d{3})+)(?:\\.\\d+)?$/;
+  if (!validNumber.test(numericText)) return null;
+  const normalized = numericText.replace(/[,\\s\\u00a0\\u202f]/g, "");
   const number = Number(normalized);
   return Number.isFinite(number) ? number : null;
 }

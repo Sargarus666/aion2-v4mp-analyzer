@@ -313,8 +313,17 @@ test("does not coerce missing Daevanion counters into zero", () => {
 test("keeps a missing item level distinct from zero", () => {
   assert.equal(parseOptionalNumber(null), null);
   assert.equal(parseOptionalNumber(""), null);
+  assert.equal(parseOptionalNumber(0), 0);
   assert.equal(parseOptionalNumber("2 212"), 2212);
   assert.equal(parseOptionalNumber("2,212"), 2212);
+  assert.equal(parseOptionalNumber("+2,387"), 2387);
+  assert.equal(parseOptionalNumber("-0.7%"), -0.7);
+});
+
+test("does not extract misleading numbers from malformed API strings", () => {
+  for (const value of ["1e3", "12abc34", "1.2.3", "--1", "177–223", "Infinity", "12,34"]) {
+    assert.equal(parseOptionalNumber(value), null, value);
+  }
 });
 
 
