@@ -119,6 +119,11 @@ test("builds item-detail params when every source value is known, including real
   }), {
     id: "110430048", slotPos: "1", enchantLevel: "0", exceedLevel: "0"
   });
+  assert.deepEqual(buildItemDetailRequestParams({
+    id: "110430048", slotPos: "1", enchantLevel: "0", exceedLevel: "0"
+  }), {
+    id: "110430048", slotPos: "1", enchantLevel: "0", exceedLevel: "0"
+  });
 });
 
 test("does not replace missing or explicit null enhancement values with zero", () => {

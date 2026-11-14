@@ -19,7 +19,7 @@ function parseItemInteger(value, minimum) {
   let parsed;
   if (typeof value === "number") {
     parsed = value;
-  } else if (typeof value === "string" && /^\\d+$/.test(value.trim())) {
+  } else if (typeof value === "string" && /^\d+$/.test(value.trim())) {
     parsed = Number(value.trim());
   } else {
     return null;
