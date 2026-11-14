@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { compareItemDetails, formatItemStat } from "../src/lib/item-detail.js";
+import { buildItemDetailRequestParams, compareItemDetails, formatItemStat } from "../src/lib/item-detail.js";
+import { readFile } from "node:fs/promises";
 
 test("formats a base range and additional item enhancement value", () => {
   assert.equal(formatItemStat({ minValue: 177, value: 223, extra: 55 }), "177–223 (+55)");
@@ -109,4 +110,52 @@ test("uses compact exceed zero only when item detail omits the field", async () 
   assert.equal(summary.exceedLevel, 0);
   assert.equal(summary.exceedKnown, true);
   assert.equal(summary.exceedConflict, false);
+});
+
+
+test("builds item-detail params when every source value is known, including real zeroes", () => {
+  assert.deepEqual(buildItemDetailRequestParams({
+    id: 110430048, slotPos: 1, enchantLevel: 0, exceedLevel: 0
+  }), {
+    id: "110430048", slotPos: "1", enchantLevel: "0", exceedLevel: "0"
+  });
+});
+
+test("does not replace missing or explicit null enhancement values with zero", () => {
+  assert.equal(buildItemDetailRequestParams({
+    id: 110430048, slotPos: 1, enchantLevel: 15
+  }), null);
+  assert.equal(buildItemDetailRequestParams({
+    id: 110430048, slotPos: 1, exceedLevel: 0
+  }), null);
+  assert.equal(buildItemDetailRequestParams({
+    id: 110430048, slotPos: 1, enchantLevel: null, exceedLevel: 0
+  }), null);
+  assert.equal(buildItemDetailRequestParams({
+    id: 110430048, slotPos: 1, enchantLevel: 15, exceedLevel: null
+  }), null);
+});
+
+test("rejects malformed, negative, fractional and unsafe item-detail parameters", () => {
+  for (const value of ["1e3", "1.0", "-1", "abc", "9007199254740992", 1.5, -1, Infinity]) {
+    assert.equal(buildItemDetailRequestParams({
+      id: 110430048, slotPos: 1, enchantLevel: value, exceedLevel: 0
+    }), null, String(value));
+  }
+  assert.equal(buildItemDetailRequestParams({
+    id: 0, slotPos: 1, enchantLevel: 0, exceedLevel: 0
+  }), null);
+});
+
+test("detail and comparison UI share the strict request-parameter builder", async () => {
+  const app = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+  const detailStart = app.indexOf("function EquipmentDetail(");
+  const compareStart = app.indexOf("function EquipmentComparison(");
+  const compareEnd = app.indexOf("function Empty(", compareStart);
+  const detail = app.slice(detailStart, app.indexOf("function equipmentCompareGroup", detailStart));
+  const comparison = app.slice(compareStart, compareEnd);
+  assert.ok(detail.includes("buildItemDetailRequestParams"));
+  assert.ok(comparison.includes("buildItemDetailRequestParams"));
+  assert.equal(comparison.includes('get(item,"enchantLevel")??0'), false);
+  assert.equal(comparison.includes('get(item,"exceedLevel")??0'), false);
 });

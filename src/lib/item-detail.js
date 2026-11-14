@@ -15,6 +15,36 @@ export function formatItemStat(stat) {
   return result;
 }
 
+function parseItemInteger(value, minimum) {
+  let parsed;
+  if (typeof value === "number") {
+    parsed = value;
+  } else if (typeof value === "string" && /^\\d+$/.test(value.trim())) {
+    parsed = Number(value.trim());
+  } else {
+    return null;
+  }
+  return Number.isSafeInteger(parsed) && parsed >= minimum ? parsed : null;
+}
+
+/**
+ * Builds a detail request only when every required value came from the item.
+ * Explicit zero is valid; missing, null, malformed or unsafe values stay unknown.
+ */
+export function buildItemDetailRequestParams(item = {}) {
+  const id = parseItemInteger(item.id ?? item.itemId, 1);
+  const slotPos = parseItemInteger(item.slotPos, 1);
+  const enchantLevel = parseItemInteger(item.enchantLevel, 0);
+  const exceedLevel = parseItemInteger(item.exceedLevel, 0);
+  if ([id, slotPos, enchantLevel, exceedLevel].some(value => value === null)) return null;
+  return {
+    id: String(id),
+    slotPos: String(slotPos),
+    enchantLevel: String(enchantLevel),
+    exceedLevel: String(exceedLevel)
+  };
+}
+
 export function getItemDetailSummary(detail, item = {}) {
   const first = (...values) => values.find(value => value !== undefined && value !== null && value !== "");
   const gradeValues = [
